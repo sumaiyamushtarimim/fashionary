@@ -81,14 +81,14 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <TooltipProvider>
-                    <div className="flex flex-wrap items-center gap-4">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
                         {quickAccessItems.map((item) => (
                             <Tooltip key={item.href}>
                                 <TooltipTrigger asChild>
                                 <Link href={item.href}>
-                                    <Button variant="outline" size="lg" className="flex flex-col h-auto p-4 gap-2 sm:h-20 sm:w-20 sm:p-0">
+                                    <Button variant="outline" size="lg" className="flex flex-col h-20 w-full p-0">
                                         <item.icon className="h-7 w-7 text-muted-foreground" />
-                                        <span className="text-xs font-normal sm:hidden">{item.label}</span>
+                                        <span className="text-xs font-normal mt-1 sm:hidden">{item.label}</span>
                                     </Button>
                                 </Link>
                                 </TooltipTrigger>
