@@ -67,7 +67,7 @@ export default function OrdersPage() {
                         <TableHead>Customer</TableHead>
                         <TableHead className="hidden md:table-cell">Date</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead className="hidden text-right sm:table-cell">Total</TableHead>
                         <TableHead>
                             <span className="sr-only">Actions</span>
                         </TableHead>
@@ -96,7 +96,7 @@ export default function OrdersPage() {
                                 {order.status}
                             </Badge>
                         </TableCell>
-                        <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+                        <TableCell className="hidden text-right sm:table-cell">${order.total.toFixed(2)}</TableCell>
                         <TableCell>
                             <DropdownMenu>
                             <DropdownMenuTrigger asChild>
