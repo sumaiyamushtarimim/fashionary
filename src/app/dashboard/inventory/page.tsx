@@ -70,10 +70,15 @@ export default function InventoryPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    {item.quantity}
-                    {item.quantity <= 10 && (
-                      <Badge variant="destructive" className="ml-2">Low Stock</Badge>
-                    )}
+                    <div className="flex items-center justify-end gap-2">
+                      <span>{item.quantity}</span>
+                      {item.quantity <= 10 && (
+                        <Badge variant="destructive" className="ml-2 hidden sm:inline-flex">Low Stock</Badge>
+                      )}
+                       {item.quantity <= 10 && (
+                        <div className="sm:hidden h-2 w-2 rounded-full bg-red-500" title="Low Stock"></div>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">{item.location}</TableCell>
                   <TableCell>
