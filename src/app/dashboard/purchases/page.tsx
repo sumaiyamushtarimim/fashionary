@@ -50,7 +50,7 @@ export default function PurchasesPage() {
                 <TableHead>Supplier</TableHead>
                 <TableHead className="hidden sm:table-cell">Date</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="hidden text-right sm:table-cell">Total</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -65,7 +65,7 @@ export default function PurchasesPage() {
                   <TableCell>
                     <Badge variant={po.status === 'Received' ? 'default' : 'outline'}>{po.status}</Badge>
                   </TableCell>
-                  <TableCell className="text-right">${po.total.toFixed(2)}</TableCell>
+                  <TableCell className="hidden text-right sm:table-cell">${po.total.toFixed(2)}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
