@@ -10,7 +10,7 @@ import {
   ShoppingCart,
   Warehouse,
   Truck,
-  Building,
+  Handshake,
 } from "lucide-react";
 import Link from "next/link";
 import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell } from "recharts";
@@ -68,7 +68,7 @@ const quickAccessItems = [
     { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
     { href: "/dashboard/customers", icon: Users, label: "Customers" },
     { href: "/dashboard/purchases", icon: Truck, label: "Purchases" },
-    { href: "/dashboard/suppliers", icon: Building, label: "Suppliers" },
+    { href: "/dashboard/partners", icon: Handshake, label: "Partners" },
 ]
 
 export default function Dashboard() {

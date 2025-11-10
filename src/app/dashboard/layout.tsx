@@ -14,7 +14,7 @@ import {
   User,
   PanelLeft,
   Building,
-  Scissors,
+  Handshake,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,8 +36,7 @@ const navItems = [
   { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
   { href: "/dashboard/customers", icon: Users, label: "Customers" },
   { href: "/dashboard/purchases", icon: Truck, label: "Purchases" },
-  { href: "/dashboard/suppliers", icon: Building, label: "Suppliers" },
-  { href: "/dashboard/vendors", icon: Scissors, label: "Vendors" },
+  { href: "/dashboard/partners", icon: Handshake, label: "Partners" },
   { href: "/dashboard/staff", icon: User, label: "Staff" },
 ];
 
