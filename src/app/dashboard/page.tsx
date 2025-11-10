@@ -189,7 +189,7 @@ export default function Dashboard() {
                 <PieChart>
                     <ChartTooltip content={<ChartTooltipContent nameKey="status" hideLabel />} />
                     <Pie data={ordersByStatusData} dataKey="value" nameKey="status" innerRadius={60}>
-                       {ordersByStatusyData.map((entry, index) => (
+                       {ordersByStatusData.map((entry, index) => (
                          <Cell key={`cell-${index}`} fill={entry.fill} />
                        ))}
                     </Pie>
