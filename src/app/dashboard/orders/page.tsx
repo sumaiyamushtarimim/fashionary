@@ -36,15 +36,13 @@ import { orders } from "@/lib/placeholder-data";
 export default function OrdersPage() {
   return (
     <Tabs defaultValue="all">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-4">
-          <div>
-            <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="new">New</TabsTrigger>
-              <TabsTrigger value="processing">Processing</TabsTrigger>
-              <TabsTrigger value="completed" className="hidden sm:flex">Completed</TabsTrigger>
-            </TabsList>
-          </div>
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <TabsList>
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="new">New</TabsTrigger>
+            <TabsTrigger value="processing">Processing</TabsTrigger>
+            <TabsTrigger value="completed" className="hidden sm:flex">Completed</TabsTrigger>
+          </TabsList>
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline">
               Export
