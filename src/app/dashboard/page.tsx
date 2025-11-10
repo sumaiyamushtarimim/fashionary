@@ -88,7 +88,8 @@ export default function Dashboard() {
                                 <Link href={item.href}>
                                     <Button variant="outline" className="flex flex-col h-20 w-full p-2 aspect-square justify-center items-center">
                                         <item.icon className="h-6 w-6 text-muted-foreground" />
-                                        <span className="text-xs font-normal mt-1">{item.label}</span>
+                                        <span className="text-xs font-normal mt-1 sm:hidden">{item.label}</span>
+                                        <span className="hidden sm:inline text-xs font-normal mt-1">{item.label}</span>
                                     </Button>
                                 </Link>
                                 </TooltipTrigger>
@@ -103,7 +104,7 @@ export default function Dashboard() {
           </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
