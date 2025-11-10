@@ -48,7 +48,7 @@ export default function PurchasesPage() {
               <TableRow>
                 <TableHead>PO Number</TableHead>
                 <TableHead>Supplier</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead className="hidden sm:table-cell">Date</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead>
@@ -61,7 +61,7 @@ export default function PurchasesPage() {
                 <TableRow key={po.id}>
                   <TableCell className="font-medium">{po.id}</TableCell>
                   <TableCell>{po.supplier}</TableCell>
-                  <TableCell>{po.date}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{po.date}</TableCell>
                   <TableCell>
                     <Badge variant={po.status === 'Received' ? 'default' : 'outline'}>{po.status}</Badge>
                   </TableCell>

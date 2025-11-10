@@ -47,9 +47,9 @@ export default function StaffPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
+                <TableHead className="hidden md:table-cell">Email</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead>Last Login</TableHead>
+                <TableHead className="hidden sm:table-cell">Last Login</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -59,11 +59,11 @@ export default function StaffPage() {
               {staff.map((member) => (
                 <TableRow key={member.id}>
                   <TableCell className="font-medium">{member.name}</TableCell>
-                  <TableCell>{member.email}</TableCell>
+                  <TableCell className="hidden md:table-cell">{member.email}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{member.role}</Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     {formatDistanceToNow(new Date(member.lastLogin), { addSuffix: true })}
                   </TableCell>
                   <TableCell>

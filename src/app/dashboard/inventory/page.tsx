@@ -49,10 +49,10 @@ export default function InventoryPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Product</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>Lot (FIFO)</TableHead>
+                <TableHead className="hidden sm:table-cell">SKU</TableHead>
+                <TableHead className="hidden md:table-cell">Lot (FIFO)</TableHead>
                 <TableHead className="text-right">Quantity</TableHead>
-                <TableHead>Location</TableHead>
+                <TableHead className="hidden lg:table-cell">Location</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -62,8 +62,8 @@ export default function InventoryPage() {
               {inventory.map((item) => (
                 <TableRow key={item.id} className={item.quantity <= 10 ? "bg-destructive/10" : ""}>
                   <TableCell className="font-medium">{item.productName}</TableCell>
-                  <TableCell>{item.sku}</TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">{item.sku}</TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <div className="flex flex-col">
                         <span>{item.lotNumber}</span>
                         <span className="text-xs text-muted-foreground">{item.receivedDate}</span>
@@ -75,7 +75,7 @@ export default function InventoryPage() {
                       <Badge variant="destructive" className="ml-2">Low Stock</Badge>
                     )}
                   </TableCell>
-                  <TableCell>{item.location}</TableCell>
+                  <TableCell className="hidden lg:table-cell">{item.location}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

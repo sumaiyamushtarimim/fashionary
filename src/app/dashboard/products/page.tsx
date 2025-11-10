@@ -50,7 +50,7 @@ export default function ProductsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px] sm:table-cell">
+                <TableHead className="hidden w-[100px] sm:table-cell">
                   <span className="sr-only">Image</span>
                 </TableHead>
                 <TableHead>Name</TableHead>
@@ -66,7 +66,7 @@ export default function ProductsPage() {
             <TableBody>
               {products.map((product) => (
                 <TableRow key={product.id}>
-                  <TableCell className="sm:table-cell">
+                  <TableCell className="hidden sm:table-cell">
                     <Image
                       alt={product.name}
                       className="aspect-square rounded-md object-cover"
