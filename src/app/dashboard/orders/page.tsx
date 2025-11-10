@@ -36,7 +36,7 @@ import { orders } from "@/lib/placeholder-data";
 export default function OrdersPage() {
   return (
     <Tabs defaultValue="all">
-        <div className="flex items-center">
+        <div className="flex flex-wrap items-center gap-4">
           <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="new">New</TabsTrigger>
