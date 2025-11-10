@@ -86,7 +86,7 @@ export default function Dashboard() {
                             <Tooltip key={item.href}>
                                 <TooltipTrigger asChild>
                                 <Link href={item.href}>
-                                    <Button variant="outline" size="lg" className="flex flex-col h-auto p-4 gap-2">
+                                    <Button variant="outline" size="lg" className="flex flex-col h-auto p-4 gap-2 sm:h-20 sm:w-20 sm:p-0">
                                         <item.icon className="h-7 w-7 text-muted-foreground" />
                                         <span className="text-xs font-normal sm:hidden">{item.label}</span>
                                     </Button>
@@ -189,7 +189,7 @@ export default function Dashboard() {
                 <PieChart>
                     <ChartTooltip content={<ChartTooltipContent nameKey="status" hideLabel />} />
                     <Pie data={ordersByStatusData} dataKey="value" nameKey="status" innerRadius={60}>
-                       {ordersByStatusData.map((entry, index) => (
+                       {ordersByStatusyData.map((entry, index) => (
                          <Cell key={`cell-${index}`} fill={entry.fill} />
                        ))}
                     </Pie>
