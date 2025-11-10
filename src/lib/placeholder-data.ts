@@ -58,6 +58,25 @@ export type StaffMember = {
     lastLogin: string;
 };
 
+export type Supplier = {
+    id: string;
+    name: string;
+    contactPerson: string;
+    email: string;
+    phone: string;
+    address: string;
+};
+
+export type Vendor = {
+    id: string;
+    name: string;
+    type: 'Printing' | 'Cutting';
+    contactPerson: string;
+    email: string;
+    phone: string;
+    rate: string;
+};
+
 export const products: Product[] = [
   { id: 'PROD001', name: 'Organic Cotton T-Shirt', description: 'Soft, breathable, and eco-friendly.', price: 25.00, inventory: 150, image: PlaceHolderImages[0] },
   { id: 'PROD002', name: 'Slim Fit Denim Jeans', description: 'Classic five-pocket styling.', price: 79.99, inventory: 80, image: PlaceHolderImages[1] },
@@ -104,6 +123,21 @@ export const staff: StaffMember[] = [
     { id: 'STAFF003', name: 'Emily White', email: 'emily.white@fashionary.com', role: 'Sales', lastLogin: '2024-05-22T15:45:00Z' },
     { id: 'STAFF004', name: 'Michael Brown', email: 'michael.brown@fashionary.com', role: 'Warehouse', lastLogin: '2024-05-23T08:15:00Z' },
 ];
+
+export const suppliers: Supplier[] = [
+    { id: 'SUP001', name: 'Global Textiles Inc.', contactPerson: 'Sarah Chen', email: 'sarah.chen@globaltextiles.com', phone: '111-222-3333', address: '123 Fabric Row, Textile City, 12345' },
+    { id: 'SUP002', name: 'Denim Dreams Co.', contactPerson: 'Mike Rivera', email: 'mike.r@denimdreams.com', phone: '222-333-4444', address: '456 Jean Ave, Indigo Town, 23456' },
+    { id: 'SUP003', name: 'Luxury Fibers Ltd.', contactPerson: 'Helen Troy', email: 'helen.t@luxuryfibers.com', phone: '333-444-5555', address: '789 Silk Blvd, Cashmere Ville, 34567' },
+    { id: 'SUP004', name: 'Leather Masters', contactPerson: 'Leo Adler', email: 'leo.a@leathermasters.com', phone: '444-555-6666', address: '101 Hide St, Tanner Creek, 45678' },
+];
+
+export const vendors: Vendor[] = [
+    { id: 'VEN001', name: 'Precision Prints', type: 'Printing', contactPerson: 'Anna Garcia', email: 'anna.g@precisionprints.com', phone: '555-666-7777', rate: '$0.50 / print' },
+    { id: 'VEN002', name: 'Sharp Cuts', type: 'Cutting', contactPerson: 'David Lee', email: 'david.l@sharpcuts.com', phone: '666-777-8888', rate: '$0.20 / piece' },
+    { id: 'VEN003', name: 'Ink & Thread', type: 'Printing', contactPerson: 'Maria Rodriguez', email: 'maria.r@inkthread.com', phone: '777-888-9999', rate: '$0.45 / print' },
+    { id: 'VEN004', name: 'CutRight Solutions', type: 'Cutting', contactPerson: 'Tom Wilson', email: 'tom.w@cutright.com', phone: '888-999-0000', rate: '$0.18 / piece' },
+];
+
 
 export const revenueData = [
   { month: 'January', revenue: 4000, profit: 2400 },

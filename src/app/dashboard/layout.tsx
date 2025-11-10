@@ -13,6 +13,8 @@ import {
   Settings,
   User,
   PanelLeft,
+  Building,
+  Scissors,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +36,8 @@ const navItems = [
   { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
   { href: "/dashboard/customers", icon: Users, label: "Customers" },
   { href: "/dashboard/purchases", icon: Truck, label: "Purchases" },
+  { href: "/dashboard/suppliers", icon: Building, label: "Suppliers" },
+  { href: "/dashboard/vendors", icon: Scissors, label: "Vendors" },
   { href: "/dashboard/staff", icon: User, label: "Staff" },
 ];
 
