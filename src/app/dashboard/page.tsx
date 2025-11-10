@@ -32,6 +32,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -57,38 +63,44 @@ const ordersChartConfig: ChartConfig = {
 }
 
 const quickAccessItems = [
-    { href: "/dashboard/orders", icon: ShoppingCart, label: "Orders", description: "Manage all sales" },
-    { href: "/dashboard/products", icon: Package, label: "Products", description: "View your product catalog" },
-    { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory", description: "Track stock levels" },
-    { href: "/dashboard/customers", icon: Users, label: "Customers", description: "See your customer base" },
-    { href: "/dashboard/purchases", icon: Truck, label: "Purchases", description: "Handle purchase orders" },
-    { href: "/dashboard/suppliers", icon: Building, label: "Suppliers", description: "Manage suppliers" },
+    { href: "/dashboard/orders", icon: ShoppingCart, label: "Orders" },
+    { href: "/dashboard/products", icon: Package, label: "Products" },
+    { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
+    { href: "/dashboard/customers", icon: Users, label: "Customers" },
+    { href: "/dashboard/purchases", icon: Truck, label: "Purchases" },
+    { href: "/dashboard/suppliers", icon: Building, label: "Suppliers" },
 ]
 
 export default function Dashboard() {
   return (
     <>
       <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-3 font-headline">Quick Access</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            {quickAccessItems.map((item) => (
-                 <Link href={item.href} key={item.href}>
-                    <Card className="hover:bg-muted/50 transition-colors h-full flex flex-col">
-                        <CardHeader className="pb-4">
-                            <div className="flex items-center gap-4">
-                                <div className="bg-primary/10 text-primary p-3 rounded-lg">
-                                    <item.icon className="h-6 w-6" />
-                                </div>
-                                <CardTitle className="text-lg font-semibold">{item.label}</CardTitle>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="flex-grow">
-                             <CardDescription>{item.description}</CardDescription>
-                        </CardContent>
-                    </Card>
-                 </Link>
-            ))}
-        </div>
+          <Card>
+              <CardHeader>
+                  <CardTitle className="font-headline">Quick Access</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TooltipProvider>
+                    <div className="flex flex-wrap items-center gap-4">
+                        {quickAccessItems.map((item) => (
+                            <Tooltip key={item.href}>
+                                <TooltipTrigger asChild>
+                                <Link href={item.href}>
+                                    <Button variant="outline" size="lg" className="flex flex-col h-auto p-4 gap-2">
+                                        <item.icon className="h-7 w-7 text-muted-foreground" />
+                                        <span className="text-xs font-normal sm:hidden">{item.label}</span>
+                                    </Button>
+                                </Link>
+                                </TooltipTrigger>
+                                <TooltipContent className="hidden sm:block">
+                                <p>{item.label}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        ))}
+                    </div>
+                </TooltipProvider>
+              </CardContent>
+          </Card>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
