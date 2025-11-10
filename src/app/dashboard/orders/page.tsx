@@ -41,7 +41,7 @@ export default function OrdersPage() {
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="new">New</TabsTrigger>
             <TabsTrigger value="processing">Processing</TabsTrigger>
-            <TabsTrigger value="completed" className="hidden sm:flex">Completed</TabsTrigger>
+            <TabsTrigger value="completed">Completed</TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline">
