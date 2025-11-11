@@ -58,6 +58,7 @@ import { products } from "@/lib/placeholder-data";
 
 const productSchema = z.object({
   name: z.string().min(2, "Product name must be at least 2 characters."),
+  slug: z.string().optional(),
   description: z.string().optional(),
   shortDescription: z.string().optional(),
   regularPrice: z.coerce.number().positive("Price must be a positive number."),
@@ -122,6 +123,20 @@ export default function ProductsPage() {
                                 <FormControl>
                                 <Input placeholder="e.g. Organic Cotton T-Shirt" {...field} />
                                 </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="slug"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Slug</FormLabel>
+                                <FormControl>
+                                <Input placeholder="e.g. organic-cotton-t-shirt" {...field} />
+                                </FormControl>
+                                <FormDescription>This is the URL-friendly version of the name.</FormDescription>
                                 <FormMessage />
                             </FormItem>
                             )}
@@ -371,5 +386,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-
-    
