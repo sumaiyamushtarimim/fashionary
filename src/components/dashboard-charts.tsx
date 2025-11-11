@@ -13,6 +13,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   ChartConfig,
+  ChartLegend,
+  ChartLegendContent,
 } from "@/components/ui/chart";
 import { revenueData, ordersByStatusData } from "@/lib/placeholder-data";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -74,11 +76,19 @@ export default function DashboardCharts() {
              <ChartContainer config={ordersChartConfig} className="mx-auto aspect-square max-h-[250px]">
                 <PieChart>
                     <ChartTooltip content={<ChartTooltipContent nameKey="status" hideLabel />} />
-                    <Pie data={ordersByStatusData} dataKey="value" nameKey="status" innerRadius={60}>
-                       {ordersByStatusData.map((entry, index) => (
-                         <Cell key={`cell-${index}`} fill={entry.fill} />
+                     <Pie 
+                        data={ordersByStatusData} 
+                        dataKey="value" 
+                        nameKey="status" 
+                        innerRadius={isMobile ? 40 : 60} 
+                        outerRadius={isMobile ? 80 : 100}
+                        paddingAngle={isMobile ? 2 : 0}
+                    >
+                       {ordersByStatusData.map((entry) => (
+                         <Cell key={entry.status} fill={entry.fill} />
                        ))}
                     </Pie>
+                    {isMobile && <ChartLegend content={<ChartLegendContent nameKey="status" />} />}
                 </PieChart>
             </ChartContainer>
           </CardContent>
