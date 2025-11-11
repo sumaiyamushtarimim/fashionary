@@ -1,4 +1,5 @@
 import { MoreHorizontal, PlusCircle } from "lucide-react";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,9 +36,11 @@ export default function PurchasesPage() {
             <p className="text-muted-foreground">Manage purchase orders and supplier payments.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm">
-            <PlusCircle className="h-4 w-4 mr-2" />
-            New Purchase Order
+          <Button size="sm" asChild>
+            <Link href="/dashboard/purchases/new">
+                <PlusCircle className="h-4 w-4 mr-2" />
+                New Purchase Order
+            </Link>
           </Button>
         </div>
       </div>
