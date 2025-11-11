@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { PlusCircle, Trash2 } from "lucide-react";
-import { products, suppliers, vendors } from "@/lib/placeholder-data";
+import { products, suppliers } from "@/lib/placeholder-data";
 import Link from "next/link";
 
 type OrderItem = {
@@ -58,8 +58,50 @@ export default function NewPurchaseOrderPage() {
     { id: `item-${Date.now()}`, ...initialOrderItemState, lineTotal: 0 }
   ]);
   
-  const [fabricCost, setFabricCost] = useState(0);
   const [fabricPayment, setFabricPayment] = useState<Payment>(initialPaymentState);
+
+  const fabricBillSummary = useMemo(() => {
+    let totalOrnaYards = 0;
+    let totalJamaYards = 0;
+    let totalSelowarYards = 0;
+    let totalOrnaCost = 0;
+    let totalJamaCost = 0;
+    let totalSelowarCost = 0;
+
+    orderItems.forEach(item => {
+        // These fabric consumption values would come from the selected product's data in a real scenario
+        const ornaFabricPerProduct = 2.5; 
+        const jamaFabricPerProduct = 3.0; 
+        const selowarFabricPerProduct = 2.0;
+
+        const qty = Number(item.productQty) || 0;
+        const ornaYards = qty * ornaFabricPerProduct;
+        const jamaYards = qty * jamaFabricPerProduct;
+        const selowarYards = qty * selowarFabricPerProduct;
+
+        totalOrnaYards += ornaYards;
+        totalJamaYards += jamaYards;
+        totalSelowarYards += selowarYards;
+
+        totalOrnaCost += ornaYards * (Number(item.ornaCost) || 0);
+        totalJamaCost += jamaYards * (Number(item.jamaCost) || 0);
+        totalSelowarCost += selowarYards * (Number(item.selowarCost) || 0);
+    });
+    
+    const grandTotalYards = totalOrnaYards + totalJamaYards + totalSelowarYards;
+    const grandTotalCost = totalOrnaCost + totalJamaCost + totalSelowarCost;
+
+    return {
+        totalOrnaYards,
+        totalJamaYards,
+        totalSelowarYards,
+        totalOrnaCost,
+        totalJamaCost,
+        totalSelowarCost,
+        grandTotalYards,
+        grandTotalCost,
+    };
+  }, [orderItems]);
 
   const handleAddItem = () => {
     setOrderItems([...orderItems, { id: `item-${Date.now()}`, ...initialOrderItemState, lineTotal: 0 }]);
@@ -91,12 +133,6 @@ export default function NewPurchaseOrderPage() {
       return item;
     }));
   };
-  
-  useEffect(() => {
-    const totalFabricCost = orderItems.reduce((total, item) => total + item.lineTotal, 0);
-    setFabricCost(totalFabricCost);
-  }, [orderItems]);
-
 
   const handlePaymentChange = (setter: React.Dispatch<React.SetStateAction<Payment>>, field: keyof Payment, value: string | number) => {
     setter(prev => ({ ...prev, [field]: value }));
@@ -107,72 +143,7 @@ export default function NewPurchaseOrderPage() {
     return totalCost - paid;
   };
   
-  const fabricDue = useMemo(() => calculateDue(fabricCost, fabricPayment), [fabricCost, fabricPayment]);
-
-  const renderPaymentCard = (
-    title: string, 
-    totalCost: number, 
-    payment: Payment, 
-    handlePaymentChange: (field: keyof Payment, value: string | number) => void,
-    dueAmount: number,
-    vendorType: 'supplier'
-  ) => (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="space-y-2">
-            <Label>Supplier</Label>
-            <Select>
-                <SelectTrigger>
-                    <SelectValue placeholder="Select a supplier" />
-                </SelectTrigger>
-                <SelectContent>
-                    {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                </SelectContent>
-            </Select>
-        </div>
-        <div className="space-y-2">
-            <Label>Total Cost</Label>
-            <Input placeholder="0.00" type="number" value={totalCost || ''} readOnly />
-        </div>
-        <Separator />
-        <Label className="font-medium">Payment</Label>
-        <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-                <Label htmlFor={`cash-${vendorType}`}>Cash Amount</Label>
-                <Input id={`cash-${vendorType}`} placeholder="0.00" type="number" value={payment.cash || ''} onChange={e => handlePaymentChange('cash', parseFloat(e.target.value) || 0)} disabled={totalCost > 0 && totalCost === payment.check} />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor={`check-${vendorType}`}>Check Amount</Label>
-                <Input id={`check-${vendorType}`} placeholder="0.00" type="number" value={payment.check || ''} onChange={e => handlePaymentChange('check', parseFloat(e.target.value) || 0)} disabled={totalCost > 0 && totalCost === payment.cash} />
-            </div>
-        </div>
-        {(Number(payment.check) || 0) > 0 && (
-            <div className="space-y-2">
-                <Label htmlFor={`check-date-${vendorType}`}>Check Passing Date</Label>
-                <Input id={`check-date-${vendorType}`} type="date" value={payment.checkDate} onChange={e => handlePaymentChange('checkDate', e.target.value)} />
-            </div>
-        )}
-        <Separator />
-        <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-                <span className="text-muted-foreground">Total Cost:</span>
-                <span className="font-medium">${totalCost.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-                <span className="text-muted-foreground">Paid:</span>
-                <span className="font-medium">${((Number(payment.cash) || 0) + (Number(payment.check) || 0)).toFixed(2)}</span>
-            </div>
-             <div className="flex justify-between font-semibold">
-                <span className={dueAmount > 0 ? "text-destructive" : ""}>Due Amount:</span>
-                <span className={dueAmount > 0 ? "text-destructive" : ""}>${dueAmount.toFixed(2)}</span>
-            </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  const fabricDue = useMemo(() => calculateDue(fabricBillSummary.grandTotalCost, fabricPayment), [fabricBillSummary.grandTotalCost, fabricPayment]);
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -182,7 +153,7 @@ export default function NewPurchaseOrderPage() {
             Create New Purchase Order
           </h1>
           <p className="text-muted-foreground">
-            Create a new production batch by ordering fabric.
+            Start a new production batch by ordering fabric.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -211,7 +182,7 @@ export default function NewPurchaseOrderPage() {
                                         <TableHead>Orna Cost/yd</TableHead>
                                         <TableHead>Jama Cost/yd</TableHead>
                                         <TableHead>Selowar Cost/yd</TableHead>
-                                        <TableHead>Line Total</TableHead>
+                                        <TableHead className="text-right">Line Total</TableHead>
                                         <TableHead><span className="sr-only">Actions</span></TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -252,7 +223,7 @@ export default function NewPurchaseOrderPage() {
                                             <TableCell>
                                                 <Input type="number" placeholder="Cost" className="w-24" value={item.selowarCost || ''} onChange={(e) => handleItemChange(item.id, 'selowarCost', parseFloat(e.target.value) || 0)}/>
                                             </TableCell>
-                                            <TableCell className="font-medium">${item.lineTotal.toFixed(2)}</TableCell>
+                                            <TableCell className="font-medium text-right">${item.lineTotal.toFixed(2)}</TableCell>
                                             <TableCell>
                                                 {orderItems.length > 1 && (
                                                     <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>
@@ -273,7 +244,84 @@ export default function NewPurchaseOrderPage() {
                 </Card>
             </div>
             <div className="space-y-8">
-                {renderPaymentCard("Fabric Bill", fabricCost, fabricPayment, (field, value) => handlePaymentChange(setFabricPayment, field, value), fabricDue, 'supplier')}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Fabric Bill</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid gap-4">
+                        <div className="space-y-2">
+                            <Label>Supplier</Label>
+                            <Select>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a supplier" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <Separator />
+                        <div className="space-y-2 text-sm">
+                            <Label className="font-medium">Bill Summary</Label>
+                            <div className="grid grid-cols-3 gap-x-4 gap-y-1 p-2 rounded-md bg-muted/50">
+                                <div className="font-medium">Part</div>
+                                <div className="font-medium text-right">Total Yards</div>
+                                <div className="font-medium text-right">Total Cost</div>
+
+                                <div>Orna</div>
+                                <div className="text-right">{fabricBillSummary.totalOrnaYards.toFixed(2)} yds</div>
+                                <div className="text-right">${fabricBillSummary.totalOrnaCost.toFixed(2)}</div>
+
+                                <div>Jama</div>
+                                <div className="text-right">{fabricBillSummary.totalJamaYards.toFixed(2)} yds</div>
+                                <div className="text-right">${fabricBillSummary.totalJamaCost.toFixed(2)}</div>
+                                
+                                <div>Selowar</div>
+                                <div className="text-right">{fabricBillSummary.totalSelowarYards.toFixed(2)} yds</div>
+                                <div className="text-right">${fabricBillSummary.totalSelowarCost.toFixed(2)}</div>
+
+                                <div className="col-span-3"><Separator className="my-1"/></div>
+                                
+                                <div className="font-bold">Grand Total</div>
+                                <div className="font-bold text-right">{fabricBillSummary.grandTotalYards.toFixed(2)} yds</div>
+                                <div className="font-bold text-right">${fabricBillSummary.grandTotalCost.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        <Separator />
+                        <Label className="font-medium">Payment</Label>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="cash-fabric">Cash Amount</Label>
+                                <Input id="cash-fabric" placeholder="0.00" type="number" value={fabricPayment.cash || ''} onChange={e => handlePaymentChange(setFabricPayment, 'cash', parseFloat(e.target.value) || 0)} disabled={fabricBillSummary.grandTotalCost > 0 && fabricBillSummary.grandTotalCost === fabricPayment.check} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="check-fabric">Check Amount</Label>
+                                <Input id="check-fabric" placeholder="0.00" type="number" value={fabricPayment.check || ''} onChange={e => handlePaymentChange(setFabricPayment, 'check', parseFloat(e.target.value) || 0)} disabled={fabricBillSummary.grandTotalCost > 0 && fabricBillSummary.grandTotalCost === fabricPayment.cash} />
+                            </div>
+                        </div>
+                        {(Number(fabricPayment.check) || 0) > 0 && (
+                            <div className="space-y-2">
+                                <Label htmlFor="check-date-fabric">Check Passing Date</Label>
+                                <Input id="check-date-fabric" type="date" value={fabricPayment.checkDate} onChange={e => handlePaymentChange(setFabricPayment, 'checkDate', e.target.value)} />
+                            </div>
+                        )}
+                        <Separator />
+                        <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Total Bill:</span>
+                                <span className="font-medium">${fabricBillSummary.grandTotalCost.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Paid:</span>
+                                <span className="font-medium">${((Number(fabricPayment.cash) || 0) + (Number(fabricPayment.check) || 0)).toFixed(2)}</span>
+                            </div>
+                             <div className="flex justify-between font-semibold">
+                                <span className={fabricDue > 0 ? "text-destructive" : ""}>Due Amount:</span>
+                                <span className={fabricDue > 0 ? "text-destructive" : ""}>${fabricDue.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     </div>
