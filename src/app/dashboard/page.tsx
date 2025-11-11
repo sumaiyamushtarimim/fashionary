@@ -90,7 +90,7 @@ export default function Dashboard() {
                             <Tooltip key={item.href}>
                                 <TooltipTrigger asChild>
                                 <Link href={item.href}>
-                                    <Button variant="outline" className="flex flex-col h-20 w-full p-2 aspect-square justify-center items-center">
+                                    <Button variant="outline" className="flex flex-col h-20 w-full p-2 justify-center items-center">
                                         <item.icon className="h-6 w-6 text-muted-foreground" />
                                         <span className="text-xs font-normal mt-1 sm:hidden">{item.label}</span>
                                         <span className="hidden sm:inline text-xs font-normal mt-1">{item.label}</span>
