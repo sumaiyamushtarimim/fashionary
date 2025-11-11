@@ -2,10 +2,11 @@
 "use client";
 
 import Image from "next/image";
-import { MoreHorizontal, PlusCircle, UploadCloud, X } from "lucide-react";
+import { MoreHorizontal, PlusCircle, UploadCloud, X, ChevronsUpDown } from "lucide-react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import * as React from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Dialog,
   DialogContent,
@@ -45,6 +54,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { products } from "@/lib/placeholder-data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -78,7 +88,7 @@ const productSchema = z.object({
   slug: z.string().optional(),
   description: z.string().optional(),
   shortDescription: z.string().optional(),
-  productType: z.enum(['simple', 'variable']).default('simple'),
+  productType: z.enum(['simple', 'variable', 'combo']).default('simple'),
   
   // Simple Product Fields
   regularPrice: z.coerce.number().optional(),
@@ -95,11 +105,16 @@ const productSchema = z.object({
   // Variable Product Fields
   attributes: z.array(attributeSchema).optional(),
   variations: z.array(variationSchema).optional(),
+
+  // Combo Product Fields
+  comboProducts: z.array(z.string()).optional(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
 export default function ProductsPage() {
+  const [popoverOpen, setPopoverOpen] = React.useState(false);
+
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -107,6 +122,7 @@ export default function ProductsPage() {
       productType: "simple",
       attributes: [{ name: "", options: "" }],
       variations: [],
+      comboProducts: [],
     },
   });
 
@@ -154,6 +170,10 @@ export default function ProductsPage() {
     // Here you would typically handle form submission, e.g., send data to your API
   }
 
+  const selectedComboProducts = form.watch('comboProducts') || [];
+  const comboProductDetails = products.filter(p => selectedComboProducts.includes(p.id));
+
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex items-center">
@@ -196,7 +216,7 @@ export default function ProductsPage() {
                             </FormItem>
                             )}
                         />
-                        <FormField
+                         <FormField
                             control={form.control}
                             name="slug"
                             render={({ field }) => (
@@ -351,6 +371,101 @@ export default function ProductsPage() {
                             </Card>
                             </>
                         )}
+                        {productType === 'combo' && (
+                           <Card>
+                                <CardHeader>
+                                    <CardTitle>Combo Products</CardTitle>
+                                    <CardDescription>Select products to include in this combo.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                     <FormField
+                                        control={form.control}
+                                        name="comboProducts"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-col">
+                                            <FormLabel>Select Products</FormLabel>
+                                            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                                                <PopoverTrigger asChild>
+                                                <FormControl>
+                                                    <Button
+                                                    variant="outline"
+                                                    role="combobox"
+                                                    className={cn(
+                                                        "w-full justify-between",
+                                                        !field.value?.length && "text-muted-foreground"
+                                                    )}
+                                                    >
+                                                    {field.value?.length ? `${field.value.length} selected` : "Select products"}
+                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                    </Button>
+                                                </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                                    <Command>
+                                                        <CommandInput placeholder="Search product..." />
+                                                        <CommandList>
+                                                        <CommandEmpty>No product found.</CommandEmpty>
+                                                        <CommandGroup>
+                                                        {products.map((product) => (
+                                                            <CommandItem
+                                                                key={product.id}
+                                                                value={product.name}
+                                                                onSelect={() => {
+                                                                    const currentValue = field.value || [];
+                                                                    const newValue = currentValue.includes(product.id)
+                                                                        ? currentValue.filter((id) => id !== product.id)
+                                                                        : [...currentValue, product.id];
+                                                                    field.onChange(newValue);
+                                                                }}
+                                                            >
+                                                                <div className={cn(
+                                                                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                                                    field.value?.includes(product.id)
+                                                                    ? "bg-primary text-primary-foreground"
+                                                                    : "opacity-50 [&_svg]:invisible"
+                                                                )}>
+                                                                    <PlusCircle className="h-4 w-4" />
+                                                                </div>
+                                                                {product.name}
+                                                            </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                        </CommandList>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
+                                            <FormDescription>
+                                                These products will be bundled together.
+                                            </FormDescription>
+                                            <FormMessage />
+                                            </FormItem>
+                                        )}
+                                        />
+                                        <div className="mt-4 space-y-2">
+                                            <Label>Selected Products</Label>
+                                            {comboProductDetails.length > 0 ? (
+                                                <div className="rounded-md border">
+                                                    <Table>
+                                                        <TableBody>
+                                                        {comboProductDetails.map(product => (
+                                                            <TableRow key={product.id}>
+                                                                <TableCell>
+                                                                    <Image src={product.image.imageUrl} alt={product.name} width={40} height={40} className="rounded-md" />
+                                                                </TableCell>
+                                                                <TableCell className="font-medium">{product.name}</TableCell>
+                                                                <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                </div>
+                                            ) : (
+                                                <div className="text-sm text-muted-foreground text-center py-4">No products selected.</div>
+                                            )}
+                                        </div>
+                                </CardContent>
+                           </Card>
+                        )}
                          <FormField
                             control={form.control}
                             name="shortDescription"
@@ -384,8 +499,9 @@ export default function ProductsPage() {
                                                 </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                <SelectItem value="simple">Simple product</SelectItem>
-                                                <SelectItem value="variable">Variable product</SelectItem>
+                                                    <SelectItem value="simple">Simple product</SelectItem>
+                                                    <SelectItem value="variable">Variable product</SelectItem>
+                                                    <SelectItem value="combo">Combo product</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
@@ -395,12 +511,12 @@ export default function ProductsPage() {
                             </CardContent>
                         </Card>
 
-                        {productType === 'simple' && (
+                        {(productType === 'simple' || productType === 'combo') && (
                             <Tabs defaultValue="general">
                                 <TabsList className="w-full">
                                     <TabsTrigger value="general">General</TabsTrigger>
                                     <TabsTrigger value="inventory">Inventory</TabsTrigger>
-                                    <TabsTrigger value="shipping">Shipping</TabsTrigger>
+                                    {productType === 'simple' && <TabsTrigger value="shipping">Shipping</TabsTrigger>}
                                 </TabsList>
                                 <TabsContent value="general" className="mt-6">
                                     <Card>
@@ -412,8 +528,9 @@ export default function ProductsPage() {
                                                     <FormItem>
                                                     <FormLabel>Regular price ($)</FormLabel>
                                                     <FormControl>
-                                                        <Input type="number" placeholder="25.00" {...field} />
+                                                        <Input type="number" placeholder="25.00" {...field} disabled={productType === 'combo'} />
                                                     </FormControl>
+                                                    {productType === 'combo' && <FormDescription>Auto-calculated from selected products.</FormDescription>}
                                                     <FormMessage />
                                                     </FormItem>
                                                 )}
@@ -445,42 +562,50 @@ export default function ProductsPage() {
                                                     <FormItem>
                                                     <FormLabel>SKU</FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="TSHIRT-BLK-L" {...field} />
+                                                        <Input placeholder="COMBO-001" {...field} />
                                                     </FormControl>
                                                     <FormMessage />
                                                     </FormItem>
                                                 )}
                                             />
-                                        </CardContent>
-                                    </Card>
-                                </TabsContent>
-                                <TabsContent value="shipping" className="mt-6">
-                                    <Card>
-                                        <CardContent className="pt-6 space-y-4">
-                                            <FormField
-                                                control={form.control}
-                                                name="weight"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                    <FormLabel>Weight (kg)</FormLabel>
-                                                    <FormControl>
-                                                        <Input type="number" placeholder="0.5" {...field} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            <div>
-                                                <Label>Dimensions (cm)</Label>
-                                                <div className="grid grid-cols-3 gap-2 mt-2">
-                                                    <FormField control={form.control} name="length" render={({ field }) => (<FormItem><FormControl><Input type="number" placeholder="L" {...field} /></FormControl></FormItem>)} />
-                                                    <FormField control={form.control} name="width" render={({ field }) => (<FormItem><FormControl><Input type="number" placeholder="W" {...field} /></FormControl></FormItem>)} />
-                                                    <FormField control={form.control} name="height" render={({ field }) => (<FormItem><FormControl><Input type="number" placeholder="H" {...field} /></FormControl></FormItem>)} />
+                                              {productType === 'combo' && (
+                                                <div className="text-sm text-muted-foreground p-4 border rounded-md bg-muted/50">
+                                                    <p className="font-medium">Stock Management</p>
+                                                    <p>The stock for a combo product is managed by the inventory of its component products. You do not need to set stock manually.</p>
                                                 </div>
-                                            </div>
+                                            )}
                                         </CardContent>
                                     </Card>
                                 </TabsContent>
+                                {productType === 'simple' && (
+                                    <TabsContent value="shipping" className="mt-6">
+                                        <Card>
+                                            <CardContent className="pt-6 space-y-4">
+                                                <FormField
+                                                    control={form.control}
+                                                    name="weight"
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                        <FormLabel>Weight (kg)</FormLabel>
+                                                        <FormControl>
+                                                            <Input type="number" placeholder="0.5" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                <div>
+                                                    <Label>Dimensions (cm)</Label>
+                                                    <div className="grid grid-cols-3 gap-2 mt-2">
+                                                        <FormField control={form.control} name="length" render={({ field }) => (<FormItem><FormControl><Input type="number" placeholder="L" {...field} /></FormControl></FormItem>)} />
+                                                        <FormField control={form.control} name="width" render={({ field }) => (<FormItem><FormControl><Input type="number" placeholder="W" {...field} /></FormControl></FormItem>)} />
+                                                        <FormField control={form.control} name="height" render={({ field }) => (<FormItem><FormControl><Input type="number" placeholder="H" {...field} /></FormControl></FormItem>)} />
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </TabsContent>
+                                )}
                             </Tabs>
                         )}
 
@@ -602,3 +727,5 @@ export default function ProductsPage() {
     </div>
   );
 }
+
+    
