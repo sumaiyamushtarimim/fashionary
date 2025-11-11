@@ -1,6 +1,6 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Pie, PieChart, Cell } from "recharts";
 import {
   Card,
   CardContent,
@@ -46,18 +46,34 @@ export default function DashboardCharts() {
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
-            <BarChart accessibilityLayer data={revenueData}>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-                tickFormatter={(value) => value.slice(0, 3)}
-                angle={isMobile ? -45 : 0}
-                textAnchor={isMobile ? "end" : "middle"}
-                minTickGap={isMobile ? -5 : 0}
-              />
+             <BarChart 
+                accessibilityLayer 
+                data={revenueData}
+                layout={isMobile ? "vertical" : "horizontal"}
+                margin={isMobile ? { left: 10 } : {}}
+              >
+              <CartesianGrid vertical={isMobile} horizontal={!isMobile} />
+              {isMobile ? (
+                <>
+                  <XAxis type="number" hide />
+                  <YAxis 
+                    type="category" 
+                    dataKey="month" 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickMargin={10}
+                    tickFormatter={(value) => value.slice(0, 3)}
+                  />
+                </>
+              ) : (
+                <XAxis
+                  dataKey="month"
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                  tickFormatter={(value) => value.slice(0, 3)}
+                />
+              )}
               <ChartTooltip
                 cursor={false}
                 content={<ChartTooltipContent indicator="dashed" />}
