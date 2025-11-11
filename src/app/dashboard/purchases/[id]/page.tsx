@@ -35,10 +35,10 @@ type Payment = {
 const initialPaymentState: Payment = { cash: 0, check: 0, checkDate: '' };
 
 const productionSteps = [
-    { id: 'fabric', name: 'Fabric Ordered', status: 'complete' },
-    { id: 'printing', name: 'Printing', status: 'current' },
-    { id: 'cutting', name: 'Cutting', status: 'pending' },
-    { id: 'delivery', name: 'Delivery', status: 'pending' },
+    { id: 'fabric', name: 'Fabric Ordered', status: 'complete', icon: Package },
+    { id: 'printing', name: 'Printing', status: 'current', icon: HardHat },
+    { id: 'cutting', name: 'Cutting', status: 'pending', icon: HardHat },
+    { id: 'delivery', name: 'Delivery', status: 'pending', icon: Truck },
 ];
 
 const calculateDue = (totalCost: number, payment: Payment) => {
