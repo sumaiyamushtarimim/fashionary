@@ -1,6 +1,4 @@
 
-"use client";
-
 import {
   Activity,
   ArrowUpRight,
@@ -14,7 +12,8 @@ import {
   Handshake,
 } from "lucide-react";
 import Link from "next/link";
-import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell } from "recharts";
+import dynamic from 'next/dynamic';
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,32 +37,33 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartConfig,
-} from "@/components/ui/chart";
-import { orders, revenueData, ordersByStatusData } from "@/lib/placeholder-data";
-import { useIsMobile } from "@/hooks/use-mobile";
-import * as React from "react";
+import { orders } from "@/lib/placeholder-data";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const chartConfig: ChartConfig = {
-  revenue: {
-    label: "Revenue",
-    color: "hsl(var(--chart-1))",
-  },
-  profit: {
-    label: "Profit",
-    color: "hsl(var(--chart-2))",
-  },
-};
+const DashboardCharts = dynamic(() => import('@/components/dashboard-charts'), {
+  ssr: false,
+  loading: () => (
+    <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+        <Card className="xl:col-span-2">
+          <CardHeader>
+            <CardTitle className="font-headline">Revenue & Profit Overview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-[250px] w-full" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-headline">Orders by Status</CardTitle>
+          </CardHeader>
+          <CardContent  className="flex justify-center items-center">
+            <Skeleton className="h-[250px] w-[250px] rounded-full" />
+          </CardContent>
+        </Card>
+    </div>
+  )
+});
 
-const ordersChartConfig: ChartConfig = {
-    new: { label: "New", color: "hsl(var(--chart-1))" },
-    processing: { label: "Processing", color: "hsl(var(--chart-2))" },
-    completed: { label: "Completed", color: "hsl(var(--chart-5))" },
-}
 
 const quickAccessItems = [
     { href: "/dashboard/orders", icon: ShoppingCart, label: "Orders" },
@@ -75,27 +75,6 @@ const quickAccessItems = [
 ]
 
 export default function Dashboard() {
-  const isMobile = useIsMobile();
-  const chartData = isMobile ? revenueData.slice(-4) : revenueData;
-
-  React.useEffect(() => {
-    const originalViewport = document.querySelector("meta[name='viewport']");
-    const originalContent = originalViewport?.getAttribute("content");
-
-    if (originalViewport) {
-      originalViewport.setAttribute(
-        "content",
-        "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
-      );
-    }
-
-    return () => {
-      if (originalViewport && originalContent) {
-        originalViewport.setAttribute("content", originalContent);
-      }
-    };
-  }, []);
-
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="mb-6">
@@ -178,49 +157,7 @@ export default function Dashboard() {
         </Card>
       </div>
       <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-        <Card className="xl:col-span-2">
-          <CardHeader>
-            <CardTitle className="font-headline">Revenue & Profit Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-              <BarChart accessibilityLayer data={chartData}>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="month"
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                  tickFormatter={(value) => value.slice(0, 3)}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent indicator="dashed" />}
-                />
-                <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
-                <Bar dataKey="profit" fill="var(--color-profit)" radius={4} />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-headline">Orders by Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-             <ChartContainer config={ordersChartConfig} className="mx-auto aspect-square max-h-[250px]">
-                <PieChart>
-                    <ChartTooltip content={<ChartTooltipContent nameKey="status" hideLabel />} />
-                    <Pie data={ordersByStatusData} dataKey="value" nameKey="status" innerRadius={60}>
-                       {ordersByStatusData.map((entry, index) => (
-                         <Cell key={`cell-${index}`} fill={entry.fill} />
-                       ))}
-                    </Pie>
-                </PieChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
+        <DashboardCharts />
 
         <Card className="xl:col-span-3">
           <CardHeader className="flex flex-row items-center">
