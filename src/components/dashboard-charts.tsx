@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell } from "recharts";
@@ -42,31 +41,33 @@ export default function DashboardCharts() {
 
   return (
     <>
-        <Card className="xl:col-span-2">
-          <CardHeader>
-            <CardTitle className="font-headline">Revenue & Profit Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-              <BarChart accessibilityLayer data={chartData}>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="month"
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                  tickFormatter={(value) => value.slice(0, 3)}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent indicator="dashed" />}
-                />
-                <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
-                <Bar dataKey="profit" fill="var(--color-profit)" radius={4} />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
+        {!isMobile && (
+          <Card className="xl:col-span-2">
+            <CardHeader>
+              <CardTitle className="font-headline">Revenue & Profit Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+                <BarChart accessibilityLayer data={chartData}>
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="month"
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                    tickFormatter={(value) => value.slice(0, 3)}
+                  />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent indicator="dashed" />}
+                  />
+                  <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
+                  <Bar dataKey="profit" fill="var(--color-profit)" radius={4} />
+                </BarChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        )}
 
         {!isMobile && (
           <Card>
