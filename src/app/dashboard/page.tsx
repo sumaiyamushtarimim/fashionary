@@ -224,7 +224,7 @@ export default function Dashboard() {
                 <TableRow>
                   <TableHead>Customer</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="hidden text-right sm:table-cell">Amount</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -252,7 +252,7 @@ export default function Dashboard() {
                         {order.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="hidden text-right sm:table-cell">
+                    <TableCell className="text-right">
                       ${order.total.toFixed(2)}
                     </TableCell>
                   </TableRow>
