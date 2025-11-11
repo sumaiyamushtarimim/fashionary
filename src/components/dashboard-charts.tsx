@@ -1,6 +1,6 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell, Legend } from "recharts";
 import {
   Card,
   CardContent,
@@ -69,31 +69,30 @@ export default function DashboardCharts() {
           </Card>
         )}
 
-        {!isMobile && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-headline">Orders by Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={ordersChartConfig} className="mx-auto aspect-square max-h-[250px]">
-                  <PieChart>
-                      <ChartTooltip content={<ChartTooltipContent nameKey="status" hideLabel />} />
-                      <Pie 
-                          data={ordersByStatusData} 
-                          dataKey="value" 
-                          nameKey="status" 
-                          innerRadius={60}
-                          outerRadius={100}
-                      >
-                        {ordersByStatusData.map((entry) => (
-                          <Cell key={entry.status} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                  </PieChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-        )}
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-headline">Orders by Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={ordersChartConfig} className="mx-auto aspect-square max-h-[250px]">
+                <PieChart>
+                    <ChartTooltip content={<ChartTooltipContent nameKey="status" hideLabel />} />
+                    <Pie 
+                        data={ordersByStatusData} 
+                        dataKey="value" 
+                        nameKey="status" 
+                        innerRadius={isMobile ? 50 : 60}
+                        outerRadius={isMobile ? 70: 100}
+                    >
+                      {ordersByStatusData.map((entry) => (
+                        <Cell key={entry.status} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    {isMobile && <ChartLegend content={<ChartLegendContent />} />}
+                </PieChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
     </>
   );
 }
