@@ -35,11 +35,55 @@ type Payment = {
 const initialPaymentState: Payment = { cash: 0, check: 0, checkDate: '' };
 
 const productionSteps = [
-    { id: 'fabric', name: 'Fabric Ordered', icon: Package, status: 'complete' },
-    { id: 'printing', name: 'Printing', icon: HardHat, status: 'current' },
-    { id: 'cutting', name: 'Cutting', icon: HardHat, status: 'pending' },
-    { id: 'delivery', name: 'Delivery', icon: Truck, status: 'pending' },
+    { id: 'fabric', name: 'Fabric Ordered', status: 'complete' },
+    { id: 'printing', name: 'Printing', status: 'current' },
+    { id: 'cutting', name: 'Cutting', status: 'pending' },
+    { id: 'delivery', name: 'Delivery', status: 'pending' },
 ];
+
+const calculateDue = (totalCost: number, payment: Payment) => {
+    const paid = (Number(payment.cash) || 0) + (Number(payment.check) || 0);
+    return totalCost - paid;
+};
+
+const PaymentSection = ({ cost, payment, onPaymentChange, due, costDisabled = false }: { cost: number, payment: Payment, onPaymentChange: (field: keyof Payment, value: any) => void, due: number, costDisabled?: boolean }) => (
+    <>
+        <Separator />
+        <Label className="font-medium">Payment</Label>
+        <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label htmlFor={`cash-${cost}`}>Cash Amount</Label>
+                <Input id={`cash-${cost}`} placeholder="0.00" type="number" value={payment.cash || ''} onChange={e => onPaymentChange('cash', parseFloat(e.target.value) || 0)} disabled={cost > 0 && cost === payment.check} />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor={`check-${cost}`}>Check Amount</Label>
+                <Input id={`check-${cost}`} placeholder="0.00" type="number" value={payment.check || ''} onChange={e => onPaymentChange('check', parseFloat(e.target.value) || 0)} disabled={cost > 0 && cost === payment.cash} />
+            </div>
+        </div>
+        {(Number(payment.check) || 0) > 0 && (
+            <div className="space-y-2">
+                <Label htmlFor={`check-date-${cost}`}>Check Passing Date</Label>
+                <Input id={`check-date-${cost}`} type="date" value={payment.checkDate} onChange={e => onPaymentChange('checkDate', e.target.value)} />
+            </div>
+        )}
+        <Separator />
+        <div className="space-y-1 text-sm">
+            <div className="flex justify-between">
+                <span className="text-muted-foreground">Total Bill:</span>
+                <span className="font-medium">${cost.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+                <span className="text-muted-foreground">Paid:</span>
+                <span className="font-medium">${((Number(payment.cash) || 0) + (Number(payment.check) || 0)).toFixed(2)}</span>
+            </div>
+             <div className="flex justify-between font-semibold">
+                <span className={due > 0 ? "text-destructive" : ""}>Due Amount:</span>
+                <span className={due > 0 ? "text-destructive" : ""}>${due.toFixed(2)}</span>
+            </div>
+        </div>
+    </>
+);
+
 
 export default function PurchaseOrderDetailsPage() {
     const params = useParams();
@@ -47,25 +91,30 @@ export default function PurchaseOrderDetailsPage() {
     const purchaseOrder = purchaseOrders.find(p => p.id === poId);
     const supplier = suppliers.find(s => s.name === purchaseOrder?.supplier);
 
+    const [printingQty, setPrintingQty] = useState<number>(0);
     const [printingCost, setPrintingCost] = useState<number>(0);
     const [printingPayment, setPrintingPayment] = useState<Payment>(initialPaymentState);
     
+    const [cuttingQty, setCuttingQty] = useState<number>(0);
     const [cuttingCost, setCuttingCost] = useState<number>(0);
     const [cuttingPayment, setCuttingPayment] = useState<Payment>(initialPaymentState);
 
-    const [finalReceivedQty, setFinalReceivedQty] = useState<number>(100); // Example quantity
+    const [finalReceivedQty, setFinalReceivedQty] = useState<number>(0);
 
     const handlePaymentChange = (setter: React.Dispatch<React.SetStateAction<Payment>>, field: keyof Payment, value: string | number) => {
         setter(prev => ({ ...prev, [field]: value }));
     };
-
-    const calculateDue = (totalCost: number, payment: Payment) => {
-        const paid = (Number(payment.cash) || 0) + (Number(payment.check) || 0);
-        return totalCost - paid;
-    };
     
     const printingDue = useMemo(() => calculateDue(printingCost, printingPayment), [printingCost, printingPayment]);
     const cuttingDue = useMemo(() => calculateDue(cuttingCost, cuttingPayment), [cuttingCost, cuttingPayment]);
+    
+    React.useEffect(() => {
+        if(purchaseOrder){
+            setPrintingQty(purchaseOrder.items);
+            setCuttingQty(purchaseOrder.items);
+            setFinalReceivedQty(purchaseOrder.items);
+        }
+    }, [purchaseOrder]);
 
     if (!purchaseOrder) {
         return (
@@ -183,54 +232,34 @@ export default function PurchaseOrderDetailsPage() {
                         <CardDescription>Manage printing vendor and costs.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <div className="space-y-2">
-                            <Label>Printing Vendor</Label>
-                            <Select>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a printing vendor" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {vendors.filter(v => v.type === 'Printing').map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="printing-cost">Total Printing Cost</Label>
-                            <Input id="printing-cost" placeholder="0.00" type="number" value={printingCost || ''} onChange={e => setPrintingCost(parseFloat(e.target.value) || 0)} />
-                        </div>
-                        <Separator />
-                        <Label className="font-medium">Payment</Label>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="cash-printing">Cash Amount</Label>
-                                <Input id="cash-printing" placeholder="0.00" type="number" value={printingPayment.cash || ''} onChange={e => handlePaymentChange(setPrintingPayment, 'cash', parseFloat(e.target.value) || 0)} disabled={printingCost > 0 && printingCost === printingPayment.check} />
+                                <Label>Printing Vendor</Label>
+                                <Select>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a printing vendor" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {vendors.filter(v => v.type === 'Printing').map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="check-printing">Check Amount</Label>
-                                <Input id="check-printing" placeholder="0.00" type="number" value={printingPayment.check || ''} onChange={e => handlePaymentChange(setPrintingPayment, 'check', parseFloat(e.target.value) || 0)} disabled={printingCost > 0 && printingCost === printingPayment.cash} />
+                                <Label htmlFor="printing-qty">Quantity Received</Label>
+                                <Input id="printing-qty" placeholder="0" type="number" value={printingQty || ''} onChange={e => setPrintingQty(parseFloat(e.target.value) || 0)} />
+                            </div>
+                            <div className="space-y-2 col-span-2">
+                                <Label htmlFor="printing-cost">Total Printing Cost</Label>
+                                <Input id="printing-cost" placeholder="0.00" type="number" value={printingCost || ''} onChange={e => setPrintingCost(parseFloat(e.target.value) || 0)} />
                             </div>
                         </div>
-                        {(Number(printingPayment.check) || 0) > 0 && (
-                            <div className="space-y-2">
-                                <Label htmlFor="check-date-printing">Check Passing Date</Label>
-                                <Input id="check-date-printing" type="date" value={printingPayment.checkDate} onChange={e => handlePaymentChange(setPrintingPayment, 'checkDate', e.target.value)} />
-                            </div>
-                        )}
-                        <Separator />
-                        <div className="space-y-1 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Total Bill:</span>
-                                <span className="font-medium">${printingCost.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Paid:</span>
-                                <span className="font-medium">${((Number(printingPayment.cash) || 0) + (Number(printingPayment.check) || 0)).toFixed(2)}</span>
-                            </div>
-                             <div className="flex justify-between font-semibold">
-                                <span className={printingDue > 0 ? "text-destructive" : ""}>Due Amount:</span>
-                                <span className={printingDue > 0 ? "text-destructive" : ""}>${printingDue.toFixed(2)}</span>
-                            </div>
-                        </div>
+                        
+                        <PaymentSection 
+                            cost={printingCost}
+                            payment={printingPayment}
+                            onPaymentChange={(field, value) => handlePaymentChange(setPrintingPayment, field, value)}
+                            due={printingDue}
+                        />
                     </CardContent>
                     <CardFooter>
                          <Button>Approve for Printing</Button>
@@ -242,54 +271,34 @@ export default function PurchaseOrderDetailsPage() {
                         <CardDescription>Manage cutting vendor and costs.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <div className="space-y-2">
-                            <Label>Cutting Vendor</Label>
-                            <Select>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a cutting vendor" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {vendors.filter(v => v.type === 'Cutting').map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="cutting-cost">Total Cutting Cost</Label>
-                            <Input id="cutting-cost" placeholder="0.00" type="number" value={cuttingCost || ''} onChange={e => setCuttingCost(parseFloat(e.target.value) || 0)} />
-                        </div>
-                        <Separator />
-                        <Label className="font-medium">Payment</Label>
-                        <div className="grid grid-cols-2 gap-4">
+                         <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="cash-cutting">Cash Amount</Label>
-                                <Input id="cash-cutting" placeholder="0.00" type="number" value={cuttingPayment.cash || ''} onChange={e => handlePaymentChange(setCuttingPayment, 'cash', parseFloat(e.target.value) || 0)} disabled={cuttingCost > 0 && cuttingCost === cuttingPayment.check} />
+                                <Label>Cutting Vendor</Label>
+                                <Select>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a cutting vendor" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {vendors.filter(v => v.type === 'Cutting').map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="check-cutting">Check Amount</Label>
-                                <Input id="check-cutting" placeholder="0.00" type="number" value={cuttingPayment.check || ''} onChange={e => handlePaymentChange(setCuttingPayment, 'check', parseFloat(e.target.value) || 0)} disabled={cuttingCost > 0 && cuttingCost === cuttingPayment.cash} />
+                             <div className="space-y-2">
+                                <Label htmlFor="cutting-qty">Quantity Received</Label>
+                                <Input id="cutting-qty" placeholder="0" type="number" value={cuttingQty || ''} onChange={e => setCuttingQty(parseFloat(e.target.value) || 0)} />
                             </div>
-                        </div>
-                        {(Number(cuttingPayment.check) || 0) > 0 && (
-                            <div className="space-y-2">
-                                <Label htmlFor="check-date-cutting">Check Passing Date</Label>
-                                <Input id="check-date-cutting" type="date" value={cuttingPayment.checkDate} onChange={e => handlePaymentChange(setCuttingPayment, 'checkDate', e.target.value)} />
-                            </div>
-                        )}
-                        <Separator />
-                        <div className="space-y-1 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Total Bill:</span>
-                                <span className="font-medium">${cuttingCost.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Paid:</span>
-                                <span className="font-medium">${((Number(cuttingPayment.cash) || 0) + (Number(cuttingPayment.check) || 0)).toFixed(2)}</span>
-                            </div>
-                             <div className="flex justify-between font-semibold">
-                                <span className={cuttingDue > 0 ? "text-destructive" : ""}>Due Amount:</span>
-                                <span className={cuttingDue > 0 ? "text-destructive" : ""}>${cuttingDue.toFixed(2)}</span>
+                            <div className="space-y-2 col-span-2">
+                                <Label htmlFor="cutting-cost">Total Cutting Cost</Label>
+                                <Input id="cutting-cost" placeholder="0.00" type="number" value={cuttingCost || ''} onChange={e => setCuttingCost(parseFloat(e.target.value) || 0)} />
                             </div>
                         </div>
+                        
+                        <PaymentSection 
+                            cost={cuttingCost}
+                            payment={cuttingPayment}
+                            onPaymentChange={(field, value) => handlePaymentChange(setCuttingPayment, field, value)}
+                            due={cuttingDue}
+                        />
                     </CardContent>
                     <CardFooter>
                          <Button>Approve for Cutting</Button>
