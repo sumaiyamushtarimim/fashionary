@@ -26,6 +26,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { purchaseOrders } from "@/lib/placeholder-data";
+import { cn } from "@/lib/utils";
+
+const statusColors = {
+    'Received': 'bg-green-500/20 text-green-700',
+    'Cutting': 'bg-purple-500/20 text-purple-700',
+    'Printing': 'bg-yellow-500/20 text-yellow-700',
+    'Fabric Ordered': 'bg-blue-500/20 text-blue-700',
+    'Draft': 'bg-gray-500/20 text-gray-700',
+    'Cancelled': 'bg-red-500/20 text-red-700',
+};
 
 export default function PurchasesPage() {
   return (
@@ -70,7 +80,9 @@ export default function PurchasesPage() {
                   <TableCell>{po.supplier}</TableCell>
                   <TableCell className="hidden sm:table-cell">{po.date}</TableCell>
                   <TableCell>
-                    <Badge variant={po.status === 'Received' ? 'default' : 'outline'}>{po.status}</Badge>
+                    <Badge variant={'outline'} className={cn(statusColors[po.status] || 'bg-gray-500/20 text-gray-700')}>
+                        {po.status}
+                    </Badge>
                   </TableCell>
                   <TableCell className="hidden text-right sm:table-cell">${po.total.toFixed(2)}</TableCell>
                   <TableCell>

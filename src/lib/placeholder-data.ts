@@ -45,7 +45,7 @@ export type PurchaseOrder = {
     id: string;
     supplier: string;
     date: string;
-    status: 'Draft' | 'Sent' | 'Received' | 'Cancelled';
+    status: 'Draft' | 'Fabric Ordered' | 'Printing' | 'Cutting' | 'Received' | 'Cancelled';
     total: number;
     items: number;
 };
@@ -111,10 +111,12 @@ export const inventory: InventoryItem[] = [
 ];
 
 export const purchaseOrders: PurchaseOrder[] = [
-    { id: 'PO-2024-001', supplier: 'Global Textiles Inc.', date: '2024-03-15', status: 'Received', total: 5000.00, items: 200 },
-    { id: 'PO-2024-002', supplier: 'Denim Dreams Co.', date: '2024-03-20', status: 'Received', total: 12000.00, items: 150 },
-    { id: 'PO-2024-003', supplier: 'Luxury Fibers Ltd.', date: '2024-04-01', status: 'Sent', total: 8500.00, items: 100 },
-    { id: 'PO-2024-004', supplier: 'Leather Masters', date: '2024-04-15', status: 'Draft', total: 25000.00, items: 50 },
+    { id: 'PO-2024-001', supplier: 'Global Textiles Inc.', date: '2024-05-15', status: 'Received', total: 5000.00, items: 200 },
+    { id: 'PO-2024-002', supplier: 'Denim Dreams Co.', date: '2024-05-20', status: 'Cutting', total: 12000.00, items: 150 },
+    { id: 'PO-2024-003', supplier: 'Luxury Fibers Ltd.', date: '2024-05-25', status: 'Printing', total: 8500.00, items: 100 },
+    { id: 'PO-2024-004', supplier: 'Leather Masters', date: '2024-06-01', status: 'Fabric Ordered', total: 25000.00, items: 50 },
+    { id: 'PO-2024-005', supplier: 'Global Textiles Inc.', date: '2024-06-05', status: 'Draft', total: 7500.00, items: 300 },
+    { id: 'PO-2024-006', supplier: 'Denim Dreams Co.', date: '2024-04-10', status: 'Cancelled', total: 9200.00, items: 120 },
 ];
 
 export const staff: StaffMember[] = [
