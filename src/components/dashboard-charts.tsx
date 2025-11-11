@@ -63,16 +63,20 @@ export default function DashboardCharts() {
                     axisLine={false} 
                     tickMargin={10}
                     tickFormatter={(value) => value.slice(0, 3)}
+                    width={40}
                   />
                 </>
               ) : (
-                <XAxis
-                  dataKey="month"
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                  tickFormatter={(value) => value.slice(0, 3)}
-                />
+                <>
+                  <XAxis
+                    dataKey="month"
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                    tickFormatter={(value) => value.slice(0, 3)}
+                  />
+                  <YAxis hide />
+                </>
               )}
               <ChartTooltip
                 cursor={false}
