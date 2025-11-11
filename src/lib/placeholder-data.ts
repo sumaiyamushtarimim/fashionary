@@ -140,7 +140,6 @@ export const vendors: Vendor[] = [
 
 
 export const revenueData = [
-  { month: 'January', revenue: 4000, profit: 2400 },
   { month: 'February', revenue: 3000, profit: 1398 },
   { month: 'March', revenue: 2000, profit: 9800 },
   { month: 'April', revenue: 2780, profit: 3908 },
