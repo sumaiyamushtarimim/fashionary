@@ -1,5 +1,7 @@
+
 "use client";
 
+import { useEffect } from "react";
 import {
   Activity,
   ArrowUpRight,
@@ -75,6 +77,21 @@ const quickAccessItems = [
 export default function Dashboard() {
   const isMobile = useIsMobile();
   const chartData = isMobile ? revenueData.slice(-4) : revenueData;
+
+  useEffect(() => {
+    const viewport = document.querySelector("meta[name=viewport]");
+    const originalContent = viewport?.getAttribute("content");
+
+    if (viewport) {
+      viewport.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+    }
+
+    return () => {
+      if (viewport && originalContent) {
+        viewport.setAttribute("content", originalContent);
+      }
+    };
+  }, []);
 
   return (
     <>
@@ -224,7 +241,7 @@ export default function Dashboard() {
                 <TableRow>
                   <TableHead>Customer</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right hidden sm:table-cell">Amount</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -252,7 +269,7 @@ export default function Dashboard() {
                         {order.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right hidden sm:table-cell">
                       ${order.total.toFixed(2)}
                     </TableCell>
                   </TableRow>
