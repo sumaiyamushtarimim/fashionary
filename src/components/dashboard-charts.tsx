@@ -45,47 +45,39 @@ export default function DashboardCharts() {
           <CardTitle className="font-headline">Revenue & Profit Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
-             <BarChart 
-                accessibilityLayer 
-                data={revenueData}
-                layout={isMobile ? "vertical" : "horizontal"}
-                margin={isMobile ? { left: 10 } : {}}
-              >
-              <CartesianGrid vertical={isMobile} horizontal={!isMobile} />
-              {isMobile ? (
-                <>
-                  <XAxis type="number" hide />
-                  <YAxis 
-                    type="category" 
-                    dataKey="month" 
-                    tickLine={false} 
-                    axisLine={false} 
-                    tickMargin={10}
-                    tickFormatter={(value) => value.slice(0, 3)}
-                    width={40}
-                  />
-                </>
-              ) : (
-                <>
-                  <XAxis
-                    dataKey="month"
-                    tickLine={false}
-                    tickMargin={10}
-                    axisLine={false}
-                    tickFormatter={(value) => value.slice(0, 3)}
-                  />
-                  <YAxis hide />
-                </>
-              )}
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent indicator="dashed" />}
-              />
-              <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
-              <Bar dataKey="profit" fill="var(--color-profit)" radius={4} />
-            </BarChart>
-          </ChartContainer>
+          {isMobile ? (
+            <div className="space-y-4">
+              {revenueData.map((data) => (
+                <div key={data.month} className="flex justify-between items-center text-sm pb-2 border-b last:border-b-0">
+                  <span className="font-medium text-muted-foreground">{data.month}</span>
+                  <div className="text-right">
+                    <p className="font-bold text-foreground">${data.revenue.toLocaleString()}</p>
+                    <p className="text-xs text-green-600">${data.profit.toLocaleString()} Profit</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
+              <BarChart accessibilityLayer data={revenueData}>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                  tickFormatter={(value) => value.slice(0, 3)}
+                />
+                <YAxis hide />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent indicator="dashed" />}
+                />
+                <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
+                <Bar dataKey="profit" fill="var(--color-profit)" radius={4} />
+              </BarChart>
+            </ChartContainer>
+          )}
         </CardContent>
       </Card>
 
