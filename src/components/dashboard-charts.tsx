@@ -68,31 +68,31 @@ export default function DashboardCharts() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-headline">Orders by Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-             <ChartContainer config={ordersChartConfig} className="mx-auto aspect-square max-h-[250px]">
-                <PieChart>
-                    <ChartTooltip content={<ChartTooltipContent nameKey="status" hideLabel />} />
-                     <Pie 
-                        data={ordersByStatusData} 
-                        dataKey="value" 
-                        nameKey="status" 
-                        innerRadius={isMobile ? 40 : 60} 
-                        outerRadius={isMobile ? 80 : 100}
-                        paddingAngle={isMobile ? 2 : 0}
-                    >
-                       {ordersByStatusData.map((entry) => (
-                         <Cell key={entry.status} fill={entry.fill} />
-                       ))}
-                    </Pie>
-                    {isMobile && <ChartLegend content={<ChartLegendContent nameKey="status" />} />}
-                </PieChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
+        {!isMobile && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline">Orders by Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer config={ordersChartConfig} className="mx-auto aspect-square max-h-[250px]">
+                  <PieChart>
+                      <ChartTooltip content={<ChartTooltipContent nameKey="status" hideLabel />} />
+                      <Pie 
+                          data={ordersByStatusData} 
+                          dataKey="value" 
+                          nameKey="status" 
+                          innerRadius={60}
+                          outerRadius={100}
+                      >
+                        {ordersByStatusData.map((entry) => (
+                          <Cell key={entry.status} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                  </PieChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        )}
     </>
   );
 }
