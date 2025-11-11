@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle, Circle, HardHat, Package, Check, Truck } from "lucide-react";
+import { Check, HardHat, Package, Truck, Minus, Plus } from "lucide-react";
 import { purchaseOrders, suppliers, vendors } from "@/lib/placeholder-data";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -49,6 +49,11 @@ export default function PurchaseOrderDetailsPage() {
 
     const [printingCost, setPrintingCost] = useState<number>(0);
     const [printingPayment, setPrintingPayment] = useState<Payment>(initialPaymentState);
+    
+    const [cuttingCost, setCuttingCost] = useState<number>(0);
+    const [cuttingPayment, setCuttingPayment] = useState<Payment>(initialPaymentState);
+
+    const [finalReceivedQty, setFinalReceivedQty] = useState<number>(100); // Example quantity
 
     const handlePaymentChange = (setter: React.Dispatch<React.SetStateAction<Payment>>, field: keyof Payment, value: string | number) => {
         setter(prev => ({ ...prev, [field]: value }));
@@ -60,7 +65,7 @@ export default function PurchaseOrderDetailsPage() {
     };
     
     const printingDue = useMemo(() => calculateDue(printingCost, printingPayment), [printingCost, printingPayment]);
-    
+    const cuttingDue = useMemo(() => calculateDue(cuttingCost, cuttingPayment), [cuttingCost, cuttingPayment]);
 
     if (!purchaseOrder) {
         return (
@@ -109,7 +114,7 @@ export default function PurchaseOrderDetailsPage() {
                         {step.status === 'complete' ? <Check className="h-6 w-6" /> : <step.icon className="h-6 w-6" />}
                         </div>
                         <p className={cn(
-                            "text-sm font-medium",
+                            "text-sm font-medium text-center",
                             step.status === 'current' && 'text-primary',
                             step.status === 'pending' && 'text-muted-foreground'
                         )}>{step.name}</p>
@@ -130,23 +135,16 @@ export default function PurchaseOrderDetailsPage() {
             <div className="lg:col-span-1 space-y-8">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Supplier Details</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2 text-sm">
-                        <p className="font-semibold">{supplier?.name}</p>
-                        <p className="text-muted-foreground">{supplier?.address}</p>
-                        <p className="text-muted-foreground">{supplier?.email}</p>
-                        <p className="text-muted-foreground">{supplier?.phone}</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
                         <CardTitle>Order Summary</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-1 text-sm">
-                         <div className="flex justify-between">
+                    <CardContent className="space-y-2 text-sm">
+                        <div className="flex justify-between">
                             <span className="text-muted-foreground">Order Date:</span>
                             <span className="font-medium">{purchaseOrder.date}</span>
+                        </div>
+                         <div className="flex justify-between">
+                            <span className="text-muted-foreground">Supplier:</span>
+                            <span className="font-medium">{supplier?.name}</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">Fabric Cost:</span>
@@ -157,6 +155,25 @@ export default function PurchaseOrderDetailsPage() {
                             <span className="font-medium">{purchaseOrder.status}</span>
                         </div>
                     </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Step 4: Delivery & Finish</CardTitle>
+                        <CardDescription>Receive final goods and update inventory.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div>
+                            <Label htmlFor="final-qty">Final Received Quantity</Label>
+                            <div className="flex items-center gap-2 mt-1">
+                                <Button variant="outline" size="icon" onClick={() => setFinalReceivedQty(q => Math.max(0, q - 1))}><Minus className="h-4 w-4" /></Button>
+                                <Input id="final-qty" type="number" className="text-center" value={finalReceivedQty} onChange={e => setFinalReceivedQty(Number(e.target.value) || 0)} />
+                                <Button variant="outline" size="icon" onClick={() => setFinalReceivedQty(q => q + 1)}><Plus className="h-4 w-4" /></Button>
+                            </div>
+                        </div>
+                    </CardContent>
+                    <CardFooter>
+                         <Button className="w-full">Update Stock & Complete Order</Button>
+                    </CardFooter>
                 </Card>
             </div>
             <div className="lg:col-span-2 space-y-8">
@@ -217,6 +234,65 @@ export default function PurchaseOrderDetailsPage() {
                     </CardContent>
                     <CardFooter>
                          <Button>Approve for Printing</Button>
+                    </CardFooter>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Step 3: Cutting</CardTitle>
+                        <CardDescription>Manage cutting vendor and costs.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="space-y-2">
+                            <Label>Cutting Vendor</Label>
+                            <Select>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a cutting vendor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {vendors.filter(v => v.type === 'Cutting').map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="cutting-cost">Total Cutting Cost</Label>
+                            <Input id="cutting-cost" placeholder="0.00" type="number" value={cuttingCost || ''} onChange={e => setCuttingCost(parseFloat(e.target.value) || 0)} />
+                        </div>
+                        <Separator />
+                        <Label className="font-medium">Payment</Label>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="cash-cutting">Cash Amount</Label>
+                                <Input id="cash-cutting" placeholder="0.00" type="number" value={cuttingPayment.cash || ''} onChange={e => handlePaymentChange(setCuttingPayment, 'cash', parseFloat(e.target.value) || 0)} disabled={cuttingCost > 0 && cuttingCost === cuttingPayment.check} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="check-cutting">Check Amount</Label>
+                                <Input id="check-cutting" placeholder="0.00" type="number" value={cuttingPayment.check || ''} onChange={e => handlePaymentChange(setCuttingPayment, 'check', parseFloat(e.target.value) || 0)} disabled={cuttingCost > 0 && cuttingCost === cuttingPayment.cash} />
+                            </div>
+                        </div>
+                        {(Number(cuttingPayment.check) || 0) > 0 && (
+                            <div className="space-y-2">
+                                <Label htmlFor="check-date-cutting">Check Passing Date</Label>
+                                <Input id="check-date-cutting" type="date" value={cuttingPayment.checkDate} onChange={e => handlePaymentChange(setCuttingPayment, 'checkDate', e.target.value)} />
+                            </div>
+                        )}
+                        <Separator />
+                        <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Total Bill:</span>
+                                <span className="font-medium">${cuttingCost.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Paid:</span>
+                                <span className="font-medium">${((Number(cuttingPayment.cash) || 0) + (Number(cuttingPayment.check) || 0)).toFixed(2)}</span>
+                            </div>
+                             <div className="flex justify-between font-semibold">
+                                <span className={cuttingDue > 0 ? "text-destructive" : ""}>Due Amount:</span>
+                                <span className={cuttingDue > 0 ? "text-destructive" : ""}>${cuttingDue.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </CardContent>
+                    <CardFooter>
+                         <Button>Approve for Cutting</Button>
                     </CardFooter>
                 </Card>
             </div>
