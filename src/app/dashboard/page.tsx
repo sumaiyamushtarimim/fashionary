@@ -58,7 +58,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <TooltipProvider>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-6">
+                    <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
                         {quickAccessItems.map((item) => (
                             <Tooltip key={item.href}>
                                 <TooltipTrigger asChild>
