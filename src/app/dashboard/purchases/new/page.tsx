@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, ChangeEvent } from "react";
+import { useState, useMemo, ChangeEvent, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -43,8 +43,12 @@ type OrderItem = {
     productId: string;
     variantId: string;
     ornaQty: number;
+    ornaCost: number;
     jamaQty: number;
+    jamaCost: number;
     selowarQty: number;
+    selowarCost: number;
+    lineTotal: number;
 };
 
 type Payment = {
@@ -54,10 +58,12 @@ type Payment = {
 }
 
 const initialPaymentState: Payment = { cash: 0, check: 0, checkDate: '' };
+const initialOrderItemState: Omit<OrderItem, 'id' | 'lineTotal'> = { productId: '', variantId: '', ornaQty: 0, ornaCost: 0, jamaQty: 0, jamaCost: 0, selowarQty: 0, selowarCost: 0 };
+
 
 export default function NewPurchaseOrderPage() {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([
-    { id: `item-${Date.now()}`, productId: '', variantId: '', ornaQty: 0, jamaQty: 0, selowarQty: 0 }
+    { id: `item-${Date.now()}`, ...initialOrderItemState, lineTotal: 0 }
   ]);
   
   const [fabricCost, setFabricCost] = useState(0);
@@ -69,18 +75,30 @@ export default function NewPurchaseOrderPage() {
   const [cuttingPayment, setCuttingPayment] = useState<Payment>(initialPaymentState);
 
   const handleAddItem = () => {
-    setOrderItems([...orderItems, { id: `item-${Date.now()}`, productId: '', variantId: '', ornaQty: 0, jamaQty: 0, selowarQty: 0 }]);
+    setOrderItems([...orderItems, { id: `item-${Date.now()}`, ...initialOrderItemState, lineTotal: 0 }]);
   };
 
   const handleRemoveItem = (id: string) => {
     setOrderItems(orderItems.filter(item => item.id !== id));
   };
 
-  const handleItemChange = (id: string, field: keyof Omit<OrderItem, 'id'>, value: string | number) => {
-    setOrderItems(orderItems.map(item => 
-      item.id === id ? { ...item, [field]: value } : item
-    ));
+  const handleItemChange = (id: string, field: keyof Omit<OrderItem, 'id' | 'lineTotal'>, value: string | number) => {
+    setOrderItems(prevItems => prevItems.map(item => {
+      if (item.id === id) {
+        const updatedItem = { ...item, [field]: value };
+        const { ornaQty, ornaCost, jamaQty, jamaCost, selowarQty, selowarCost } = updatedItem;
+        const lineTotal = (ornaQty * ornaCost) + (jamaQty * jamaCost) + (selowarQty * selowarCost);
+        return { ...updatedItem, lineTotal };
+      }
+      return item;
+    }));
   };
+  
+  useEffect(() => {
+    const totalFabricCost = orderItems.reduce((total, item) => total + item.lineTotal, 0);
+    setFabricCost(totalFabricCost);
+  }, [orderItems]);
+
 
   const handlePaymentChange = (setter: React.Dispatch<React.SetStateAction<Payment>>, field: keyof Payment, value: string | number) => {
     setter(prev => ({ ...prev, [field]: value }));
@@ -98,7 +116,7 @@ export default function NewPurchaseOrderPage() {
   const renderPaymentCard = (
     title: string, 
     totalCost: number, 
-    setTotalCost: (value: number) => void,
+    setTotalCost: ((value: number) => void) | null,
     payment: Payment, 
     handlePaymentChange: (field: keyof Payment, value: string | number) => void,
     dueAmount: number,
@@ -124,7 +142,7 @@ export default function NewPurchaseOrderPage() {
         </div>
         <div className="space-y-2">
             <Label>Total Cost</Label>
-            <Input placeholder="0.00" type="number" value={totalCost || ''} onChange={e => setTotalCost(parseFloat(e.target.value) || 0)} />
+            <Input placeholder="0.00" type="number" value={totalCost || ''} onChange={e => setTotalCost ? setTotalCost(parseFloat(e.target.value) || 0) : null} readOnly={!setTotalCost} />
         </div>
         <Separator />
         <Label className="font-medium">Payment</Label>
@@ -211,7 +229,7 @@ export default function NewPurchaseOrderPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Fabric Order Details</CardTitle>
-                    <CardDescription>Select products and specify fabric quantities.</CardDescription>
+                    <CardDescription>Select products and specify fabric quantities and costs.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-6">
                     <div className="w-full overflow-x-auto">
@@ -220,9 +238,10 @@ export default function NewPurchaseOrderPage() {
                                 <TableRow>
                                     <TableHead className="min-w-[200px]">Product</TableHead>
                                     <TableHead className="min-w-[150px]">Variant</TableHead>
-                                    <TableHead>Orna (Qty)</TableHead>
-                                    <TableHead>Jama (Qty)</TableHead>
-                                    <TableHead>Selowar (Qty)</TableHead>
+                                    <TableHead>Orna (Qty/Cost)</TableHead>
+                                    <TableHead>Jama (Qty/Cost)</TableHead>
+                                    <TableHead>Selowar (Qty/Cost)</TableHead>
+                                    <TableHead>Line Total</TableHead>
                                     <TableHead><span className="sr-only">Actions</span></TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -251,9 +270,25 @@ export default function NewPurchaseOrderPage() {
                                                 </SelectContent>
                                             </Select>
                                         </TableCell>
-                                        <TableCell><Input type="number" placeholder="0" className="w-20" value={item.ornaQty || ''} onChange={(e) => handleItemChange(item.id, 'ornaQty', parseInt(e.target.value) || 0)} /></TableCell>
-                                        <TableCell><Input type="number" placeholder="0" className="w-20" value={item.jamaQty || ''} onChange={(e) => handleItemChange(item.id, 'jamaQty', parseInt(e.target.value) || 0)}/></TableCell>
-                                        <TableCell><Input type="number" placeholder="0" className="w-20" value={item.selowarQty || ''} onChange={(e) => handleItemChange(item.id, 'selowarQty', parseInt(e.target.value) || 0)}/></TableCell>
+                                        <TableCell>
+                                            <div className="flex gap-1">
+                                                <Input type="number" placeholder="Qty" className="w-20" value={item.ornaQty || ''} onChange={(e) => handleItemChange(item.id, 'ornaQty', parseFloat(e.target.value) || 0)} />
+                                                <Input type="number" placeholder="Cost" className="w-20" value={item.ornaCost || ''} onChange={(e) => handleItemChange(item.id, 'ornaCost', parseFloat(e.target.value) || 0)} />
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex gap-1">
+                                                <Input type="number" placeholder="Qty" className="w-20" value={item.jamaQty || ''} onChange={(e) => handleItemChange(item.id, 'jamaQty', parseFloat(e.target.value) || 0)}/>
+                                                <Input type="number" placeholder="Cost" className="w-20" value={item.jamaCost || ''} onChange={(e) => handleItemChange(item.id, 'jamaCost', parseFloat(e.target.value) || 0)}/>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex gap-1">
+                                                <Input type="number" placeholder="Qty" className="w-20" value={item.selowarQty || ''} onChange={(e) => handleItemChange(item.id, 'selowarQty', parseFloat(e.target.value) || 0)}/>
+                                                <Input type="number" placeholder="Cost" className="w-20" value={item.selowarCost || ''} onChange={(e) => handleItemChange(item.id, 'selowarCost', parseFloat(e.target.value) || 0)}/>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="font-medium">${item.lineTotal.toFixed(2)}</TableCell>
                                         <TableCell>
                                             {orderItems.length > 1 && (
                                                 <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>
@@ -274,7 +309,7 @@ export default function NewPurchaseOrderPage() {
             </Card>
         </div>
         <div className="space-y-8">
-            {renderPaymentCard("Fabric Bill", fabricCost, setFabricCost, fabricPayment, (field, value) => handlePaymentChange(setFabricPayment, field, value), fabricDue, 'supplier')}
+            {renderPaymentCard("Fabric Bill", fabricCost, null, fabricPayment, (field, value) => handlePaymentChange(setFabricPayment, field, value), fabricDue, 'supplier')}
             {renderPaymentCard("Printing Cost", printingCost, setPrintingCost, printingPayment, (field, value) => handlePaymentChange(setPrintingPayment, field, value), printingDue, 'printing')}
             {renderPaymentCard("Cutting Cost", cuttingCost, setCuttingCost, cuttingPayment, (field, value) => handlePaymentChange(setCuttingPayment, field, value), cuttingDue, 'cutting')}
              <Card>
