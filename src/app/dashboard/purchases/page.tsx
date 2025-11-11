@@ -62,7 +62,11 @@ export default function PurchasesPage() {
             <TableBody>
               {purchaseOrders.map((po) => (
                 <TableRow key={po.id}>
-                  <TableCell className="font-medium">{po.id}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link href={`/dashboard/purchases/${po.id}`} className="hover:underline">
+                      {po.id}
+                    </Link>
+                  </TableCell>
                   <TableCell>{po.supplier}</TableCell>
                   <TableCell className="hidden sm:table-cell">{po.date}</TableCell>
                   <TableCell>
@@ -83,7 +87,9 @@ export default function PurchasesPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                           <Link href={`/dashboard/purchases/${po.id}`}>View Details</Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem>Mark as Received</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
