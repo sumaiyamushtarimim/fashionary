@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -29,8 +28,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle, Circle, Dot, PlusCircle, Trash2 } from "lucide-react";
-import { products } from "@/lib/placeholder-data";
+import { CheckCircle, Circle, PlusCircle, Trash2 } from "lucide-react";
+import { products, suppliers, vendors } from "@/lib/placeholder-data";
 
 const steps = [
   { name: "Fabric Order", status: "current" },
@@ -44,22 +43,33 @@ type OrderItem = {
     productId: string;
     variantId: string;
     ornaQty: number;
-    ornaCost: number;
     jamaQty: number;
-    jamaCost: number;
     selowarQty: number;
-    selowarCost: number;
 };
+
+type Payment = {
+    cash: number;
+    check: number;
+    checkDate: string;
+}
+
+const initialPaymentState: Payment = { cash: 0, check: 0, checkDate: '' };
 
 export default function NewPurchaseOrderPage() {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([
-    { id: `item-${Date.now()}`, productId: '', variantId: '', ornaQty: 0, ornaCost: 0, jamaQty: 0, jamaCost: 0, selowarQty: 0, selowarCost: 0 }
+    { id: `item-${Date.now()}`, productId: '', variantId: '', ornaQty: 0, jamaQty: 0, selowarQty: 0 }
   ]);
-  const [cashAmount, setCashAmount] = useState(0);
-  const [checkAmount, setCheckAmount] = useState(0);
+  
+  const [fabricCost, setFabricCost] = useState(0);
+  const [printingCost, setPrintingCost] = useState(0);
+  const [cuttingCost, setCuttingCost] = useState(0);
+
+  const [fabricPayment, setFabricPayment] = useState<Payment>(initialPaymentState);
+  const [printingPayment, setPrintingPayment] = useState<Payment>(initialPaymentState);
+  const [cuttingPayment, setCuttingPayment] = useState<Payment>(initialPaymentState);
 
   const handleAddItem = () => {
-    setOrderItems([...orderItems, { id: `item-${Date.now()}`, productId: '', variantId: '', ornaQty: 0, ornaCost: 0, jamaQty: 0, jamaCost: 0, selowarQty: 0, selowarCost: 0 }]);
+    setOrderItems([...orderItems, { id: `item-${Date.now()}`, productId: '', variantId: '', ornaQty: 0, jamaQty: 0, selowarQty: 0 }]);
   };
 
   const handleRemoveItem = (id: string) => {
@@ -71,18 +81,87 @@ export default function NewPurchaseOrderPage() {
       item.id === id ? { ...item, [field]: value } : item
     ));
   };
-  
-  const totalCost = useMemo(() => {
-    return orderItems.reduce((total, item) => {
-      return total + (item.ornaCost || 0) + (item.jamaCost || 0) + (item.selowarCost || 0);
-    }, 0);
-  }, [orderItems]);
 
-  const dueAmount = useMemo(() => {
-    const paid = (cashAmount || 0) + (checkAmount || 0);
+  const handlePaymentChange = (setter: React.Dispatch<React.SetStateAction<Payment>>, field: keyof Payment, value: string | number) => {
+    setter(prev => ({ ...prev, [field]: value }));
+  };
+
+  const calculateDue = (totalCost: number, payment: Payment) => {
+    const paid = (payment.cash || 0) + (payment.check || 0);
     return totalCost - paid;
-  }, [totalCost, cashAmount, checkAmount]);
+  };
+  
+  const fabricDue = useMemo(() => calculateDue(fabricCost, fabricPayment), [fabricCost, fabricPayment]);
+  const printingDue = useMemo(() => calculateDue(printingCost, printingPayment), [printingCost, printingPayment]);
+  const cuttingDue = useMemo(() => calculateDue(cuttingCost, cuttingPayment), [cuttingCost, cuttingPayment]);
 
+  const renderPaymentCard = (
+    title: string, 
+    totalCost: number, 
+    setTotalCost: (value: number) => void,
+    payment: Payment, 
+    handlePaymentChange: (field: keyof Payment, value: string | number) => void,
+    dueAmount: number,
+    vendorType: 'supplier' | 'printing' | 'cutting'
+  ) => (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <div className="space-y-2">
+            <Label>{vendorType === 'supplier' ? 'Supplier' : vendorType === 'printing' ? 'Printing Vendor' : 'Cutting Vendor'}</Label>
+            <Select>
+                <SelectTrigger>
+                    <SelectValue placeholder="Select a vendor" />
+                </SelectTrigger>
+                <SelectContent>
+                    {vendorType === 'supplier' && suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                    {vendorType === 'printing' && vendors.filter(v => v.type === 'Printing').map(v => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                    {vendorType === 'cutting' && vendors.filter(v => v.type === 'Cutting').map(v => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                </SelectContent>
+            </Select>
+        </div>
+        <div className="space-y-2">
+            <Label>Total Cost</Label>
+            <Input placeholder="0.00" type="number" value={totalCost || ''} onChange={e => setTotalCost(parseFloat(e.target.value) || 0)} />
+        </div>
+        <Separator />
+        <Label className="font-medium">Payment</Label>
+        <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label htmlFor={`cash-${vendorType}`}>Cash Amount</Label>
+                <Input id={`cash-${vendorType}`} placeholder="0.00" type="number" value={payment.cash || ''} onChange={e => handlePaymentChange('cash', parseFloat(e.target.value) || 0)} disabled={totalCost > 0 && totalCost === payment.check} />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor={`check-${vendorType}`}>Check Amount</Label>
+                <Input id={`check-${vendorType}`} placeholder="0.00" type="number" value={payment.check || ''} onChange={e => handlePaymentChange('check', parseFloat(e.target.value) || 0)} disabled={totalCost > 0 && totalCost === payment.cash} />
+            </div>
+        </div>
+        {payment.check > 0 && (
+            <div className="space-y-2">
+                <Label htmlFor={`check-date-${vendorType}`}>Check Passing Date</Label>
+                <Input id={`check-date-${vendorType}`} type="date" value={payment.checkDate} onChange={e => handlePaymentChange('checkDate', e.target.value)} />
+            </div>
+        )}
+        <Separator />
+        <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+                <span className="text-muted-foreground">Total Cost:</span>
+                <span className="font-medium">${totalCost.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+                <span className="text-muted-foreground">Paid:</span>
+                <span className="font-medium">${((payment.cash || 0) + (payment.check || 0)).toFixed(2)}</span>
+            </div>
+             <div className="flex justify-between font-semibold">
+                <span className={dueAmount > 0 ? "text-destructive" : ""}>Due Amount:</span>
+                <span className={dueAmount > 0 ? "text-destructive" : ""}>${dueAmount.toFixed(2)}</span>
+            </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -105,49 +184,22 @@ export default function NewPurchaseOrderPage() {
         >
           {steps.map((step, stepIdx) => (
             <li key={step.name} className="relative md:flex md:flex-1">
-              {step.status === "current" ? (
-                <div className="group flex w-full items-center">
+              <div className={`group flex w-full items-center ${step.status === 'current' ? '' : ''}`}>
                   <span className="flex items-center px-6 py-4 text-sm font-medium">
-                    <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-primary">
-                      <CheckCircle className="h-6 w-6 text-primary" />
+                    <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 ${step.status === 'current' ? 'border-primary' : 'border-gray-300'}`}>
+                      {step.status === 'current' ? <CheckCircle className="h-6 w-6 text-primary" /> : <Circle className="h-6 w-6 text-gray-500" />}
                     </span>
-                    <span className="ml-4 text-sm font-medium text-primary">
+                    <span className={`ml-4 text-sm font-medium ${step.status === 'current' ? 'text-primary' : 'text-gray-500'}`}>
                       {step.name}
                     </span>
                   </span>
                 </div>
-              ) : (
-                <div className="group flex items-center">
-                  <span className="flex items-center px-6 py-4 text-sm font-medium">
-                    <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-gray-300">
-                      <Circle className="h-6 w-6 text-gray-500" />
-                    </span>
-                    <span className="ml-4 text-sm font-medium text-gray-500">
-                      {step.name}
-                    </span>
-                  </span>
-                </div>
-              )}
-
               {stepIdx !== steps.length - 1 ? (
-                <>
-                  <div
-                    className="absolute right-0 top-0 hidden h-full w-5 md:block"
-                    aria-hidden="true"
-                  >
-                    <svg
-                      className="h-full w-full text-gray-300"
-                      viewBox="0 0 22 80"
-                      fill="none"
-                      preserveAspectRatio="none"
-                    >
-                      <path
-                        d="M0.5 0H22L0.5 80H0.5V0Z"
-                        fill="currentColor"
-                      />
+                <div className="absolute right-0 top-0 hidden h-full w-5 md:block" aria-hidden="true">
+                    <svg className="h-full w-full text-gray-300" viewBox="0 0 22 80" fill="none" preserveAspectRatio="none">
+                      <path d="M0.5 0H22L0.5 80H0.5V0Z" fill="currentColor" />
                     </svg>
-                  </div>
-                </>
+                </div>
               ) : null}
             </li>
           ))}
@@ -159,7 +211,7 @@ export default function NewPurchaseOrderPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Fabric Order Details</CardTitle>
-                    <CardDescription>Select products and specify fabric quantity and cost.</CardDescription>
+                    <CardDescription>Select products and specify fabric quantities.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-6">
                     <div className="w-full overflow-x-auto">
@@ -171,9 +223,6 @@ export default function NewPurchaseOrderPage() {
                                     <TableHead>Orna (Qty)</TableHead>
                                     <TableHead>Jama (Qty)</TableHead>
                                     <TableHead>Selowar (Qty)</TableHead>
-                                    <TableHead>Orna (Cost)</TableHead>
-                                    <TableHead>Jama (Cost)</TableHead>
-                                    <TableHead>Selowar (Cost)</TableHead>
                                     <TableHead><span className="sr-only">Actions</span></TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -202,16 +251,15 @@ export default function NewPurchaseOrderPage() {
                                                 </SelectContent>
                                             </Select>
                                         </TableCell>
-                                        <TableCell><Input type="number" placeholder="0" className="w-20" onChange={(e) => handleItemChange(item.id, 'ornaQty', e.target.value)} /></TableCell>
-                                        <TableCell><Input type="number" placeholder="0" className="w-20" onChange={(e) => handleItemChange(item.id, 'jamaQty', e.target.value)}/></TableCell>
-                                        <TableCell><Input type="number" placeholder="0" className="w-20" onChange={(e) => handleItemChange(item.id, 'selowarQty', e.target.value)}/></TableCell>
-                                        <TableCell><Input type="number" placeholder="0" className="w-24" onChange={(e) => handleItemChange(item.id, 'ornaCost', e.target.value)} /></TableCell>
-                                        <TableCell><Input type="number" placeholder="0" className="w-24" onChange={(e) => handleItemChange(item.id, 'jamaCost', e.target.value)} /></TableCell>
-                                        <TableCell><Input type="number" placeholder="0" className="w-24" onChange={(e) => handleItemChange(item.id, 'selowarCost', e.target.value)}/></TableCell>
+                                        <TableCell><Input type="number" placeholder="0" className="w-20" value={item.ornaQty || ''} onChange={(e) => handleItemChange(item.id, 'ornaQty', parseInt(e.target.value) || 0)} /></TableCell>
+                                        <TableCell><Input type="number" placeholder="0" className="w-20" value={item.jamaQty || ''} onChange={(e) => handleItemChange(item.id, 'jamaQty', parseInt(e.target.value) || 0)}/></TableCell>
+                                        <TableCell><Input type="number" placeholder="0" className="w-20" value={item.selowarQty || ''} onChange={(e) => handleItemChange(item.id, 'selowarQty', parseInt(e.target.value) || 0)}/></TableCell>
                                         <TableCell>
-                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
+                                            {orderItems.length > 1 && (
+                                                <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -226,76 +274,10 @@ export default function NewPurchaseOrderPage() {
             </Card>
         </div>
         <div className="space-y-8">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Vendors</CardTitle>
-                    <CardDescription>Assign vendors for this production batch.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="supplier">Fabric Supplier</Label>
-                        <Select>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a supplier" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="sup1">Global Textiles Inc.</SelectItem>
-                                <SelectItem value="sup2">Denim Dreams Co.</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="printing-vendor">Printing Vendor</Label>
-                        <Select>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a printing vendor" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="ven1">Precision Prints</SelectItem>
-                                <SelectItem value="ven2">Ink & Thread</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Payment for Fabric</CardTitle>
-                    <CardDescription>Record the payment for the fabric.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-6">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="cash-amount">Cash Amount</Label>
-                            <Input id="cash-amount" placeholder="0.00" type="number" value={cashAmount} onChange={e => setCashAmount(parseFloat(e.target.value) || 0)} disabled={totalCost > 0 && totalCost === checkAmount} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="check-amount">Check Amount</Label>
-                            <Input id="check-amount" placeholder="0.00" type="number" value={checkAmount} onChange={e => setCheckAmount(parseFloat(e.target.value) || 0)} disabled={totalCost > 0 && totalCost === cashAmount}/>
-                        </div>
-                    </div>
-                    {checkAmount > 0 && (
-                        <div className="space-y-2">
-                            <Label htmlFor="check-date">Check Passing Date</Label>
-                            <Input id="check-date" type="date" />
-                        </div>
-                    )}
-                    <Separator />
-                    <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">Total Cost:</span>
-                            <span className="font-medium">${totalCost.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">Paid:</span>
-                            <span className="font-medium">${((cashAmount || 0) + (checkAmount || 0)).toFixed(2)}</span>
-                        </div>
-                         <div className="flex justify-between font-semibold text-lg">
-                            <span className="text-destructive">Due Amount:</span>
-                            <span className="text-destructive">${dueAmount.toFixed(2)}</span>
-                        </div>
-                    </div>
-                </CardContent>
+            {renderPaymentCard("Fabric Bill", fabricCost, setFabricCost, fabricPayment, (field, value) => handlePaymentChange(setFabricPayment, field, value), fabricDue, 'supplier')}
+            {renderPaymentCard("Printing Cost", printingCost, setPrintingCost, printingPayment, (field, value) => handlePaymentChange(setPrintingPayment, field, value), printingDue, 'printing')}
+            {renderPaymentCard("Cutting Cost", cuttingCost, setCuttingCost, cuttingPayment, (field, value) => handlePaymentChange(setCuttingPayment, field, value), cuttingDue, 'cutting')}
+             <Card>
                 <CardFooter>
                     <Button className="w-full">Create Purchase & Proceed</Button>
                 </CardFooter>
