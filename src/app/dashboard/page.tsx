@@ -12,7 +12,6 @@ import {
   Handshake,
 } from "lucide-react";
 import Link from "next/link";
-import dynamic from 'next/dynamic';
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,32 +37,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { orders } from "@/lib/placeholder-data";
-import { Skeleton } from "@/components/ui/skeleton";
-
-const DashboardCharts = dynamic(() => import('@/components/dashboard-charts'), {
-  ssr: false,
-  loading: () => (
-    <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-        <Card className="xl:col-span-2">
-          <CardHeader>
-            <CardTitle className="font-headline">Revenue & Profit Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-[250px] w-full" />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-headline">Orders by Status</CardTitle>
-          </CardHeader>
-          <CardContent  className="flex justify-center items-center">
-            <Skeleton className="h-[250px] w-[250px] rounded-full" />
-          </CardContent>
-        </Card>
-    </div>
-  )
-});
-
+import DashboardChartsLoader from "@/components/dashboard-charts-loader";
 
 const quickAccessItems = [
     { href: "/dashboard/orders", icon: ShoppingCart, label: "Orders" },
@@ -157,7 +131,7 @@ export default function Dashboard() {
         </Card>
       </div>
       <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-        <DashboardCharts />
+        <DashboardChartsLoader />
 
         <Card className="xl:col-span-3">
           <CardHeader className="flex flex-row items-center">
