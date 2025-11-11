@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/chart";
 import { orders, revenueData, ordersByStatusData } from "@/lib/placeholder-data";
 import { useIsMobile } from "@/hooks/use-mobile";
+import * as React from "react";
 
 const chartConfig: ChartConfig = {
   revenue: {
@@ -77,8 +78,26 @@ export default function Dashboard() {
   const isMobile = useIsMobile();
   const chartData = isMobile ? revenueData.slice(-4) : revenueData;
 
+  React.useEffect(() => {
+    const originalViewport = document.querySelector("meta[name='viewport']");
+    const originalContent = originalViewport?.getAttribute("content");
+
+    if (originalViewport) {
+      originalViewport.setAttribute(
+        "content",
+        "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+      );
+    }
+
+    return () => {
+      if (originalViewport && originalContent) {
+        originalViewport.setAttribute("content", originalContent);
+      }
+    };
+  }, []);
+
   return (
-    <>
+    <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="mb-6">
           <Card>
               <CardHeader>
@@ -91,10 +110,9 @@ export default function Dashboard() {
                             <Tooltip key={item.href}>
                                 <TooltipTrigger asChild>
                                 <Link href={item.href}>
-                                    <Button variant="outline" className="flex flex-col h-20 w-full p-2 justify-center items-center">
+                                    <Button variant="outline" className="flex flex-col h-20 w-full p-2 justify-center items-center gap-1">
                                         <item.icon className="h-6 w-6 text-muted-foreground" />
-                                        <span className="text-xs font-normal mt-1 sm:hidden">{item.label}</span>
-                                        <span className="hidden sm:inline text-xs font-normal mt-1">{item.label}</span>
+                                        <span className="text-xs font-normal mt-1 text-center">{item.label}</span>
                                     </Button>
                                 </Link>
                                 </TooltipTrigger>
@@ -263,6 +281,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-    </>
+    </div>
   );
 }
