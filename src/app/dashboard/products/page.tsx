@@ -2,7 +2,7 @@
 "use client";
 
 import Image from "next/image";
-import { MoreHorizontal, PlusCircle } from "lucide-react";
+import { MoreHorizontal, PlusCircle, UploadCloud } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -51,13 +51,22 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { products } from "@/lib/placeholder-data";
 
 const productSchema = z.object({
   name: z.string().min(2, "Product name must be at least 2 characters."),
-  price: z.coerce.number().positive("Price must be a positive number."),
   description: z.string().optional(),
-  inventory: z.coerce.number().int().nonnegative("Inventory must be a non-negative number."),
+  shortDescription: z.string().optional(),
+  regularPrice: z.coerce.number().positive("Price must be a positive number."),
+  salePrice: z.coerce.number().optional(),
+  sku: z.string().optional(),
+  weight: z.coerce.number().optional(),
+  length: z.coerce.number().optional(),
+  width: z.coerce.number().optional(),
+  height: z.coerce.number().optional(),
+  categories: z.string().optional(),
+  tags: z.string().optional(),
 });
 
 export default function ProductsPage() {
@@ -65,9 +74,6 @@ export default function ProductsPage() {
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: "",
-      price: 0,
-      description: "",
-      inventory: 0,
     },
   });
 
@@ -81,7 +87,7 @@ export default function ProductsPage() {
       <div className="flex items-center">
         <div className="flex-1">
             <h1 className="font-headline text-2xl font-bold">Products</h1>
-            <p className="text-muted-foreground">Manage your products and inventory.</p>
+            <p className="text-muted-foreground">Manage your products and view their status.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline">
@@ -94,74 +100,202 @@ export default function ProductsPage() {
                 Add Product
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
               <DialogHeader>
                 <DialogTitle>Add New Product</DialogTitle>
                 <DialogDescription>
-                  Fill in the details below to add a new product to your inventory.
+                  Fill in the details below. The product will be saved as a draft.
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Product Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g. Organic Cotton T-Shirt" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                   <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="A short description of the product." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="price"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Price</FormLabel>
-                          <FormControl>
-                            <Input type="number" placeholder="0.00" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="inventory"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Inventory</FormLabel>
-                          <FormControl>
-                            <Input type="number" placeholder="0" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-y-auto pr-6 -mr-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="md:col-span-2 space-y-6">
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Product Name</FormLabel>
+                                <FormControl>
+                                <Input placeholder="e.g. Organic Cotton T-Shirt" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="description"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Description</FormLabel>
+                                <FormControl>
+                                    <Textarea placeholder="Provide a detailed description of the product." rows={8} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <Card>
+                            <CardHeader>
+                                <CardTitle>Product Images</CardTitle>
+                                <CardDescription>Upload images for your product.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 flex flex-col items-center justify-center text-center">
+                                    <UploadCloud className="w-12 h-12 text-muted-foreground" />
+                                    <p className="mt-4 text-sm text-muted-foreground">Drag and drop files here, or click to browse.</p>
+                                    <Button variant="outline" className="mt-4">Browse Files</Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                         <FormField
+                            control={form.control}
+                            name="shortDescription"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Product short description</FormLabel>
+                                <FormControl>
+                                    <Textarea placeholder="A short and catchy description." rows={3} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                    <div className="md:col-span-1 space-y-6">
+                        <Tabs defaultValue="general">
+                            <TabsList className="w-full">
+                                <TabsTrigger value="general">General</TabsTrigger>
+                                <TabsTrigger value="inventory">Inventory</TabsTrigger>
+                                <TabsTrigger value="shipping">Shipping</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="general" className="mt-6">
+                                <Card>
+                                    <CardContent className="pt-6 space-y-4">
+                                        <FormField
+                                            control={form.control}
+                                            name="regularPrice"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                <FormLabel>Regular price ($)</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" placeholder="25.00" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="salePrice"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                <FormLabel>Sale price ($)</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" placeholder="19.99" {...field} />
+                                                </FormControl>
+                                                <FormDescription>Leave blank to not have a sale.</FormDescription>
+                                                <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                             <TabsContent value="inventory" className="mt-6">
+                                <Card>
+                                    <CardContent className="pt-6 space-y-4">
+                                        <FormField
+                                            control={form.control}
+                                            name="sku"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                <FormLabel>SKU</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="TSHIRT-BLK-L" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                             <TabsContent value="shipping" className="mt-6">
+                                <Card>
+                                    <CardContent className="pt-6 space-y-4">
+                                        <FormField
+                                            control={form.control}
+                                            name="weight"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                <FormLabel>Weight (kg)</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" placeholder="0.5" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <div>
+                                            <Label>Dimensions (cm)</Label>
+                                            <div className="grid grid-cols-3 gap-2 mt-2">
+                                                <FormField control={form.control} name="length" render={({ field }) => (<FormItem><FormControl><Input type="number" placeholder="L" {...field} /></FormControl></FormItem>)} />
+                                                <FormField control={form.control} name="width" render={({ field }) => (<FormItem><FormControl><Input type="number" placeholder="W" {...field} /></FormControl></FormItem>)} />
+                                                <FormField control={form.control} name="height" render={({ field }) => (<FormItem><FormControl><Input type="number" placeholder="H" {...field} /></FormControl></FormItem>)} />
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                        </Tabs>
+
+                         <Card>
+                            <CardHeader>
+                                <CardTitle>Organization</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                               <FormField
+                                    control={form.control}
+                                    name="categories"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Categories</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="T-Shirts, Apparel" {...field} />
+                                        </FormControl>
+                                        <FormDescription>Comma-separated values.</FormDescription>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="tags"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Tags</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Cotton, Eco-friendly" {...field} />
+                                        </FormControl>
+                                        <FormDescription>Comma-separated values.</FormDescription>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </CardContent>
+                        </Card>
+
+                    </div>
                   </div>
-                  <DialogFooter>
-                    <Button type="submit">Add Product</Button>
-                  </DialogFooter>
                 </form>
               </Form>
+              <DialogFooter className="border-t pt-4 mt-auto">
+                <Button variant="outline">Save Draft</Button>
+                <Button type="submit" form="add-product-form">Publish Product</Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
