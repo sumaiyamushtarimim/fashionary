@@ -28,7 +28,7 @@ import { formatDistanceToNow } from "date-fns";
 
 export default function StaffPage() {
   return (
-    <>
+    <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex items-center">
         <div className="flex-1">
             <h1 className="font-headline text-2xl font-bold">Staff Management</h1>
@@ -92,6 +92,6 @@ export default function StaffPage() {
           </Table>
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 }

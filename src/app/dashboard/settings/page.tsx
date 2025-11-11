@@ -49,25 +49,27 @@ const settingsItems = [
 
 export default function SettingsPage() {
   return (
-    <div className="mx-auto grid w-full max-w-6xl gap-2">
-      <h1 className="text-3xl font-semibold font-headline">Settings</h1>
-      <p className="text-muted-foreground mb-4">Manage your application and account settings.</p>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {settingsItems.map((item) => (
-             <Link href={item.href} key={item.title}>
-                <Card className="hover:bg-muted/50 transition-colors h-full">
-                    <CardHeader className="flex flex-row items-start gap-4 space-y-0">
-                        <div className="bg-muted p-3 rounded-md">
-                            <item.icon className="h-6 w-6 text-muted-foreground" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-xl">{item.title}</CardTitle>
-                            <CardDescription>{item.description}</CardDescription>
-                        </div>
-                    </CardHeader>
-                </Card>
-            </Link>
-        ))}
+    <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+      <div className="mx-auto grid w-full max-w-6xl gap-2">
+        <h1 className="text-3xl font-semibold font-headline">Settings</h1>
+        <p className="text-muted-foreground mb-4">Manage your application and account settings.</p>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {settingsItems.map((item) => (
+              <Link href={item.href} key={item.title}>
+                  <Card className="hover:bg-muted/50 transition-colors h-full">
+                      <CardHeader className="flex flex-row items-start gap-4 space-y-0">
+                          <div className="bg-muted p-3 rounded-md">
+                              <item.icon className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                          <div>
+                              <CardTitle className="text-xl">{item.title}</CardTitle>
+                              <CardDescription>{item.description}</CardDescription>
+                          </div>
+                      </CardHeader>
+                  </Card>
+              </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

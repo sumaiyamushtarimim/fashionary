@@ -19,33 +19,35 @@ const WooLogo = () => (
 
 export default function IntegrationsPage() {
   return (
-    <div className="mx-auto grid w-full max-w-6xl gap-2">
-      <h1 className="text-3xl font-semibold font-headline">Integrations</h1>
-      <p className="text-muted-foreground">Sync product and order data with your favorite platforms.</p>
-      <div className="grid gap-6 mt-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-4">
-            <WooLogo />
-            <div>
-                <CardTitle>WooCommerce</CardTitle>
-                <CardDescription>
-                Sync products, orders, and inventory with your WooCommerce store.
-                </CardDescription>
-            </div>
-            <div className="ml-auto flex items-center gap-2">
-                <Badge variant="default" className="bg-green-600">Connected</Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">Last sync: 5 minutes ago</p>
-          </CardContent>
-          <CardFooter className="border-t px-6 py-4">
-            <div className="flex justify-between items-center w-full">
-                <Button variant="outline">Sync Now</Button>
-                <Button variant="destructive">Disconnect</Button>
-            </div>
-          </CardFooter>
-        </Card>
+    <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+      <div className="mx-auto grid w-full max-w-6xl gap-2">
+        <h1 className="text-3xl font-semibold font-headline">Integrations</h1>
+        <p className="text-muted-foreground">Sync product and order data with your favorite platforms.</p>
+        <div className="grid gap-6 mt-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center gap-4">
+              <WooLogo />
+              <div>
+                  <CardTitle>WooCommerce</CardTitle>
+                  <CardDescription>
+                  Sync products, orders, and inventory with your WooCommerce store.
+                  </CardDescription>
+              </div>
+              <div className="ml-auto flex items-center gap-2">
+                  <Badge variant="default" className="bg-green-600">Connected</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">Last sync: 5 minutes ago</p>
+            </CardContent>
+            <CardFooter className="border-t px-6 py-4">
+              <div className="flex justify-between items-center w-full">
+                  <Button variant="outline">Sync Now</Button>
+                  <Button variant="destructive">Disconnect</Button>
+              </div>
+            </CardFooter>
+          </Card>
+        </div>
       </div>
     </div>
   );
