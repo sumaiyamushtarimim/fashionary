@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { PlusCircle, Trash2 } from "lucide-react";
-import { products, suppliers } from "@/lib/placeholder-data";
+import { products, suppliers, vendors } from "@/lib/placeholder-data";
 import Link from "next/link";
 
 type OrderItem = {
@@ -257,6 +257,17 @@ export default function NewPurchaseOrderPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Send to Printing Vendor</Label>
+                            <Select>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a printing vendor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {vendors.filter(v => v.type === 'Printing').map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                         </div>
