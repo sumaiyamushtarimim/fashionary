@@ -37,7 +37,7 @@ const ordersChartConfig: ChartConfig = {
 
 export default function DashboardCharts() {
   const isMobile = useIsMobile();
-  const chartData = isMobile ? revenueData.slice(-4) : revenueData;
+  const chartData = isMobile ? revenueData.slice(-3) : revenueData;
 
   return (
     <>
