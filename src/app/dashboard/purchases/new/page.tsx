@@ -30,7 +30,8 @@ import { CheckCircle, Circle, Dot } from "lucide-react";
 
 const steps = [
   { name: "Fabric Order", status: "current" },
-  { name: "Printing & Cutting", status: "upcoming" },
+  { name: "Printing", status: "upcoming" },
+  { name: "Cutting", status: "upcoming" },
   { name: "Delivery & Finish", status: "upcoming" },
 ];
 
