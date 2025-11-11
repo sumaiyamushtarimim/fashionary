@@ -1,6 +1,6 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell, Legend } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell } from "recharts";
 import {
   Card,
   CardContent,
@@ -37,7 +37,6 @@ const ordersChartConfig: ChartConfig = {
 
 export default function DashboardCharts() {
   const isMobile = useIsMobile();
-  const chartData = isMobile ? revenueData.slice(-3) : revenueData;
 
   return (
     <>
@@ -46,8 +45,8 @@ export default function DashboardCharts() {
           <CardTitle className="font-headline">Revenue & Profit Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-            <BarChart accessibilityLayer data={chartData}>
+          <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
+            <BarChart accessibilityLayer data={revenueData}>
               <CartesianGrid vertical={false} />
               <XAxis
                 dataKey="month"
@@ -55,6 +54,9 @@ export default function DashboardCharts() {
                 tickMargin={10}
                 axisLine={false}
                 tickFormatter={(value) => value.slice(0, 3)}
+                angle={isMobile ? -45 : 0}
+                textAnchor={isMobile ? "end" : "middle"}
+                minTickGap={isMobile ? -5 : 0}
               />
               <ChartTooltip
                 cursor={false}
