@@ -44,6 +44,7 @@ import {
   ChartConfig,
 } from "@/components/ui/chart";
 import { orders, revenueData, ordersByStatusData } from "@/lib/placeholder-data";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const chartConfig: ChartConfig = {
   revenue: {
@@ -72,6 +73,9 @@ const quickAccessItems = [
 ]
 
 export default function Dashboard() {
+  const isMobile = useIsMobile();
+  const chartData = isMobile ? revenueData.slice(-4) : revenueData;
+
   return (
     <>
       <div className="mb-6">
@@ -161,7 +165,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-              <BarChart accessibilityLayer data={revenueData}>
+              <BarChart accessibilityLayer data={chartData}>
                 <CartesianGrid vertical={false} />
                 <XAxis
                   dataKey="month"
