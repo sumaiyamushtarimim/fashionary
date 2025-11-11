@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Image from "next/image";
@@ -101,6 +102,11 @@ const productSchema = z.object({
   height: z.coerce.number().optional(),
   categories: z.string().optional(),
   tags: z.string().optional(),
+
+  // Fabric Consumption
+  ornaFabric: z.coerce.number().optional(),
+  jamaFabric: z.coerce.number().optional(),
+  selowarFabric: z.coerce.number().optional(),
 
   // Variable Product Fields
   attributes: z.array(attributeSchema).optional(),
@@ -602,6 +608,14 @@ export default function ProductsPage() {
                                                         <FormField control={form.control} name="height" render={({ field }) => (<FormItem><FormControl><Input type="number" placeholder="H" {...field} /></FormControl></FormItem>)} />
                                                     </div>
                                                 </div>
+                                                <div className="pt-4">
+                                                    <Label>Fabric Consumption (yards)</Label>
+                                                    <div className="grid grid-cols-3 gap-2 mt-2">
+                                                        <FormField control={form.control} name="ornaFabric" render={({ field }) => (<FormItem><FormLabel className="text-xs font-light">Orna</FormLabel><FormControl><Input type="number" placeholder="2.5" {...field} /></FormControl></FormItem>)} />
+                                                        <FormField control={form.control} name="jamaFabric" render={({ field }) => (<FormItem><FormLabel className="text-xs font-light">Jama</FormLabel><FormControl><Input type="number" placeholder="3.0" {...field} /></FormControl></FormItem>)} />
+                                                        <FormField control={form.control} name="selowarFabric" render={({ field }) => (<FormItem><FormLabel className="text-xs font-light">Selowar</FormLabel><FormControl><Input type="number" placeholder="2.0" {...field} /></FormControl></FormItem>)} />
+                                                    </div>
+                                                </div>
                                             </CardContent>
                                         </Card>
                                     </TabsContent>
@@ -727,5 +741,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-
-    

@@ -42,11 +42,9 @@ type OrderItem = {
     id: string;
     productId: string;
     variantId: string;
-    ornaQty: number;
+    productQty: number;
     ornaCost: number;
-    jamaQty: number;
     jamaCost: number;
-    selowarQty: number;
     selowarCost: number;
     lineTotal: number;
 };
@@ -58,7 +56,7 @@ type Payment = {
 }
 
 const initialPaymentState: Payment = { cash: 0, check: 0, checkDate: '' };
-const initialOrderItemState: Omit<OrderItem, 'id' | 'lineTotal'> = { productId: '', variantId: '', ornaQty: 0, ornaCost: 0, jamaQty: 0, jamaCost: 0, selowarQty: 0, selowarCost: 0 };
+const initialOrderItemState: Omit<OrderItem, 'id' | 'lineTotal'> = { productId: '', variantId: '', productQty: 1, ornaCost: 0, jamaCost: 0, selowarCost: 0 };
 
 
 export default function NewPurchaseOrderPage() {
@@ -86,8 +84,20 @@ export default function NewPurchaseOrderPage() {
     setOrderItems(prevItems => prevItems.map(item => {
       if (item.id === id) {
         const updatedItem = { ...item, [field]: value };
-        const { ornaQty, ornaCost, jamaQty, jamaCost, selowarQty, selowarCost } = updatedItem;
-        const lineTotal = (ornaQty * ornaCost) + (jamaQty * jamaCost) + (selowarQty * selowarCost);
+        
+        // Mock fabric consumption data for calculation logic
+        // In a real app, this would come from the selected product's data
+        const ornaFabric = 2.5; 
+        const jamaFabric = 3.0;
+        const selowarFabric = 2.0;
+
+        const { productQty, ornaCost, jamaCost, selowarCost } = updatedItem;
+        
+        const ornaTotal = productQty * ornaFabric * ornaCost;
+        const jamaTotal = productQty * jamaFabric * jamaCost;
+        const selowarTotal = productQty * selowarFabric * selowarCost;
+
+        const lineTotal = ornaTotal + jamaTotal + selowarTotal;
         return { ...updatedItem, lineTotal };
       }
       return item;
@@ -229,7 +239,7 @@ export default function NewPurchaseOrderPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Fabric Order Details</CardTitle>
-                    <CardDescription>Select products and specify fabric quantities and costs.</CardDescription>
+                    <CardDescription>Select products and specify fabric costs. Quantity will be used to calculate total fabric needed.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-6">
                     <div className="w-full overflow-x-auto">
@@ -238,9 +248,10 @@ export default function NewPurchaseOrderPage() {
                                 <TableRow>
                                     <TableHead className="min-w-[200px]">Product</TableHead>
                                     <TableHead className="min-w-[150px]">Variant</TableHead>
-                                    <TableHead>Orna (Qty/Cost)</TableHead>
-                                    <TableHead>Jama (Qty/Cost)</TableHead>
-                                    <TableHead>Selowar (Qty/Cost)</TableHead>
+                                    <TableHead>Product Qty</TableHead>
+                                    <TableHead>Orna Cost</TableHead>
+                                    <TableHead>Jama Cost</TableHead>
+                                    <TableHead>Selowar Cost</TableHead>
                                     <TableHead>Line Total</TableHead>
                                     <TableHead><span className="sr-only">Actions</span></TableHead>
                                 </TableRow>
@@ -271,22 +282,16 @@ export default function NewPurchaseOrderPage() {
                                             </Select>
                                         </TableCell>
                                         <TableCell>
-                                            <div className="flex gap-1">
-                                                <Input type="number" placeholder="Qty" className="w-20" value={item.ornaQty || ''} onChange={(e) => handleItemChange(item.id, 'ornaQty', parseFloat(e.target.value) || 0)} />
-                                                <Input type="number" placeholder="Cost" className="w-20" value={item.ornaCost || ''} onChange={(e) => handleItemChange(item.id, 'ornaCost', parseFloat(e.target.value) || 0)} />
-                                            </div>
+                                            <Input type="number" placeholder="Qty" className="w-24" value={item.productQty || ''} onChange={(e) => handleItemChange(item.id, 'productQty', parseFloat(e.target.value) || 0)} />
                                         </TableCell>
                                         <TableCell>
-                                            <div className="flex gap-1">
-                                                <Input type="number" placeholder="Qty" className="w-20" value={item.jamaQty || ''} onChange={(e) => handleItemChange(item.id, 'jamaQty', parseFloat(e.target.value) || 0)}/>
-                                                <Input type="number" placeholder="Cost" className="w-20" value={item.jamaCost || ''} onChange={(e) => handleItemChange(item.id, 'jamaCost', parseFloat(e.target.value) || 0)}/>
-                                            </div>
+                                            <Input type="number" placeholder="Cost/yd" className="w-24" value={item.ornaCost || ''} onChange={(e) => handleItemChange(item.id, 'ornaCost', parseFloat(e.target.value) || 0)} />
                                         </TableCell>
                                         <TableCell>
-                                            <div className="flex gap-1">
-                                                <Input type="number" placeholder="Qty" className="w-20" value={item.selowarQty || ''} onChange={(e) => handleItemChange(item.id, 'selowarQty', parseFloat(e.target.value) || 0)}/>
-                                                <Input type="number" placeholder="Cost" className="w-20" value={item.selowarCost || ''} onChange={(e) => handleItemChange(item.id, 'selowarCost', parseFloat(e.target.value) || 0)}/>
-                                            </div>
+                                            <Input type="number" placeholder="Cost/yd" className="w-24" value={item.jamaCost || ''} onChange={(e) => handleItemChange(item.id, 'jamaCost', parseFloat(e.target.value) || 0)}/>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Input type="number" placeholder="Cost/yd" className="w-24" value={item.selowarCost || ''} onChange={(e) => handleItemChange(item.id, 'selowarCost', parseFloat(e.target.value) || 0)}/>
                                         </TableCell>
                                         <TableCell className="font-medium">${item.lineTotal.toFixed(2)}</TableCell>
                                         <TableCell>
