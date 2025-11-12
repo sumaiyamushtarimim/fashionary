@@ -157,9 +157,9 @@ export default function OrdersPage() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex-1 flex items-center gap-2">
+        <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-2">
            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full min-w-[150px] sm:w-[200px]">
+              <SelectTrigger className="w-full">
                   <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -175,10 +175,12 @@ export default function OrdersPage() {
           <Button size="sm" variant="outline">
             Export
           </Button>
-          <Button size="sm" className="relative">
-            <PlusCircle className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Add Order</span>
-            <span className="sm:hidden absolute inset-0"></span>
+          <Button size="sm" asChild>
+            <Link href="/dashboard/orders/new">
+                <PlusCircle className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Add Order</span>
+                <span className="sm:hidden sr-only">Add Order</span>
+            </Link>
           </Button>
         </div>
       </div>
@@ -302,5 +304,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
