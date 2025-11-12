@@ -1,3 +1,7 @@
+
+'use client';
+
+import * as React from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,7 +11,27 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { PlusCircle } from "lucide-react";
+import { businesses } from '@/lib/placeholder-data';
 
 const WooLogo = () => (
     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="h-10 w-10">
@@ -18,19 +42,79 @@ const WooLogo = () => (
 
 
 export default function IntegrationsPage() {
+    const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="mx-auto grid w-full max-w-6xl gap-2">
-        <h1 className="text-3xl font-semibold font-headline">Integrations</h1>
-        <p className="text-muted-foreground">Sync product and order data with your favorite platforms.</p>
+        <div className="flex items-center justify-between">
+            <div>
+                <h1 className="text-3xl font-semibold font-headline">Integrations</h1>
+                <p className="text-muted-foreground">Sync product and order data with your favorite platforms.</p>
+            </div>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Connect New WooCommerce Store
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>Connect a WooCommerce Store</DialogTitle>
+                        <DialogDescription>
+                            Enter your WooCommerce store details to sync data.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-6 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="store-name">Store Name</Label>
+                            <Input id="store-name" placeholder="e.g., My Fashion Shop" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="store-url">Store URL</Label>
+                            <Input id="store-url" type="url" placeholder="https://example.com" />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="business">Select Business</Label>
+                            <Select>
+                                <SelectTrigger id="business">
+                                    <SelectValue placeholder="Link to a business" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {businesses.map(b => (
+                                        <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <p className="text-xs text-muted-foreground">
+                                Link this store to a specific business in your system.
+                            </p>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="consumer-key">Consumer Key</Label>
+                            <Input id="consumer-key" placeholder="ck_xxxxxxxxxxxx" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="consumer-secret">Consumer Secret</Label>
+                            <Input id="consumer-secret" type="password" placeholder="cs_xxxxxxxxxxxx" />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                        <Button type="submit">Connect Store</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
         <div className="grid gap-6 mt-4">
           <Card>
             <CardHeader className="flex flex-row items-center gap-4">
               <WooLogo />
               <div>
-                  <CardTitle>WooCommerce</CardTitle>
+                  <CardTitle>Fashionary Main Store</CardTitle>
                   <CardDescription>
-                  Sync products, orders, and inventory with your WooCommerce store.
+                    Business: <Badge variant="secondary">{businesses[0].name}</Badge>
                   </CardDescription>
               </div>
               <div className="ml-auto flex items-center gap-2">
