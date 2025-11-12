@@ -21,6 +21,9 @@ import {
   Phone,
   Store,
   Globe,
+  Edit,
+  Trash2,
+  PlusCircle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import * as React from 'react';
@@ -57,7 +60,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { orders as placeholderOrders, OrderStatus, OrderLog, businesses, Business, OrderPlatform } from '@/lib/placeholder-data';
+import { orders as placeholderOrders, products as allProducts, OrderStatus, OrderLog, businesses, Business, OrderPlatform, OrderProduct } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
 import {
     Select,
@@ -70,6 +73,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 
 
 const statusColors: Record<OrderStatus, string> = {
@@ -188,7 +192,11 @@ export default function OrderDetailsPage() {
   const orderId = params.id;
   
   const [orders, setOrders] = React.useState(placeholderOrders);
+  const [isEditing, setIsEditing] = React.useState(false);
   const order = orders.find((o) => o.id === orderId);
+
+  const [editedProducts, setEditedProducts] = React.useState<OrderProduct[]>([]);
+  const [editedShipping, setEditedShipping] = React.useState(0);
 
   const [customerNote, setCustomerNote] = React.useState('');
   const [officeNote, setOfficeNote] = React.useState('');
@@ -202,19 +210,41 @@ export default function OrderDetailsPage() {
         setOfficeNote(order.officeNote);
         setBusinessId(order.businessId);
         setPlatform(order.platform);
+        setEditedProducts(JSON.parse(JSON.stringify(order.products))); // Deep copy
+        setEditedShipping(5.0); // This should probably come from the order itself.
     }
   }, [order]);
+  
+  const handleEditToggle = () => {
+    if (isEditing) { // Cancel logic
+        if (order) {
+            setEditedProducts(JSON.parse(JSON.stringify(order.products)));
+            setEditedShipping(5.0);
+        }
+    }
+    setIsEditing(!isEditing);
+  };
 
+  const handleSaveChanges = () => {
+    if(!order) return;
+
+    setOrders(prevOrders => 
+        prevOrders.map(o => 
+            o.id === orderId 
+            ? { ...o, businessId, platform, products: editedProducts, total: total }
+            : o
+        )
+    );
+    setIsEditing(false);
+  }
 
   const handleSaveNotes = () => {
     if (!order) return;
-    // In a real app, you'd save this to a database.
-    // Here, we'll just update the state and add a log entry.
     const newLog: OrderLog = {
-        status: order.status, // Keep current status
+        status: order.status,
         timestamp: new Date().toISOString(),
         description: 'Notes updated.',
-        user: 'Admin' // Assuming the logged in user is an admin
+        user: 'Admin'
     };
 
     setOrders(prevOrders => 
@@ -226,18 +256,32 @@ export default function OrderDetailsPage() {
     );
   };
 
-  const handleSaveChanges = () => {
-    if(!order) return;
+  const handleProductQuantityChange = (productId: string, quantity: number) => {
+    setEditedProducts(prev => prev.map(p => p.productId === productId ? {...p, quantity: Math.max(0, quantity)} : p));
+  };
+  
+  const handleRemoveProduct = (productId: string) => {
+      setEditedProducts(prev => prev.filter(p => p.productId !== productId));
+  };
 
-    setOrders(prevOrders => 
-        prevOrders.map(o => 
-            o.id === orderId 
-            ? { ...o, businessId, platform }
-            : o
-        )
-    );
-  }
-
+  const handleAddProduct = () => {
+      const firstProduct = allProducts[0];
+      if (!firstProduct) return;
+      
+      setEditedProducts(prev => {
+          const existing = prev.find(p => p.productId === firstProduct.id);
+          if (existing) {
+              return prev.map(p => p.productId === firstProduct.id ? {...p, quantity: p.quantity + 1} : p);
+          }
+          return [...prev, {
+              productId: firstProduct.id,
+              name: firstProduct.name,
+              image: firstProduct.image,
+              quantity: 1,
+              price: firstProduct.price
+          }];
+      });
+  };
 
   if (!order) {
     return (
@@ -250,11 +294,12 @@ export default function OrderDetailsPage() {
     );
   }
 
-  const subtotal = order.products.reduce(
+  const productsToShow = isEditing ? editedProducts : order.products;
+  const subtotal = productsToShow.reduce(
     (acc, product) => acc + product.price * product.quantity,
     0
   );
-  const shipping = 5.0;
+  const shipping = isEditing ? editedShipping : 5.0; // Placeholder
   const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax;
 
@@ -295,6 +340,17 @@ export default function OrderDetailsPage() {
           <Button variant="outline" size="sm">
             Print Invoice
           </Button>
+          {isEditing ? (
+            <>
+              <Button variant="outline" size="sm" onClick={handleEditToggle}>Cancel</Button>
+              <Button size="sm" onClick={handleSaveChanges}><Save className="mr-2 h-4 w-4" /> Save Changes</Button>
+            </>
+          ) : (
+            <Button variant="outline" size="sm" onClick={handleEditToggle}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Order
+            </Button>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="h-8 w-8">
@@ -326,10 +382,11 @@ export default function OrderDetailsPage() {
                     <TableHead className="text-right">Qty</TableHead>
                     <TableHead className="text-right">Price</TableHead>
                     <TableHead className="text-right">Total</TableHead>
+                    {isEditing && <TableHead><span className="sr-only">Actions</span></TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody className="flex flex-col sm:table-row-group gap-4">
-                  {order.products.map((product) => (
+                  {productsToShow.map((product) => (
                     <TableRow key={product.productId} className="flex sm:table-row flex-col sm:flex-row rounded-lg border sm:border-0 p-4 sm:p-0">
                       <TableCell className="p-0 sm:p-4 w-[80px] hidden sm:table-cell">
                         <Image
@@ -353,12 +410,21 @@ export default function OrderDetailsPage() {
                                     <p className="font-medium">{product.name}</p>
                                     <p className="text-sm text-muted-foreground">SKU-452-187</p>
                                 </div>
+                                {isEditing && (
+                                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleRemoveProduct(product.productId)}>
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                )}
                             </div>
                             <div className="sm:hidden pt-4">
                                 <div className="grid grid-cols-3 gap-2">
                                     <div className="col-span-1">
                                         <p className="text-sm text-muted-foreground">Qty</p>
-                                        <p className="font-medium">{product.quantity}</p>
+                                        {isEditing ? (
+                                            <Input type="number" value={product.quantity} onChange={(e) => handleProductQuantityChange(product.productId, parseInt(e.target.value) || 0)} className="h-8 w-16 text-center"/>
+                                        ) : (
+                                            <p className="font-medium">{product.quantity}</p>
+                                        )}
                                     </div>
                                     <div className="col-span-1 text-right">
                                         <p className="text-sm text-muted-foreground">Price</p>
@@ -373,7 +439,11 @@ export default function OrderDetailsPage() {
                         </TableCell>
                       <TableCell className="hidden sm:table-cell">SKU-452-187</TableCell>
                       <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
-                          {product.quantity}
+                          {isEditing ? (
+                            <Input type="number" value={product.quantity} onChange={(e) => handleProductQuantityChange(product.productId, parseInt(e.target.value) || 0)} className="h-8 w-16 text-center ml-auto"/>
+                          ) : (
+                            product.quantity
+                          )}
                       </TableCell>
                       <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
                         ${product.price.toFixed(2)}
@@ -381,10 +451,22 @@ export default function OrderDetailsPage() {
                       <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
                         ${(product.price * product.quantity).toFixed(2)}
                       </TableCell>
+                       {isEditing && (
+                            <TableCell className="hidden sm:table-cell">
+                                <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleRemoveProduct(product.productId)}>
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </TableCell>
+                        )}
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+              {isEditing && (
+                  <div className="mt-4">
+                      <Button variant="outline" size="sm" onClick={handleAddProduct}><PlusCircle className="mr-2 h-4 w-4" />Add Product</Button>
+                  </div>
+              )}
             </CardContent>
           </Card>
           <Card>
@@ -398,7 +480,11 @@ export default function OrderDetailsPage() {
               </div>
               <div className="flex items-center justify-between">
                 <dt className="text-muted-foreground">Shipping</dt>
-                <dd>${shipping.toFixed(2)}</dd>
+                {isEditing ? (
+                    <Input type="number" value={editedShipping} onChange={(e) => setEditedShipping(parseFloat(e.target.value) || 0)} className="h-8 w-24 text-right" />
+                ) : (
+                    <dd>${shipping.toFixed(2)}</dd>
+                )}
               </div>
               <div className="flex items-center justify-between">
                 <dt className="text-muted-foreground">Tax</dt>
@@ -594,7 +680,3 @@ export default function OrderDetailsPage() {
     </div>
   );
 }
-
-    
-
-    
