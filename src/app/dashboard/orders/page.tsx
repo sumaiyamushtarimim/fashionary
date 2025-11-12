@@ -49,7 +49,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { orders, OrderStatus, OrderProduct } from "@/lib/placeholder-data";
+import { orders, businesses, OrderStatus, OrderProduct } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 
 const statusColors: Record<OrderStatus, string> = {
@@ -138,32 +138,45 @@ function OrderImages({ products }: { products: OrderProduct[] }) {
 
 export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState("all");
+  const [businessFilter, setBusinessFilter] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
       const statusMatch = statusFilter === "all" || order.status === statusFilter;
+      const businessMatch = businessFilter === 'all' || order.businessId === businessFilter;
       
       const orderDate = new Date(order.date);
       const dateMatch = !dateRange?.from || (dateRange?.from && dateRange?.to 
         ? isWithinInterval(orderDate, { start: dateRange.from, end: dateRange.to })
         : true);
 
-      return statusMatch && dateMatch;
+      return statusMatch && businessMatch && dateMatch;
     });
-  }, [statusFilter, dateRange]);
+  }, [statusFilter, businessFilter, dateRange]);
 
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex-grow flex items-center gap-2">
+        <div className="flex-grow flex items-center gap-2 flex-wrap">
+            <Select value={businessFilter} onValueChange={setBusinessFilter}>
+              <SelectTrigger className="w-full sm:w-auto sm:min-w-[180px]">
+                  <SelectValue placeholder="Filter by business" />
+              </SelectTrigger>
+              <SelectContent>
+                  <SelectItem value="all">All Businesses</SelectItem>
+                  {businesses.map(business => (
+                      <SelectItem key={business.id} value={business.id}>{business.name}</SelectItem>
+                  ))}
+              </SelectContent>
+          </Select>
            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger className="w-full sm:w-auto sm:min-w-[180px]">
                   <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                  <SelectItem value="all">All Orders</SelectItem>
+                  <SelectItem value="all">All Statuses</SelectItem>
                   {allStatuses.map(status => (
                       <SelectItem key={status} value={status}>{status}</SelectItem>
                   ))}
