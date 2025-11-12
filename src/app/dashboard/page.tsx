@@ -37,7 +37,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { orders, OrderStatus } from "@/lib/placeholder-data";
-import DashboardChartsLoader from "@/components/dashboard-charts-loader";
 import { cn } from "@/lib/utils";
 
 const quickAccessItems = [
@@ -146,11 +145,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-        <DashboardChartsLoader />
-      </div>
     </div>
   );
 }
-
-    
