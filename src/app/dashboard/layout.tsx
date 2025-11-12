@@ -120,15 +120,6 @@ export default function DashboardLayout({
           <div className="flex-1">
             <NavLinks />
           </div>
-          <div className="mt-auto p-4">
-            <Link
-              href="/dashboard/settings"
-              className={cn("flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary", isSettingsPage && "bg-muted text-primary")}
-            >
-              <Settings className="h-4 w-4" />
-              Settings
-            </Link>
-          </div>
         </div>
       </div>
       <div className="flex flex-col">
@@ -145,15 +136,6 @@ export default function DashboardLayout({
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
               </SheetHeader>
               <MobileNavLinks />
-              <div className="mt-auto">
-                 <Link
-                    href="/dashboard/settings"
-                    className={cn("mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground", isSettingsPage && "bg-muted text-foreground")}
-                  >
-                    <Settings className="h-5 w-5" />
-                    Settings
-                  </Link>
-              </div>
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1">
@@ -187,9 +169,6 @@ export default function DashboardLayout({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard/settings">Settings</Link>
-              </DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
