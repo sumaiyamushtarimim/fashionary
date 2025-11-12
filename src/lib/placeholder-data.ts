@@ -25,6 +25,13 @@ export type OrderStatus =
   | 'Partially Delivered'
   | 'Partially Returned';
 
+export type OrderPlatform = 'TikTok' | 'Messenger' | 'Facebook' | 'Instagram' | 'Website';
+
+export type Business = {
+    id: string;
+    name: string;
+};
+
 export type OrderProduct = {
   productId: string;
   name: string;
@@ -54,6 +61,8 @@ export type Order = {
   officeNote: string;
   createdBy?: string;
   confirmedBy?: string;
+  businessId?: string;
+  platform?: OrderPlatform;
 };
 
 export type Customer = {
@@ -181,6 +190,12 @@ export const products: Product[] = [
   { id: 'PROD005', name: 'Linen Blend Blazer', description: 'Lightweight and perfect for summer.', price: 95.00, inventory: 60, image: PlaceHolderImages[4] },
 ];
 
+export const businesses: Business[] = [
+    { id: 'BIZ001', name: 'Fashionary Main' },
+    { id: 'BIZ002', name: 'Urban Threads' },
+    { id: 'BIZ003', name: 'Kids Fashion Co.' },
+];
+
 export const orders: Order[] = [
   { 
     id: 'ORD-2024-001', 
@@ -204,7 +219,9 @@ export const orders: Order[] = [
     customerNote: 'Please deliver after 5 PM. Ring the bell twice.',
     officeNote: 'Customer called to confirm the delivery time. Seems important.',
     createdBy: 'Emily White',
-    confirmedBy: 'Jane Doe'
+    confirmedBy: 'Jane Doe',
+    businessId: 'BIZ001',
+    platform: 'Website',
   },
   { 
     id: 'ORD-2024-002', 
@@ -225,7 +242,9 @@ export const orders: Order[] = [
     customerNote: '',
     officeNote: 'Standard packing. No special instructions.',
     createdBy: 'Emily White',
-    confirmedBy: 'Emily White'
+    confirmedBy: 'Emily White',
+    businessId: 'BIZ002',
+    platform: 'TikTok',
   },
   { 
     id: 'ORD-2024-003', 
@@ -244,7 +263,9 @@ export const orders: Order[] = [
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
     customerNote: 'Gift wrap this order, please. It is for a birthday.',
     officeNote: '',
-    createdBy: 'Emily White'
+    createdBy: 'Emily White',
+    businessId: 'BIZ001',
+    platform: 'Facebook',
   },
   { 
     id: 'ORD-2024-004', 
@@ -266,7 +287,9 @@ export const orders: Order[] = [
     customerNote: '',
     officeNote: '',
     createdBy: 'Emily White',
-    confirmedBy: 'Jane Doe'
+    confirmedBy: 'Jane Doe',
+    businessId: 'BIZ003',
+    platform: 'Instagram',
   },
   { 
     id: 'ORD-2024-005', 
@@ -286,7 +309,9 @@ export const orders: Order[] = [
     customerNote: 'Is it possible to get faster delivery?',
     officeNote: 'Follow up with customer about expedited shipping options.',
     createdBy: 'Emily White',
-    confirmedBy: 'Jane Doe'
+    confirmedBy: 'Jane Doe',
+    businessId: 'BIZ002',
+    platform: 'Messenger',
   },
 ];
 
@@ -497,5 +522,7 @@ export const ordersByStatusData = [
     { status: 'Processing', value: 1, fill: 'var(--color-processing)' },
     { status: 'Completed', value: 2, fill: 'var(--color-completed)' },
 ];
+
+    
 
     

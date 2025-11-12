@@ -19,6 +19,8 @@ import {
   Save,
   Mail,
   Phone,
+  Store,
+  Globe,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import * as React from 'react';
@@ -55,7 +57,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { orders as placeholderOrders, OrderStatus, OrderLog } from '@/lib/placeholder-data';
+import { orders as placeholderOrders, OrderStatus, OrderLog, businesses, Business, OrderPlatform } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
 import {
     Select,
@@ -107,6 +109,9 @@ const allStatuses: OrderStatus[] = [
     'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 
     'Partially Delivered', 'Partially Returned'
 ];
+
+const allPlatforms: OrderPlatform[] = ['TikTok', 'Messenger', 'Facebook', 'Instagram', 'Website'];
+
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -188,11 +193,15 @@ export default function OrderDetailsPage() {
   const [customerNote, setCustomerNote] = React.useState('');
   const [officeNote, setOfficeNote] = React.useState('');
   const [sendToCourier, setSendToCourier] = React.useState(false);
+  const [businessId, setBusinessId] = React.useState<string | undefined>(undefined);
+  const [platform, setPlatform] = React.useState<OrderPlatform | undefined>(undefined);
 
   React.useEffect(() => {
     if (order) {
         setCustomerNote(order.customerNote);
         setOfficeNote(order.officeNote);
+        setBusinessId(order.businessId);
+        setPlatform(order.platform);
     }
   }, [order]);
 
@@ -216,6 +225,18 @@ export default function OrderDetailsPage() {
         )
     );
   };
+
+  const handleSaveChanges = () => {
+    if(!order) return;
+
+    setOrders(prevOrders => 
+        prevOrders.map(o => 
+            o.id === orderId 
+            ? { ...o, businessId, platform }
+            : o
+        )
+    );
+  }
 
 
   if (!order) {
@@ -415,7 +436,7 @@ export default function OrderDetailsPage() {
                             </SelectContent>
                         </Select>
                      </div>
-                     <Button className='w-full'>Save Changes</Button>
+                     <Button className='w-full' onClick={handleSaveChanges}>Save Changes</Button>
                 </CardContent>
             </Card>
           <Card>
@@ -473,6 +494,56 @@ export default function OrderDetailsPage() {
               </div>
             </CardContent>
           </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Order Source</CardTitle>
+                    <CardDescription>The business and platform this order originated from.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-4">
+                    <div className="space-y-2">
+                        <Label>Business</Label>
+                        <Select value={businessId} onValueChange={setBusinessId}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a business" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {businesses.map(b => (
+                                    <SelectItem key={b.id} value={b.id}>
+                                        <div className="flex items-center gap-2">
+                                            <Store className="h-4 w-4 text-muted-foreground" />
+                                            <span>{b.name}</span>
+                                        </div>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Platform</Label>
+                        <Select value={platform} onValueChange={(v: OrderPlatform) => setPlatform(v)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a platform" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {allPlatforms.map(p => (
+                                    <SelectItem key={p} value={p}>
+                                        <div className="flex items-center gap-2">
+                                            <Globe className="h-4 w-4 text-muted-foreground" />
+                                            <span>{p}</span>
+                                        </div>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </CardContent>
+                <CardFooter>
+                    <Button className="ml-auto" onClick={handleSaveChanges}>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Source
+                    </Button>
+                </CardFooter>
+            </Card>
            <Card>
                 <CardHeader>
                     <CardTitle>Notes</CardTitle>
@@ -523,5 +594,7 @@ export default function OrderDetailsPage() {
     </div>
   );
 }
+
+    
 
     
