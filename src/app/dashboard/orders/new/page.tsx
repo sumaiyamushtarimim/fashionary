@@ -32,6 +32,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { PlusCircle, Trash2, Store, Globe, Save } from "lucide-react";
 import { customers, products, businesses, OrderPlatform, OrderProduct } from "@/lib/placeholder-data";
+import { cn } from "@/lib/utils";
 
 type OrderItem = {
     id: string;
