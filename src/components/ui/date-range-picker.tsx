@@ -21,6 +21,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface DateRangePickerProps {
     date: DateRange | undefined;
@@ -48,6 +49,7 @@ export function DateRangePicker({
 
   const [preset, setPreset] = React.useState<Preset>("custom");
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+  const isMobile = useIsMobile();
 
   const handlePresetChange = (selectedPreset: Preset) => {
     setPreset(selectedPreset);
@@ -117,7 +119,7 @@ export function DateRangePicker({
                 <SelectItem value="last7">Last 7 days</SelectItem>
                 <SelectItem value="last30">Last 30 days</SelectItem>
                 <SelectItem value="last365">Last 365 days</SelectItem>
-                <SelectItem value="custom">Custom Range</SelectItem>
+                {!isMobile && <SelectItem value="custom">Custom Range</SelectItem>}
             </SelectContent>
         </Select>
       <Popover open={isPopoverOpen && preset === 'custom'} onOpenChange={setIsPopoverOpen}>
