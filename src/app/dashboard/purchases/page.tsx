@@ -1,3 +1,6 @@
+
+'use client';
+
 import { MoreHorizontal, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { DateRange } from "react-day-picker";
@@ -238,5 +241,3 @@ export default function PurchasesPage() {
     </div>
   );
 }
-
-    
