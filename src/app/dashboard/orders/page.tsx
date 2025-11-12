@@ -31,7 +31,24 @@ import {
     TabsList,
     TabsTrigger,
   } from "@/components/ui/tabs"
-import { orders } from "@/lib/placeholder-data";
+import { orders, OrderStatus } from "@/lib/placeholder-data";
+import { cn } from "@/lib/utils";
+
+const statusColors: Record<OrderStatus, string> = {
+    'New': 'bg-blue-500/20 text-blue-700',
+    'Confirmed': 'bg-sky-500/20 text-sky-700',
+    'Canceled': 'bg-red-500/20 text-red-700',
+    'Hold': 'bg-yellow-500/20 text-yellow-700',
+    'Packing': 'bg-indigo-500/20 text-indigo-700',
+    'Packing Hold': 'bg-orange-500/20 text-orange-700',
+    'RTS (Ready to Ship)': 'bg-purple-500/20 text-purple-700',
+    'Shipped': 'bg-cyan-500/20 text-cyan-700',
+    'Delivered': 'bg-green-500/20 text-green-700',
+    'Returned': 'bg-gray-500/20 text-gray-700',
+    'Partially Delivered': 'bg-teal-500/20 text-teal-700',
+    'Partially Returned': 'bg-amber-500/20 text-amber-700',
+};
+
 
 export default function OrdersPage() {
   return (
@@ -41,8 +58,9 @@ export default function OrdersPage() {
             <TabsList>
                 <TabsTrigger value="all">All</TabsTrigger>
                 <TabsTrigger value="new">New</TabsTrigger>
-                <TabsTrigger value="processing">Processing</TabsTrigger>
-                <TabsTrigger value="completed">Completed</TabsTrigger>
+                <TabsTrigger value="confirmed">Confirmed</TabsTrigger>
+                <TabsTrigger value="packing">Packing</TabsTrigger>
+                <TabsTrigger value="shipped">Shipped</TabsTrigger>
             </TabsList>
             <div className="flex items-center gap-2">
                 <Button size="sm" variant="outline">
@@ -82,17 +100,8 @@ export default function OrdersPage() {
                             <TableCell className="hidden md:table-cell">{order.date}</TableCell>
                             <TableCell>
                                 <Badge
-                                    variant={
-                                    order.status === 'Completed' ? 'default' :
-                                    order.status === 'New' ? 'secondary' :
-                                    'outline'
-                                    }
-                                    className={
-                                    order.status === 'Completed' ? 'bg-green-500/20 text-green-700' :
-                                    order.status === 'New' ? 'bg-blue-500/20 text-blue-700' :
-                                    order.status === 'Processing' ? 'bg-yellow-500/20 text-yellow-700' :
-                                    'bg-red-500/20 text-red-700'
-                                    }
+                                    variant={'outline'}
+                                    className={cn(statusColors[order.status] || 'bg-gray-500/20 text-gray-700')}
                                 >
                                     {order.status}
                                 </Badge>

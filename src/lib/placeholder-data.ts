@@ -10,12 +10,26 @@ export type Product = {
   image: ImagePlaceholder;
 };
 
+export type OrderStatus = 
+  | 'New'
+  | 'Confirmed'
+  | 'Canceled'
+  | 'Hold'
+  | 'Packing'
+  | 'Packing Hold'
+  | 'RTS (Ready to Ship)'
+  | 'Shipped'
+  | 'Delivered'
+  | 'Returned'
+  | 'Partially Delivered'
+  | 'Partially Returned';
+
 export type Order = {
   id: string;
   customerName: string;
   customerEmail: string;
   date: string;
-  status: 'New' | 'Processing' | 'Completed' | 'Cancelled';
+  status: OrderStatus;
   total: number;
   items: number;
 };
@@ -86,11 +100,11 @@ export const products: Product[] = [
 ];
 
 export const orders: Order[] = [
-  { id: 'ORD-2024-001', customerName: 'Alice Johnson', customerEmail: 'alice@example.com', date: '2024-05-20', status: 'Completed', total: 104.99, items: 2 },
-  { id: 'ORD-2024-002', customerName: 'Bob Williams', customerEmail: 'bob@example.com', date: '2024-05-21', status: 'Processing', total: 25.00, items: 1 },
+  { id: 'ORD-2024-001', customerName: 'Alice Johnson', customerEmail: 'alice@example.com', date: '2024-05-20', status: 'Delivered', total: 104.99, items: 2 },
+  { id: 'ORD-2024-002', customerName: 'Bob Williams', customerEmail: 'bob@example.com', date: '2024-05-21', status: 'Packing', total: 25.00, items: 1 },
   { id: 'ORD-2024-003', customerName: 'Charlie Brown', customerEmail: 'charlie@example.com', date: '2024-05-22', status: 'New', total: 215.49, items: 2 },
-  { id: 'ORD-2024-004', customerName: 'Diana Prince', customerEmail: 'diana@example.com', date: '2024-05-22', status: 'Completed', total: 350.00, items: 1 },
-  { id: 'ORD-2024-005', customerName: 'Ethan Hunt', customerEmail: 'ethan@example.com', date: '2024-05-23', status: 'New', total: 120.00, items: 5 },
+  { id: 'ORD-2024-004', customerName: 'Diana Prince', customerEmail: 'diana@example.com', date: '2024-05-22', status: 'Shipped', total: 350.00, items: 1 },
+  { id: 'ORD-2024-005', customerName: 'Ethan Hunt', customerEmail: 'ethan@example.com', date: '2024-05-23', status: 'Confirmed', total: 120.00, items: 5 },
 ];
 
 export const customers: Customer[] = [
