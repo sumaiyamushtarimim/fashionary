@@ -104,6 +104,18 @@ export type Customer = {
   country: string;
 };
 
+export type InventoryMovement = {
+    id: string;
+    date: string;
+    type: 'Received' | 'Sold' | 'Adjusted' | 'Returned';
+    quantityChange: number; // Positive for additions, negative for subtractions
+    balance: number;
+    notes: string;
+    user: string;
+    reference: string; // e.g., Order ID, PO ID
+};
+
+
 export type InventoryItem = {
   id: string;
   productId: string;
@@ -113,6 +125,7 @@ export type InventoryItem = {
   location: string;
   lotNumber: string;
   receivedDate: string;
+  variants?: ProductVariant[];
 };
 
 export type PurchaseOrderStatus = 'Draft' | 'Fabric Ordered' | 'Printing' | 'Cutting' | 'Received' | 'Cancelled';
@@ -464,13 +477,22 @@ export const customers: Customer[] = [
 ];
 
 export const inventory: InventoryItem[] = [
-    { id: 'INV001', productId: 'PROD001', productName: 'Organic Cotton T-Shirt', sku: 'OCT-W-S', quantity: 50, location: 'A-1-1', lotNumber: 'LOT2024A', receivedDate: '2024-04-10'},
-    { id: 'INV002', productId: 'PROD001', productName: 'Organic Cotton T-Shirt', sku: 'OCT-W-M', quantity: 5, location: 'A-1-2', lotNumber: 'LOT2024A', receivedDate: '2024-04-10'},
-    { id: 'INV003', productId: 'PROD002', productName: 'Slim Fit Denim Jeans', sku: 'SFDJ-32', quantity: 30, location: 'B-2-5', lotNumber: 'LOT2024B', receivedDate: '2024-04-15'},
-    { id: 'INV004', productId: 'PROD003', productName: 'Cotton Three-Piece', sku: 'CVNS-B-L', quantity: 15, location: 'C-3-1', lotNumber: 'LOT2024C', receivedDate: '2024-04-20'},
+    { id: 'INV001', productId: 'PROD001', productName: 'Organic Cotton T-Shirt', sku: 'OCT-W-S', quantity: 50, location: 'A-1-1', lotNumber: 'LOT2024A', receivedDate: '2024-04-10', variants: products.find(p => p.id === 'PROD001')?.variants},
+    { id: 'INV002', productId: 'PROD001', productName: 'Organic Cotton T-Shirt', sku: 'OCT-W-M', quantity: 5, location: 'A-1-2', lotNumber: 'LOT2024A', receivedDate: '2024-04-10', variants: products.find(p => p.id === 'PROD001')?.variants},
+    { id: 'INV003', productId: 'PROD002', productName: 'Slim Fit Denim Jeans', sku: 'SFDJ-32', quantity: 30, location: 'B-2-5', lotNumber: 'LOT2024B', receivedDate: '2024-04-15', variants: products.find(p => p.id === 'PROD002')?.variants},
+    { id: 'INV004', productId: 'PROD003', productName: 'Cotton Three-Piece', sku: 'CVNS-B-L', quantity: 15, location: 'C-3-1', lotNumber: 'LOT2024C', receivedDate: '2024-04-20', variants: products.find(p => p.id === 'PROD003')?.variants},
     { id: 'INV005', productId: 'PROD004', productName: 'Leather Biker Jacket', sku: 'LBJ-BLK-M', quantity: 8, location: 'D-1-1', lotNumber: 'LOT2024D', receivedDate: '2024-05-01'},
-    { id: 'INV006', productId: 'PROD005', productName: 'Linen Three-Piece', sku: 'LBB-N-40R', quantity: 22, location: 'E-2-3', lotNumber: 'LOT2024E', receivedDate: '2024-05-05'},
+    { id: 'INV006', productId: 'PROD005', productName: 'Linen Three-Piece', sku: 'LBB-N-40R', quantity: 22, location: 'E-2-3', lotNumber: 'LOT2024E', receivedDate: '2024-05-05', variants: products.find(p => p.id === 'PROD005')?.variants},
 ];
+
+export const inventoryMovements: Record<string, InventoryMovement[]> = {
+    'INV002': [
+        { id: 'MOV001', date: '2024-05-20', type: 'Sold', quantityChange: -1, balance: 9, notes: 'Sale', user: 'Emily White', reference: 'ORD-2024-002' },
+        { id: 'MOV002', date: '2024-05-18', type: 'Adjusted', quantityChange: -1, balance: 10, notes: 'Damaged item', user: 'John Smith', reference: 'ADJ-001' },
+        { id: 'MOV003', date: '2024-04-10', type: 'Received', quantityChange: 11, balance: 11, notes: 'Initial stock', user: 'System', reference: 'PO-2024-001' },
+    ]
+};
+
 
 const today = new Date();
 const formatDate = (date: Date) => date.toISOString().split('T')[0];
@@ -680,4 +702,5 @@ export const bdDistricts: string[] = [
     
 
     
+
 
