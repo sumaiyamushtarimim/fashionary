@@ -47,7 +47,8 @@ type OrderItem = {
 
 type GeneralOrderItem = {
     id: string;
-    name: string;
+    productId: string;
+    variantId: string;
     quantity: number;
     unitCost: number;
     lineTotal: number;
@@ -61,7 +62,7 @@ type Payment = {
 
 const initialPaymentState: Payment = { cash: 0, check: 0, checkDate: '' };
 const initialOrderItemState: Omit<OrderItem, 'id' | 'lineTotal'> = { productId: '', variantId: '', productQty: 1, ornaCost: 0, jamaCost: 0, selowarCost: 0 };
-const initialGeneralOrderItemState: Omit<GeneralOrderItem, 'id' | 'lineTotal'> = { name: '', quantity: 1, unitCost: 0 };
+const initialGeneralOrderItemState: Omit<GeneralOrderItem, 'id' | 'lineTotal'> = { productId: '', variantId: '', quantity: 1, unitCost: 0 };
 
 type PurchaseType = 'three-piece' | 'general';
 
@@ -164,15 +165,21 @@ export default function NewPurchaseOrderPage() {
   };
 
   const handleGeneralItemChange = (id: string, field: keyof Omit<GeneralOrderItem, 'id' | 'lineTotal'>, value: string | number) => {
-      setGeneralOrderItems(prevItems => prevItems.map(item => {
-          if (item.id === id) {
-              const updatedItem = {...item, [field]: value};
-              const lineTotal = (Number(updatedItem.quantity) || 0) * (Number(updatedItem.unitCost) || 0);
-              return {...updatedItem, lineTotal};
-          }
-          return item;
-      }));
-  }
+    setGeneralOrderItems(prevItems => prevItems.map(item => {
+        if (item.id === id) {
+            let updatedItem = { ...item, [field]: value };
+
+            if (field === 'productId') {
+                const product = products.find(p => p.id === value);
+                updatedItem.unitCost = product?.price || 0;
+            }
+
+            const lineTotal = (Number(updatedItem.quantity) || 0) * (Number(updatedItem.unitCost) || 0);
+            return { ...updatedItem, lineTotal };
+        }
+        return item;
+    }));
+  };
 
   const handlePaymentChange = (setter: React.Dispatch<React.SetStateAction<Payment>>, field: keyof Payment, value: string | number) => {
     setter(prev => ({ ...prev, [field]: value }));
@@ -416,7 +423,8 @@ export default function NewPurchaseOrderPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead className="min-w-[250px]">Product Name</TableHead>
+                                        <TableHead className="min-w-[200px]">Product</TableHead>
+                                        <TableHead className="min-w-[150px]">Variant</TableHead>
                                         <TableHead>Quantity</TableHead>
                                         <TableHead>Unit Cost</TableHead>
                                         <TableHead className="text-right">Line Total</TableHead>
@@ -427,7 +435,27 @@ export default function NewPurchaseOrderPage() {
                                     {generalOrderItems.map(item => (
                                         <TableRow key={item.id}>
                                             <TableCell>
-                                                <Input placeholder="Enter product name" value={item.name} onChange={e => handleGeneralItemChange(item.id, 'name', e.target.value)} />
+                                                <Select value={item.productId} onValueChange={(value) => handleGeneralItemChange(item.id, 'productId', value)}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select Product" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {products.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                                                    </SelectContent>
+                                                </Select>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Select value={item.variantId} onValueChange={(value) => handleGeneralItemChange(item.id, 'variantId', value)}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select Variant" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {/* This should be populated based on the selected product */}
+                                                        <SelectItem value="s">Small</SelectItem>
+                                                        <SelectItem value="m">Medium</SelectItem>
+                                                        <SelectItem value="l">Large</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                             </TableCell>
                                             <TableCell>
                                                 <Input type="number" placeholder="Qty" className="w-24" value={item.quantity || ''} onChange={e => handleGeneralItemChange(item.id, 'quantity', parseInt(e.target.value) || 0)} />
