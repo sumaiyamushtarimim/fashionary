@@ -111,6 +111,19 @@ export type PurchaseOrder = {
     cuttingVendor?: string;
 };
 
+export type StaffIncome = {
+    date: string;
+    orderId: string;
+    action: 'Created' | 'Confirmed';
+    amount: number;
+};
+
+export type StaffPayment = {
+    date: string;
+    amount: number;
+    notes: string;
+};
+
 
 export type StaffMember = {
     id: string;
@@ -137,6 +150,8 @@ export type StaffMember = {
         totalPaid: number;
         dueAmount: number;
     };
+    paymentHistory: StaffPayment[];
+    incomeHistory: StaffIncome[];
 };
 
 export type Supplier = {
@@ -391,7 +406,11 @@ export const staff: StaffMember[] = [
         paymentType: 'Salary',
         salaryDetails: { amount: 50000, frequency: 'Monthly' },
         performance: { ordersCreated: 0, ordersConfirmed: 3, statusBreakdown: { 'New': 0, 'Confirmed': 3, 'Canceled': 0, 'Hold': 0, 'Packing': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 2, 'Delivered': 1, 'Returned': 0, 'Partially Delivered': 0, 'Partially Returned': 0 } },
-        financials: { totalEarned: 50000, totalPaid: 50000, dueAmount: 0 }
+        financials: { totalEarned: 50000, totalPaid: 50000, dueAmount: 0 },
+        paymentHistory: [
+            { date: '2024-05-01', amount: 50000, notes: 'May Salary' }
+        ],
+        incomeHistory: []
     },
     { 
         id: 'STAFF002', 
@@ -402,7 +421,11 @@ export const staff: StaffMember[] = [
         paymentType: 'Salary',
         salaryDetails: { amount: 60000, frequency: 'Monthly' },
         performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Canceled': 0, 'Hold': 0, 'Packing': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Partially Delivered': 0, 'Partially Returned': 0 } },
-        financials: { totalEarned: 60000, totalPaid: 55000, dueAmount: 5000 }
+        financials: { totalEarned: 60000, totalPaid: 55000, dueAmount: 5000 },
+        paymentHistory: [
+            { date: '2024-05-01', amount: 55000, notes: 'May Salary (Partial)' }
+        ],
+        incomeHistory: []
     },
     { 
         id: 'STAFF003', 
@@ -410,10 +433,23 @@ export const staff: StaffMember[] = [
         email: 'emily.white@fashionary.com', 
         role: 'Sales', 
         lastLogin: '2024-05-22T15:45:00Z',
-        paymentType: 'Commission',
+        paymentType: 'Both',
+        salaryDetails: { amount: 20000, frequency: 'Monthly' },
         commissionDetails: { onOrderCreate: 50, onOrderConfirm: 100 },
         performance: { ordersCreated: 5, ordersConfirmed: 1, statusBreakdown: { 'New': 1, 'Confirmed': 1, 'Canceled': 0, 'Hold': 0, 'Packing': 1, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 1, 'Delivered': 1, 'Returned': 0, 'Partially Delivered': 0, 'Partially Returned': 0 } },
-        financials: { totalEarned: 350, totalPaid: 200, dueAmount: 150 }
+        financials: { totalEarned: 20350, totalPaid: 20200, dueAmount: 150 },
+        paymentHistory: [
+             { date: '2024-05-01', amount: 20000, notes: 'May Salary' },
+             { date: '2024-05-15', amount: 200, notes: 'Commission Payout' }
+        ],
+        incomeHistory: [
+            { date: '2024-05-20', orderId: 'ORD-2024-001', action: 'Created', amount: 50 },
+            { date: '2024-05-20', orderId: 'ORD-2024-001', action: 'Confirmed', amount: 100 },
+            { date: '2024-05-21', orderId: 'ORD-2024-002', action: 'Created', amount: 50 },
+            { date: '2024-05-22', orderId: 'ORD-2024-003', action: 'Created', amount: 50 },
+            { date: '2024-05-22', orderId: 'ORD-2024-004', action: 'Created', amount: 50 },
+            { date: '2024-05-23', orderId: 'ORD-2024-005', action: 'Created', amount: 50 },
+        ]
     },
     { 
         id: 'STAFF004', 
@@ -424,7 +460,11 @@ export const staff: StaffMember[] = [
         paymentType: 'Salary',
         salaryDetails: { amount: 35000, frequency: 'Monthly' },
         performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Canceled': 0, 'Hold': 0, 'Packing': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Partially Delivered': 0, 'Partially Returned': 0 } },
-        financials: { totalEarned: 35000, totalPaid: 35000, dueAmount: 0 }
+        financials: { totalEarned: 35000, totalPaid: 35000, dueAmount: 0 },
+        paymentHistory: [
+             { date: '2024-05-01', amount: 35000, notes: 'May Salary' }
+        ],
+        incomeHistory: []
     },
 ];
 

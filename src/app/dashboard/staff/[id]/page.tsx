@@ -4,8 +4,8 @@
 import * as React from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, MoreVertical, User, Briefcase, DollarSign, BarChart2, CheckCircle, PlusCircle, Activity } from 'lucide-react';
-import { staff, orders, StaffMember, OrderStatus } from '@/lib/placeholder-data';
+import { ChevronLeft, MoreVertical, User, Briefcase, DollarSign, BarChart2, CheckCircle, PlusCircle, Activity, TrendingUp } from 'lucide-react';
+import { staff, orders, StaffMember, OrderStatus, StaffIncome } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -160,7 +160,7 @@ export default function StaffDetailsPage() {
                             <span className="text-muted-foreground">Type</span>
                             <Badge variant="secondary">{staffMember.paymentType}</Badge>
                         </div>
-                        {staffMember.salaryDetails && (
+                        {(staffMember.paymentType === 'Salary' || staffMember.paymentType === 'Both') && staffMember.salaryDetails && (
                             <>
                                 <Separator />
                                 <p className='font-medium'>Salary</p>
@@ -170,7 +170,7 @@ export default function StaffDetailsPage() {
                                 </div>
                             </>
                         )}
-                        {staffMember.commissionDetails && (
+                        {(staffMember.paymentType === 'Commission' || staffMember.paymentType === 'Both') && staffMember.commissionDetails && (
                              <>
                                 <Separator />
                                 <p className='font-medium'>Commission</p>
@@ -215,6 +215,75 @@ export default function StaffDetailsPage() {
                 </Card>
             </div>
             
+            <div className='grid gap-6 md:grid-cols-2'>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Payment History</CardTitle>
+                        <CardDescription>A record of all payments made to this staff member.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Notes</TableHead>
+                                    <TableHead className="text-right">Amount</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {staffMember.paymentHistory.map((payment, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>{payment.date}</TableCell>
+                                        <TableCell>{payment.notes}</TableCell>
+                                        <TableCell className="text-right font-mono">${payment.amount.toLocaleString()}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                         {staffMember.paymentHistory.length === 0 && (
+                            <div className="text-center text-muted-foreground py-8">No payment history found.</div>
+                        )}
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Income History (Commission)</CardTitle>
+                        <CardDescription>A record of all commission earned from orders.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Order ID</TableHead>
+                                    <TableHead>Action</TableHead>
+                                    <TableHead className="text-right">Amount</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {staffMember.incomeHistory.map((income, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>{income.date}</TableCell>
+                                        <TableCell>
+                                            <Button variant="link" asChild className="p-0 h-auto">
+                                                <Link href={`/dashboard/orders/${income.orderId}`}>{income.orderId}</Link>
+                                            </Button>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={income.action === 'Created' ? 'secondary' : 'outline'}>{income.action}</Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right font-mono">+${income.amount.toLocaleString()}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                        {staffMember.incomeHistory.length === 0 && (
+                            <div className="text-center text-muted-foreground py-8">No income history found.</div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><BarChart2 className="w-6 h-6" /> Performance Overview</CardTitle>
