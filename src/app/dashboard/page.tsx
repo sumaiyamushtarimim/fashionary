@@ -119,7 +119,7 @@ export default function Dashboard() {
             <DateRangePicker date={dateRange} onDateChange={setDateRange} />
         </div>
 
-        <div className="flex flex-col-reverse sm:flex-col gap-6">
+        <div className="flex flex-col gap-6">
             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline">Quick Access</CardTitle>
