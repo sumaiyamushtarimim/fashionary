@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { MoreHorizontal, PlusCircle } from "lucide-react";
@@ -140,6 +140,11 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [businessFilter, setBusinessFilter] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
@@ -155,6 +160,125 @@ export default function OrdersPage() {
     });
   }, [statusFilter, businessFilter, dateRange]);
 
+
+  const renderTable = () => (
+     <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Customer</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">
+                  Total
+                </TableHead>
+                <TableHead>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredOrders.map((order) => (
+                <TableRow key={order.id}>
+                   <TableCell className="font-medium">
+                     <div className="flex items-center gap-4">
+                        <div>
+                            <OrderImages products={order.products} />
+                        </div>
+                        <div>
+                            <p className="font-bold">{order.customerName}</p>
+                            <p className="text-sm text-muted-foreground">{order.id}</p>
+                        </div>
+                     </div>
+                   </TableCell>
+                  <TableCell>{format(new Date(order.date), "MMM d, yyyy")}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={"outline"}
+                      className={cn(
+                        statusColors[order.status] ||
+                          "bg-gray-500/20 text-gray-700"
+                      )}
+                    >
+                      {order.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    ৳{order.total.toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                     <div>
+                        <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                            aria-haspopup="true"
+                            size="icon"
+                            variant="ghost"
+                            >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>Update Status</DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">
+                            Cancel Order
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                        </DropdownMenu>
+                     </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+  );
+
+  const renderCardList = () => (
+      <div className="space-y-4">
+        {filteredOrders.map((order) => (
+            <Card key={order.id}>
+                <CardContent className="p-4">
+                    <div className="flex items-start gap-4">
+                        <OrderImages products={order.products} />
+                        <div className="flex-1">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="font-bold">{order.customerName}</p>
+                                    <p className="text-sm text-muted-foreground">{order.id}</p>
+                                </div>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                            <span className="sr-only">Toggle menu</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                        <DropdownMenuItem asChild><Link href={`/dashboard/orders/${order.id}`}>View Details</Link></DropdownMenuItem>
+                                        <DropdownMenuItem>Update Status</DropdownMenuItem>
+                                        <DropdownMenuItem className="text-red-600">Cancel Order</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">{format(new Date(order.date), "MMM d, yyyy")}</p>
+                            <div className="mt-2 flex justify-between items-center">
+                                <Badge variant={"outline"} className={cn(statusColors[order.status] || "bg-gray-500/20 text-gray-700")}>
+                                    {order.status}
+                                </Badge>
+                                <p className="font-bold text-lg">৳{order.total.toFixed(2)}</p>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        ))}
+      </div>
+  );
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -225,105 +349,14 @@ export default function OrdersPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader className="hidden sm:table-header-group">
-              <TableRow>
-                <TableHead>Customer</TableHead>
-                <TableHead className="hidden md:table-cell">Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">
-                  Total
-                </TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredOrders.map((order) => (
-                <TableRow key={order.id} className="relative sm:table-row flex flex-col sm:flex-row p-4 sm:p-0 mb-4 sm:mb-0 border rounded-lg sm:border-b">
-                   <TableCell className="font-medium p-0 sm:p-4 border-b sm:border-none pb-4 sm:pb-4">
-                     <div className="flex items-center gap-4">
-                        <div className="hidden sm:block">
-                            <OrderImages products={order.products} />
-                        </div>
-                        <div>
-                            <p className="font-bold">{order.customerName}</p>
-                            <p className="text-sm text-muted-foreground">{order.id}</p>
-                        </div>
-                     </div>
-                   </TableCell>
-                   <TableCell className="p-0 sm:p-4 pt-4 sm:pt-4">
-                    <div className="flex items-start sm:items-center gap-4">
-                        <div className="sm:hidden">
-                            <OrderImages products={order.products} />
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full">
-                            <div className="md:hidden">
-                               <p className="text-sm text-muted-foreground">{order.date}</p>
-                            </div>
-                            <div className="hidden md:table-cell w-full">{format(new Date(order.date), "MMM d, yyyy")}</div>
-                            <div className="sm:w-full">
-                                <Badge
-                                variant={"outline"}
-                                className={cn("mt-2 sm:mt-0 w-full sm:w-auto justify-center",
-                                    statusColors[order.status] || "bg-gray-500/20 text-gray-700"
-                                )}
-                                >
-                                {order.status}
-                                </Badge>
-                            </div>
-                           <div className="text-right font-bold sm:hidden mt-2 sm:mt-0">
-                                ৳{order.total.toFixed(2)}
-                            </div>
-                        </div>
-                   </div>
-                  </TableCell>
-                  <td className="hidden md:table-cell p-4">{format(new Date(order.date), "MMM d, yyyy")}</td>
-                  <td className="hidden sm:table-cell p-4">
-                    <Badge
-                      variant={"outline"}
-                      className={cn(
-                        statusColors[order.status] ||
-                          "bg-gray-500/20 text-gray-700"
-                      )}
-                    >
-                      {order.status}
-                    </Badge>
-                  </td>
-                  <td className="hidden text-right sm:table-cell p-4">
-                    ৳{order.total.toFixed(2)}
-                  </td>
-                  <TableCell className="p-0 sm:p-4">
-                     <div className="absolute sm:relative top-2 right-2">
-                        <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                            aria-haspopup="true"
-                            size="icon"
-                            variant="ghost"
-                            >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem asChild>
-                            <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>Update Status</DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">
-                            Cancel Order
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                        </DropdownMenu>
-                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+           {isClient ? (
+              <>
+                <div className="hidden sm:block">{renderTable()}</div>
+                <div className="sm:hidden">{renderCardList()}</div>
+              </>
+            ) : (
+              <div className="h-48 flex items-center justify-center text-muted-foreground">Loading orders...</div>
+            )}
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">

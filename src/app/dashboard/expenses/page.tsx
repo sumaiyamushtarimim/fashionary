@@ -81,6 +81,103 @@ export default function ExpensesPage() {
     });
   }, [dateRange]);
 
+  const renderTable = () => (
+     <Table>
+            <TableHeader className="hidden sm:table-header-group">
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Business/Platform</TableHead>
+                <TableHead>Notes</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead><span className="sr-only">Actions</span></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredExpenses.map((expense) => (
+                <TableRow key={expense.id} className="hidden sm:table-row">
+                  <TableCell>{format(new Date(expense.date), "MMM d, yyyy")}</TableCell>
+                  <TableCell>{expense.category}</TableCell>
+                  <TableCell>
+                     {expense.isAdExpense && expense.business ? (
+                        <div className="flex flex-col">
+                            <Badge variant="secondary" className="w-fit mb-1">{expense.business}</Badge>
+                            <Badge variant="outline" className="w-fit">{expense.platform}</Badge>
+                        </div>
+                    ) : <span className="text-muted-foreground">-</span>}
+                  </TableCell>
+                   <TableCell className="text-sm text-muted-foreground">{expense.notes}</TableCell>
+                  <TableCell className="text-right font-mono font-semibold">
+                    ৳{expense.amount.toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                     <div>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button aria-haspopup="true" size="icon" variant="ghost">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Toggle menu</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem>Edit</DropdownMenuItem>
+                                <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                     </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+  );
+
+  const renderCardList = () => (
+    <div className="space-y-4">
+        {filteredExpenses.map((expense) => (
+            <Card key={expense.id}>
+                <CardContent className="p-4 space-y-3">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <p className="font-semibold">{expense.category}</p>
+                            <p className="text-sm text-muted-foreground">{format(new Date(expense.date), "MMM d, yyyy")}</p>
+                        </div>
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button aria-haspopup="true" size="icon" variant="ghost">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Toggle menu</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem>Edit</DropdownMenuItem>
+                                <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                     <p className="text-sm text-muted-foreground">{expense.notes}</p>
+                    <Separator />
+                     <div className="flex justify-between items-center">
+                        <div>
+                            {expense.isAdExpense && expense.business ? (
+                                <div className="flex flex-col">
+                                    <Badge variant="secondary" className="w-fit mb-1">{expense.business}</Badge>
+                                    <Badge variant="outline" className="w-fit">{expense.platform}</Badge>
+                                </div>
+                            ) : <span className="text-muted-foreground text-sm">-</span>}
+                        </div>
+                        <p className="font-bold text-lg font-mono">
+                            ৳{expense.amount.toFixed(2)}
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+        ))}
+    </div>
+  );
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -198,75 +295,14 @@ export default function ExpensesPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader className="hidden sm:table-header-group">
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Business/Platform</TableHead>
-                <TableHead>Notes</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead><span className="sr-only">Actions</span></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isClient && filteredExpenses.map((expense) => (
-                <TableRow key={expense.id} className="relative sm:table-row flex flex-col sm:flex-row p-4 sm:p-0 mb-4 sm:mb-0 border rounded-lg sm:border-b">
-                   <TableCell className="font-medium p-0 sm:p-4 border-b sm:border-none pb-4 sm:pb-4">
-                     <div className="font-bold">{format(new Date(expense.date), "MMM d, yyyy")}</div>
-                     <div className="text-sm text-muted-foreground">{expense.category}</div>
-                   </TableCell>
-                   <TableCell className="p-0 sm:p-4 pt-4 sm:pt-4">
-                     <div className="flex justify-between items-start w-full">
-                        <div>
-                            {expense.isAdExpense && expense.business ? (
-                                <div className="flex flex-col">
-                                    <Badge variant="secondary" className="w-fit mb-1">{expense.business}</Badge>
-                                    <Badge variant="outline" className="w-fit">{expense.platform}</Badge>
-                                </div>
-                            ) : <span className="text-muted-foreground text-sm">-</span>}
-                        </div>
-                        <div className="sm:hidden text-right font-bold text-lg font-mono">
-                            ৳{expense.amount.toFixed(2)}
-                        </div>
-                     </div>
-                     <p className="text-sm text-muted-foreground mt-2 sm:hidden">{expense.notes}</p>
-                   </TableCell>
-                  <td className="hidden sm:table-cell p-4">{format(new Date(expense.date), "MMM d, yyyy")}</td>
-                  <td className="hidden sm:table-cell p-4">{expense.category}</td>
-                  <td className="hidden sm:table-cell p-4">
-                     {expense.isAdExpense && expense.business ? (
-                        <div className="flex flex-col">
-                            <Badge variant="secondary" className="w-fit mb-1">{expense.business}</Badge>
-                            <Badge variant="outline" className="w-fit">{expense.platform}</Badge>
-                        </div>
-                    ) : <span className="text-muted-foreground">-</span>}
-                  </td>
-                   <td className="hidden sm:table-cell p-4 text-sm text-muted-foreground">{expense.notes}</td>
-                  <td className="hidden text-right sm:table-cell p-4 font-mono font-semibold">
-                    ৳{expense.amount.toFixed(2)}
-                  </td>
-                  <TableCell className="p-0 sm:p-4">
-                     <div className="absolute sm:relative top-2 right-2">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button aria-haspopup="true" size="icon" variant="ghost">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Toggle menu</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem>Edit</DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+            {isClient ? (
+                <>
+                    <div className="hidden sm:block">{renderTable()}</div>
+                    <div className="sm:hidden">{renderCardList()}</div>
+                </>
+            ) : (
+                 <div className="h-48 flex items-center justify-center text-muted-foreground">Loading expenses...</div>
+            )}
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">
@@ -277,4 +313,3 @@ export default function ExpensesPage() {
     </div>
   );
 }
-

@@ -199,16 +199,16 @@ export default function StaffDetailsPage() {
                         <div className="rounded-lg border bg-card p-4 space-y-2">
                              <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Total Earned</span>
-                                <span className="font-medium">৳{staffMember.financials.totalEarned.toLocaleString()}</span>
+                                <span className="font-medium">৳{isClient ? staffMember.financials.totalEarned.toLocaleString() : '...'}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Total Paid</span>
-                                <span className="font-medium text-green-600">৳{staffMember.financials.totalPaid.toLocaleString()}</span>
+                                <span className="font-medium text-green-600">৳{isClient ? staffMember.financials.totalPaid.toLocaleString() : '...'}</span>
                             </div>
                             <Separator />
                             <div className="flex justify-between font-semibold text-lg">
                                 <span className={cn(staffMember.financials.dueAmount > 0 && "text-destructive")}>Due Amount</span>
-                                <span className={cn(staffMember.financials.dueAmount > 0 && "text-destructive")}>৳{staffMember.financials.dueAmount.toLocaleString()}</span>
+                                <span className={cn(staffMember.financials.dueAmount > 0 && "text-destructive")}>৳{isClient ? staffMember.financials.dueAmount.toLocaleString() : '...'}</span>
                             </div>
                         </div>
                          <Button className="w-full">
@@ -238,7 +238,7 @@ export default function StaffDetailsPage() {
                                     <TableRow key={index}>
                                         <TableCell>{payment.date}</TableCell>
                                         <TableCell>{payment.notes}</TableCell>
-                                        <TableCell className="text-right font-mono">৳{payment.amount.toLocaleString()}</TableCell>
+                                        <TableCell className="text-right font-mono">৳{isClient ? payment.amount.toLocaleString() : '...'}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -277,7 +277,7 @@ export default function StaffDetailsPage() {
                                             <TableCell>
                                                 <Badge variant={income.action === 'Created' ? 'secondary' : 'outline'}>{income.action}</Badge>
                                             </TableCell>
-                                            <TableCell className="text-right font-mono">+৳{income.amount.toLocaleString()}</TableCell>
+                                            <TableCell className="text-right font-mono">+৳{isClient ? income.amount.toLocaleString() : '...'}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -299,7 +299,7 @@ export default function StaffDetailsPage() {
                                         </div>
                                         <Separator className="my-3" />
                                         <div className="flex justify-end items-center">
-                                            <p className="font-semibold font-mono text-lg">+৳{income.amount.toLocaleString()}</p>
+                                            <p className="font-semibold font-mono text-lg">+৳{isClient ? income.amount.toLocaleString() : '...'}</p>
                                         </div>
                                     </CardContent>
                                 </Card>
