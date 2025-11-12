@@ -112,6 +112,23 @@ export function DateRangePicker({
   };
   
 
+  if (isMobile) {
+    return (
+        <Select value={preset} onValueChange={(value: Preset) => handlePresetChange(value)}>
+            <SelectTrigger className="w-full">
+                <SelectValue placeholder={placeholder} />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="yesterday">Yesterday</SelectItem>
+                <SelectItem value="last7">Last 7 days</SelectItem>
+                <SelectItem value="last30">Last 30 days</SelectItem>
+                <SelectItem value="last365">Last 365 days</SelectItem>
+            </SelectContent>
+        </Select>
+    )
+  }
+
   return (
     <div className={cn("grid grid-cols-2 gap-2", className)}>
         <Select value={preset} onValueChange={(value: Preset) => handlePresetChange(value)}>
@@ -124,7 +141,7 @@ export function DateRangePicker({
                 <SelectItem value="last7">Last 7 days</SelectItem>
                 <SelectItem value="last30">Last 30 days</SelectItem>
                 <SelectItem value="last365">Last 365 days</SelectItem>
-                {!isMobile && <SelectItem value="custom">Custom Range</SelectItem>}
+                <SelectItem value="custom">Custom Range</SelectItem>
             </SelectContent>
         </Select>
       <Popover open={isPopoverOpen && preset === 'custom'} onOpenChange={setIsPopoverOpen}>

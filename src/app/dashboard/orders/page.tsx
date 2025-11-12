@@ -158,43 +158,60 @@ export default function OrdersPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex-grow flex items-center gap-2 flex-wrap">
-            <Select value={businessFilter} onValueChange={setBusinessFilter}>
-              <SelectTrigger className="w-full sm:w-auto sm:min-w-[180px]">
-                  <SelectValue placeholder="Filter by business" />
-              </SelectTrigger>
-              <SelectContent>
-                  <SelectItem value="all">All Businesses</SelectItem>
-                  {businesses.map(business => (
-                      <SelectItem key={business.id} value={business.id}>{business.name}</SelectItem>
-                  ))}
-              </SelectContent>
-          </Select>
-           <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-auto sm:min-w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  {allStatuses.map(status => (
-                      <SelectItem key={status} value={status}>{status}</SelectItem>
-                  ))}
-              </SelectContent>
-          </Select>
-          <DateRangePicker date={dateRange} onDateChange={setDateRange} placeholder="Filter by date" />
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2 flex-grow">
+            <div className="flex items-center justify-between gap-2">
+                <Select value={businessFilter} onValueChange={setBusinessFilter}>
+                  <SelectTrigger className="w-full sm:w-auto sm:min-w-[180px]">
+                      <SelectValue placeholder="Filter by business" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="all">All Businesses</SelectItem>
+                      {businesses.map(business => (
+                          <SelectItem key={business.id} value={business.id}>{business.name}</SelectItem>
+                      ))}
+                  </SelectContent>
+              </Select>
+               <div className="sm:hidden">
+                    <DateRangePicker date={dateRange} onDateChange={setDateRange} placeholder="Filter by date" />
+               </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-2">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-full sm:w-auto sm:min-w-[180px]">
+                        <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        {allStatuses.map(status => (
+                            <SelectItem key={status} value={status}>{status}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                 <div className="sm:hidden">
+                    <Button size="sm" asChild>
+                        <Link href="/dashboard/orders/new">
+                            <PlusCircle className="h-4 w-4" />
+                            <span className="sr-only">Add Order</span>
+                        </Link>
+                    </Button>
+                </div>
+            </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" className="hidden sm:inline-flex">
-            Export
-          </Button>
-          <Button size="sm" asChild>
-            <Link href="/dashboard/orders/new">
-                <PlusCircle className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Add Order</span>
-                <span className="sm:hidden sr-only">Add Order</span>
-            </Link>
-          </Button>
+        
+        <div className="hidden sm:flex items-center gap-2 justify-end">
+            <DateRangePicker date={dateRange} onDateChange={setDateRange} placeholder="Filter by date" />
+            <Button size="sm" variant="outline" className="hidden sm:inline-flex">
+                Export
+            </Button>
+            <Button size="sm" asChild>
+                <Link href="/dashboard/orders/new">
+                    <PlusCircle className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Add Order</span>
+                    <span className="sm:hidden sr-only">Add Order</span>
+                </Link>
+            </Button>
         </div>
       </div>
       
