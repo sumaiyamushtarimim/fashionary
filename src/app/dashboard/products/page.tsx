@@ -213,7 +213,7 @@ export default function ProductsPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-      <div className="flex items-center">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <div className="flex-1">
             <h1 className="font-headline text-2xl font-bold hidden sm:block">Products</h1>
             <p className="text-muted-foreground hidden sm:block">Manage your products and view their status.</p>
