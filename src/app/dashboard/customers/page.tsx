@@ -44,8 +44,10 @@ export default function CustomersPage() {
 
   const filteredCustomers = React.useMemo(() => {
     if (!searchTerm) return customers;
+    const lowercasedSearchTerm = searchTerm.toLowerCase();
     return customers.filter(customer =>
-      customer.name.toLowerCase().includes(searchTerm.toLowerCase())
+      customer.name.toLowerCase().includes(lowercasedSearchTerm) ||
+      customer.phone.toLowerCase().includes(lowercasedSearchTerm)
     );
   }, [searchTerm]);
 
@@ -157,7 +159,7 @@ export default function CustomersPage() {
           <CardDescription>A list of all your customers.</CardDescription>
            <div className="pt-4">
               <Input
-                placeholder="Search by customer name..."
+                placeholder="Search by name or phone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="max-w-sm"
