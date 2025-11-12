@@ -37,6 +37,7 @@ export type OrderLog = {
     status: OrderStatus;
     timestamp: string;
     description: string;
+    user: string;
 };
 
 export type Order = {
@@ -129,11 +130,11 @@ export const orders: Order[] = [
         { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: products[0].price }
     ],
     logs: [
-        { status: 'Delivered', timestamp: '2024-05-23T14:30:00Z', description: 'Package delivered to customer.' },
-        { status: 'Shipped', timestamp: '2024-05-21T10:00:00Z', description: 'Package has been shipped.' },
-        { status: 'Packing', timestamp: '2024-05-20T16:00:00Z', description: 'Items are being packed.' },
-        { status: 'Confirmed', timestamp: '2024-05-20T11:00:00Z', description: 'Order has been confirmed.' },
-        { status: 'New', timestamp: '2024-05-20T09:05:00Z', description: 'Order was placed.' },
+        { status: 'Delivered', timestamp: '2024-05-23T14:30:00Z', description: 'Package delivered to customer.', user: 'System' },
+        { status: 'Shipped', timestamp: '2024-05-21T10:00:00Z', description: 'Package has been shipped.', user: 'Jane Doe' },
+        { status: 'Packing', timestamp: '2024-05-20T16:00:00Z', description: 'Items are being packed.', user: 'John Smith' },
+        { status: 'Confirmed', timestamp: '2024-05-20T11:00:00Z', description: 'Order has been confirmed.', user: 'Jane Doe' },
+        { status: 'New', timestamp: '2024-05-20T09:05:00Z', description: 'Order was placed.', user: 'Alice Johnson' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
   },
   { 
@@ -147,9 +148,9 @@ export const orders: Order[] = [
         { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: products[0].price }
     ],
     logs: [
-        { status: 'Packing', timestamp: '2024-05-22T11:00:00Z', description: 'Items are being packed.' },
-        { status: 'Confirmed', timestamp: '2024-05-21T18:00:00Z', description: 'Order has been confirmed.' },
-        { status: 'New', timestamp: '2024-05-21T14:20:00Z', description: 'Order was placed.' },
+        { status: 'Packing', timestamp: '2024-05-22T11:00:00Z', description: 'Items are being packed.', user: 'John Smith' },
+        { status: 'Confirmed', timestamp: '2024-05-21T18:00:00Z', description: 'Order has been confirmed.', user: 'System' },
+        { status: 'New', timestamp: '2024-05-21T14:20:00Z', description: 'Order was placed.', user: 'Bob Williams' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
   },
   { 
@@ -164,7 +165,7 @@ export const orders: Order[] = [
         { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price }
     ],
     logs: [
-        { status: 'New', timestamp: '2024-05-22T08:00:00Z', description: 'Order was placed.' },
+        { status: 'New', timestamp: '2024-05-22T08:00:00Z', description: 'Order was placed.', user: 'Charlie Brown' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
   },
   { 
@@ -178,10 +179,10 @@ export const orders: Order[] = [
         { productId: 'PROD004', name: 'Leather Biker Jacket', image: products[3].image, quantity: 1, price: products[3].price }
     ],
     logs: [
-        { status: 'Shipped', timestamp: '2024-05-24T09:00:00Z', description: 'Package has been shipped.' },
-        { status: 'Packing', timestamp: '2024-05-23T12:00:00Z', description: 'Items are being packed.' },
-        { status: 'Confirmed', timestamp: '2024-05-22T16:30:00Z', description: 'Order has been confirmed.' },
-        { status: 'New', timestamp: '2024-05-22T13:45:00Z', description: 'Order was placed.' },
+        { status: 'Shipped', timestamp: '2024-05-24T09:00:00Z', description: 'Package has been shipped.', user: 'Jane Doe' },
+        { status: 'Packing', timestamp: '2024-05-23T12:00:00Z', description: 'Items are being packed.', user: 'John Smith' },
+        { status: 'Confirmed', timestamp: '2024-05-22T16:30:00Z', description: 'Order has been confirmed.', user: 'Jane Doe' },
+        { status: 'New', timestamp: '2024-05-22T13:45:00Z', description: 'Order was placed.', user: 'Diana Prince' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
   },
   { 
@@ -195,8 +196,8 @@ export const orders: Order[] = [
         { productId: 'PROD003', name: 'Cashmere V-Neck Sweater', image: products[2].image, quantity: 1, price: products[2].price }
     ],
     logs: [
-        { status: 'Confirmed', timestamp: '2024-05-23T11:00:00Z', description: 'Order has been confirmed.' },
-        { status: 'New', timestamp: '2024-05-23T10:10:00Z', description: 'Order was placed.' },
+        { status: 'Confirmed', timestamp: '2024-05-23T11:00:00Z', description: 'Order has been confirmed.', user: 'System' },
+        { status: 'New', timestamp: '2024-05-23T10:10:00Z', description: 'Order was placed.', user: 'Ethan Hunt' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
   },
 ];
@@ -262,3 +263,5 @@ export const ordersByStatusData = [
     { status: 'Processing', value: 1, fill: 'var(--color-processing)' },
     { status: 'Completed', value: 2, fill: 'var(--color-completed)' },
 ];
+
+    

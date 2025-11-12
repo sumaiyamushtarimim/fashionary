@@ -130,9 +130,10 @@ function OrderHistory({ logs }: { logs: OrderLog[] }) {
                                         <div className="flex-1 pt-1">
                                             <p className={cn("font-medium", isLast ? "text-foreground" : "text-muted-foreground")}>{log.status}</p>
                                             <p className="text-sm text-muted-foreground">{log.description}</p>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                {format(new Date(log.timestamp), "MMM d, yyyy, h:mm a")}
-                                            </p>
+                                            <div className="text-xs text-muted-foreground mt-1">
+                                                <span>{format(new Date(log.timestamp), "MMM d, yyyy, h:mm a")}</span>
+                                                <span className="font-medium"> by {log.user}</span>
+                                            </div>
                                         </div>
                                     </li>
                                 );
@@ -389,3 +390,5 @@ export default function OrderDetailsPage() {
     </div>
   );
 }
+
+    
