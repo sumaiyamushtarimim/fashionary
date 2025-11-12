@@ -165,8 +165,8 @@ export default function OrderDetailsPage() {
                           width="64"
                         />
                       </TableCell>
-                       <TableCell className="font-medium p-0 sm:p-4 border-b sm:border-0 pb-4 sm:pb-0">
-                            <div className="flex items-start gap-4">
+                       <TableCell className="font-medium p-0 sm:p-4 w-full">
+                            <div className="flex items-start gap-4 pb-4 border-b sm:border-0">
                                 <Image
                                     alt={product.name}
                                     className="aspect-square rounded-md object-cover sm:hidden"
@@ -179,18 +179,32 @@ export default function OrderDetailsPage() {
                                     <p className="text-sm text-muted-foreground">SKU-452-187</p>
                                 </div>
                             </div>
+                            <div className="sm:hidden pt-4">
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div className="col-span-1">
+                                        <p className="text-sm text-muted-foreground">Qty</p>
+                                        <p className="font-medium">{product.quantity}</p>
+                                    </div>
+                                    <div className="col-span-2 text-right">
+                                        <p className="text-sm text-muted-foreground">Price</p>
+                                        <p className="font-medium">${product.price.toFixed(2)}</p>
+                                    </div>
+                                </div>
+                                <Separator className="my-2" />
+                                <div className="flex justify-between items-center font-medium">
+                                    <span>Total</span>
+                                    <span>${(product.price * product.quantity).toFixed(2)}</span>
+                                </div>
+                            </div>
                         </TableCell>
                       <TableCell className="hidden sm:table-cell">SKU-452-187</TableCell>
-                      <TableCell className="p-0 sm:p-4 text-right">
-                          <div className="sm:hidden text-left text-sm text-muted-foreground mb-1">Qty</div>
+                      <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
                           {product.quantity}
                       </TableCell>
-                      <TableCell className="p-0 sm:p-4 text-right">
-                         <div className="sm:hidden text-left text-sm text-muted-foreground mb-1">Price</div>
+                      <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
                         ${product.price.toFixed(2)}
                       </TableCell>
-                      <TableCell className="p-0 sm:p-4 text-right">
-                        <div className="sm:hidden text-left text-sm text-muted-foreground mb-1">Total</div>
+                      <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
                         ${(product.price * product.quantity).toFixed(2)}
                       </TableCell>
                     </TableRow>
