@@ -70,27 +70,27 @@ export default function OrdersPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-      <div className="flex flex-col items-start gap-y-4 gap-x-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
-            <Select value={filter} onValueChange={setFilter}>
-                <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">All Orders</SelectItem>
-                    {allStatuses.map(status => (
-                        <SelectItem key={status} value={status}>{status}</SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex-1">
+          <Select value={filter} onValueChange={setFilter}>
+              <SelectTrigger className="w-full sm:w-[200px]">
+                  <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                  <SelectItem value="all">All Orders</SelectItem>
+                  {allStatuses.map(status => (
+                      <SelectItem key={status} value={status}>{status}</SelectItem>
+                  ))}
+              </SelectContent>
+          </Select>
         </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline">
-            Export
-          </Button>
+        <div className="flex flex-row-reverse sm:flex-row gap-2">
           <Button size="sm">
             <PlusCircle className="h-4 w-4 mr-2" />
             Add Order
+          </Button>
+           <Button size="sm" variant="outline">
+            Export
           </Button>
         </div>
       </div>
