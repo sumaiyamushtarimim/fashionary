@@ -205,7 +205,7 @@ export default function CheckPassingPage() {
       <div className="flex items-center">
         <div className="flex-1">
           <h1 className="font-headline text-2xl font-bold">Check Passing</h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground hidden sm:block">
             Overview and list of upcoming check payments.
           </p>
         </div>
@@ -408,5 +408,7 @@ export default function CheckPassingPage() {
     </div>
   );
 }
+
+    
 
     

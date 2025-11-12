@@ -79,7 +79,7 @@ export default function PartnersPage() {
       <div className="flex items-center mb-4">
         <div className="flex-1">
           <h1 className="font-headline text-2xl font-bold">Partners</h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground hidden sm:block">
             Manage your suppliers and vendors.
           </p>
         </div>
@@ -346,5 +346,7 @@ export default function PartnersPage() {
     </div>
   );
 }
+
+    
 
     

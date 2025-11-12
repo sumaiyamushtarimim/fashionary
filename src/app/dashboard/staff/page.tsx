@@ -48,7 +48,7 @@ export default function StaffPage() {
       <div className="flex items-center">
         <div className="flex-1">
             <h1 className="font-headline text-2xl font-bold">Staff Management</h1>
-            <p className="text-muted-foreground">Manage staff access and roles.</p>
+            <p className="text-muted-foreground hidden sm:block">Manage staff access and roles.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm">
@@ -193,5 +193,7 @@ export default function StaffPage() {
     </div>
   );
 }
+
+    
 
     

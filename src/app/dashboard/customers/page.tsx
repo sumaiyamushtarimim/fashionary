@@ -31,7 +31,7 @@ export default function CustomersPage() {
       <div className="flex items-center">
         <div className="flex-1">
             <h1 className="font-headline text-2xl font-bold">Customers</h1>
-            <p className="text-muted-foreground">View and manage your customer base.</p>
+            <p className="text-muted-foreground hidden sm:block">View and manage your customer base.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline">
@@ -92,5 +92,7 @@ export default function CustomersPage() {
     </div>
   );
 }
+
+    
 
     

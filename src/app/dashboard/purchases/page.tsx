@@ -65,7 +65,7 @@ export default function PurchasesPage() {
       <div className="flex items-center">
         <div className="flex-1">
             <h1 className="font-headline text-2xl font-bold">Purchases</h1>
-            <p className="text-muted-foreground">Manage purchase orders and supplier payments.</p>
+            <p className="text-muted-foreground hidden sm:block">Manage purchase orders and supplier payments.</p>
         </div>
         <div className="flex items-center gap-2">
             <DateRangePicker date={dateRange} onDateChange={setDateRange} />
@@ -197,5 +197,7 @@ export default function PurchasesPage() {
     </div>
   );
 }
+
+    
 
     

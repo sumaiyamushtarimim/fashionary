@@ -216,7 +216,7 @@ export default function ProductsPage() {
       <div className="flex items-center">
         <div className="flex-1">
             <h1 className="font-headline text-2xl font-bold">Products</h1>
-            <p className="text-muted-foreground">Manage your products and view their status.</p>
+            <p className="text-muted-foreground hidden sm:block">Manage your products and view their status.</p>
         </div>
         <div className="flex items-center gap-2">
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -807,3 +807,5 @@ export default function ProductsPage() {
     </div>
   );
 }
+
+    

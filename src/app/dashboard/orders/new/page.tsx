@@ -113,7 +113,7 @@ export default function NewOrderPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="font-headline text-2xl font-bold">Create New Order</h1>
-                    <p className="text-muted-foreground">Fill in the details to create a new customer order.</p>
+                    <p className="text-muted-foreground hidden sm:block">Fill in the details to create a new customer order.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" asChild><Link href="/dashboard/orders">Cancel</Link></Button>

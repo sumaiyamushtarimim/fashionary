@@ -211,7 +211,7 @@ export default function NewPurchaseOrderPage() {
           <h1 className="font-headline text-2xl font-bold">
             Create New Purchase Order
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground hidden sm:block">
             Start a new production batch or purchase ready-made goods.
           </p>
         </div>
@@ -546,3 +546,5 @@ export default function NewPurchaseOrderPage() {
     </div>
   );
 }
+
+    

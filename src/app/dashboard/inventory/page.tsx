@@ -32,7 +32,7 @@ export default function InventoryPage() {
       <div className="flex items-center">
         <div className="flex-1">
             <h1 className="font-headline text-2xl font-bold">Inventory</h1>
-            <p className="text-muted-foreground">Track stock levels and movements.</p>
+            <p className="text-muted-foreground hidden sm:block">Track stock levels and movements.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline">
@@ -109,3 +109,5 @@ export default function InventoryPage() {
     </div>
   );
 }
+
+    
