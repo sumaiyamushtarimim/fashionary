@@ -237,9 +237,6 @@ export default function ProductsPage() {
                     ))}
                 </SelectContent>
             </Select>
-          <Button size="sm" variant="outline">
-            Export
-          </Button>
           <Dialog>
             <DialogTrigger asChild>
               <Button size="sm">
@@ -807,5 +804,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-
-    
