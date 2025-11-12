@@ -125,7 +125,7 @@ export const orders: Order[] = [
     id: 'ORD-2024-001', 
     customerName: 'Alice Johnson', 
     customerEmail: 'alice@example.com', 
-    customerPhone: '+1234567890',
+    customerPhone: '+8801712345678',
     date: '2024-05-20', 
     status: 'Delivered', 
     total: 104.99, 
@@ -147,7 +147,7 @@ export const orders: Order[] = [
     id: 'ORD-2024-002', 
     customerName: 'Bob Williams', 
     customerEmail: 'bob@example.com', 
-    customerPhone: '+1234567891',
+    customerPhone: '+8801812345679',
     date: '2024-05-21', 
     status: 'Packing', 
     total: 25.00, 
@@ -166,7 +166,7 @@ export const orders: Order[] = [
     id: 'ORD-2024-003', 
     customerName: 'Charlie Brown', 
     customerEmail: 'charlie@example.com', 
-    customerPhone: '+1234567892',
+    customerPhone: '+8801912345680',
     date: '2024-05-22', 
     status: 'New', 
     total: 215.49, 
@@ -184,7 +184,7 @@ export const orders: Order[] = [
     id: 'ORD-2024-004', 
     customerName: 'Diana Prince', 
     customerEmail: 'diana@example.com', 
-    customerPhone: '+1234567893',
+    customerPhone: '+8801612345681',
     date: '2024-05-22', 
     status: 'Shipped', 
     total: 350.00, 
@@ -204,7 +204,7 @@ export const orders: Order[] = [
     id: 'ORD-2024-005', 
     customerName: 'Ethan Hunt', 
     customerEmail: 'ethan@example.com', 
-    customerPhone: '+1234567894',
+    customerPhone: '+8801512345682',
     date: '2024-05-23', 
     status: 'Confirmed', 
     total: 120.50, 
@@ -221,11 +221,11 @@ export const orders: Order[] = [
 ];
 
 export const customers: Customer[] = [
-    { id: 'CUST001', name: 'Alice Johnson', email: 'alice@example.com', phone: '123-456-7890', totalOrders: 5, totalSpent: 750.25, joinDate: '2023-01-15' },
-    { id: 'CUST002', name: 'Bob Williams', email: 'bob@example.com', phone: '234-567-8901', totalOrders: 2, totalSpent: 125.00, joinDate: '2023-03-22' },
-    { id: 'CUST003', name: 'Charlie Brown', email: 'charlie@example.com', phone: '345-678-9012', totalOrders: 8, totalSpent: 1200.50, joinDate: '2022-11-30' },
-    { id: 'CUST004', name: 'Diana Prince', email: 'diana@example.com', phone: '456-789-0123', totalOrders: 3, totalSpent: 450.00, joinDate: '2023-08-10' },
-    { id: 'CUST005', name: 'Ethan Hunt', email: 'ethan@example.com', phone: '567-890-1234', totalOrders: 1, totalSpent: 95.00, joinDate: '2024-02-28' },
+    { id: 'CUST001', name: 'Alice Johnson', email: 'alice@example.com', phone: '01712345678', totalOrders: 5, totalSpent: 750.25, joinDate: '2023-01-15' },
+    { id: 'CUST002', name: 'Bob Williams', email: 'bob@example.com', phone: '01812345679', totalOrders: 2, totalSpent: 125.00, joinDate: '2023-03-22' },
+    { id: 'CUST003', name: 'Charlie Brown', email: 'charlie@example.com', phone: '01912345680', totalOrders: 8, totalSpent: 1200.50, joinDate: '2022-11-30' },
+    { id: 'CUST004', name: 'Diana Prince', email: 'diana@example.com', phone: '01612345681', totalOrders: 3, totalSpent: 450.00, joinDate: '2023-08-10' },
+    { id: 'CUST005', name: 'Ethan Hunt', email: 'ethan@example.com', phone: '01512345682', totalOrders: 1, totalSpent: 95.00, joinDate: '2024-02-28' },
 ];
 
 export const inventory: InventoryItem[] = [
@@ -254,17 +254,17 @@ export const staff: StaffMember[] = [
 ];
 
 export const suppliers: Supplier[] = [
-    { id: 'SUP001', name: 'Global Textiles Inc.', contactPerson: 'Sarah Chen', email: 'sarah.chen@globaltextiles.com', phone: '111-222-3333', address: '123 Fabric Row, Textile City, 12345' },
-    { id: 'SUP002', name: 'Denim Dreams Co.', contactPerson: 'Mike Rivera', email: 'mike.r@denimdreams.com', phone: '222-333-4444', address: '456 Jean Ave, Indigo Town, 23456' },
-    { id: 'SUP003', name: 'Luxury Fibers Ltd.', contactPerson: 'Helen Troy', email: 'helen.t@luxuryfibers.com', phone: '333-444-5555', address: '789 Silk Blvd, Cashmere Ville, 34567' },
-    { id: 'SUP004', name: 'Leather Masters', contactPerson: 'Leo Adler', email: 'leo.a@leathermasters.com', phone: '444-555-6666', address: '101 Hide St, Tanner Creek, 45678' },
+    { id: 'SUP001', name: 'Global Textiles Inc.', contactPerson: 'Sarah Chen', email: 'sarah.chen@globaltextiles.com', phone: '01711223344', address: '123 Fabric Row, Textile City, 12345' },
+    { id: 'SUP002', name: 'Denim Dreams Co.', contactPerson: 'Mike Rivera', email: 'mike.r@denimdreams.com', phone: '01822334455', address: '456 Jean Ave, Indigo Town, 23456' },
+    { id: 'SUP003', name: 'Luxury Fibers Ltd.', contactPerson: 'Helen Troy', email: 'helen.t@luxuryfibers.com', phone: '01933445566', address: '789 Silk Blvd, Cashmere Ville, 34567' },
+    { id: 'SUP004', name: 'Leather Masters', contactPerson: 'Leo Adler', email: 'leo.a@leathermasters.com', phone: '01644556677', address: '101 Hide St, Tanner Creek, 45678' },
 ];
 
 export const vendors: Vendor[] = [
-    { id: 'VEN001', name: 'Precision Prints', type: 'Printing', contactPerson: 'Anna Garcia', email: 'anna.g@precisionprints.com', phone: '555-666-7777', rate: '$0.50 / print' },
-    { id: 'VEN002', name: 'Sharp Cuts', type: 'Cutting', contactPerson: 'David Lee', email: 'david.l@sharpcuts.com', phone: '666-777-8888', rate: '$0.20 / piece' },
-    { id: 'VEN003', name: 'Ink & Thread', type: 'Printing', contactPerson: 'Maria Rodriguez', email: 'maria.r@inkthread.com', phone: '777-888-9999', rate: '$0.45 / print' },
-    { id: 'VEN004', name: 'CutRight Solutions', type: 'Cutting', contactPerson: 'Tom Wilson', email: 'tom.w@cutright.com', phone: '888-999-0000', rate: '$0.18 / piece' },
+    { id: 'VEN001', name: 'Precision Prints', type: 'Printing', contactPerson: 'Anna Garcia', email: 'anna.g@precisionprints.com', phone: '01555666777', rate: '$0.50 / print' },
+    { id: 'VEN002', name: 'Sharp Cuts', type: 'Cutting', contactPerson: 'David Lee', email: 'david.l@sharpcuts.com', phone: '01766777888', rate: '$0.20 / piece' },
+    { id: 'VEN003', name: 'Ink & Thread', type: 'Printing', contactPerson: 'Maria Rodriguez', email: 'maria.r@inkthread.com', phone: '01877888999', rate: '$0.45 / print' },
+    { id: 'VEN004', name: 'CutRight Solutions', type: 'Cutting', contactPerson: 'Tom Wilson', email: 'tom.w@cutright.com', phone: '01988999000', rate: '$0.18 / piece' },
 ];
 
 
