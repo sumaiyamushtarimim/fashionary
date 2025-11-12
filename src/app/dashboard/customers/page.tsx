@@ -63,7 +63,7 @@ export default function CustomersPage() {
                   <TableCell className="font-medium">{customer.name}</TableCell>
                   <TableCell className="hidden sm:table-cell">{customer.email}</TableCell>
                   <TableCell className="hidden md:table-cell">{customer.joinDate}</TableCell>
-                  <TableCell className="text-right">${customer.totalSpent.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">৳{customer.totalSpent.toFixed(2)}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -92,3 +92,5 @@ export default function CustomersPage() {
     </div>
   );
 }
+
+    

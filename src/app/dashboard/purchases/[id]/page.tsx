@@ -82,15 +82,15 @@ const PaymentSection = ({ cost, payment, onPaymentChange, due, costDisabled = fa
         <div className="space-y-1 text-sm">
             <div className="flex justify-between">
                 <span className="text-muted-foreground">Total Bill:</span>
-                <span className="font-medium">${cost.toFixed(2)}</span>
+                <span className="font-medium">৳{cost.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
                 <span className="text-muted-foreground">Paid:</span>
-                <span className="font-medium">${((Number(payment.cash) || 0) + (Number(payment.check) || 0)).toFixed(2)}</span>
+                <span className="font-medium">৳{((Number(payment.cash) || 0) + (Number(payment.check) || 0)).toFixed(2)}</span>
             </div>
              <div className="flex justify-between font-semibold">
                 <span className={due > 0 ? "text-destructive" : ""}>Due Amount:</span>
-                <span className={due > 0 ? "text-destructive" : ""}>${due.toFixed(2)}</span>
+                <span className={due > 0 ? "text-destructive" : ""}>৳{due.toFixed(2)}</span>
             </div>
         </div>
     </>
@@ -271,7 +271,7 @@ export default function PurchaseOrderDetailsPage() {
                         </div>
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">Fabric Cost:</span>
-                            <span className="font-medium">${purchaseOrder.total.toFixed(2)}</span>
+                            <span className="font-medium">৳{purchaseOrder.total.toFixed(2)}</span>
                         </div>
                          <div className="flex justify-between">
                             <span className="text-muted-foreground">Status:</span>
@@ -386,3 +386,5 @@ export default function PurchaseOrderDetailsPage() {
     </div>
   );
 }
+
+    

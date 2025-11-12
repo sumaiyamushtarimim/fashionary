@@ -130,7 +130,7 @@ export default function PartnersPage() {
                                 {supplier.email}
                             </TableCell>
                             <TableCell className={cn("text-right font-mono", due > 0 ? "text-destructive" : "")}>
-                                ${due.toFixed(2)}
+                                ৳{due.toFixed(2)}
                             </TableCell>
                             <TableCell>
                                 <DropdownMenu>
@@ -199,7 +199,7 @@ export default function PartnersPage() {
                                         <p className="text-xs text-muted-foreground">{supplier.email}</p>
                                         <div className="text-right">
                                             <p className="text-sm text-muted-foreground">Total Due</p>
-                                            <p className={cn("font-semibold font-mono", due > 0 ? "text-destructive" : "")}>${due.toFixed(2)}</p>
+                                            <p className={cn("font-semibold font-mono", due > 0 ? "text-destructive" : "")}>৳{due.toFixed(2)}</p>
                                         </div>
                                     </div>
                                 </CardContent>
@@ -256,7 +256,7 @@ export default function PartnersPage() {
                           </TableCell>
                           <TableCell>{vendor.contactPerson}</TableCell>
                           <TableCell className={cn("text-right font-mono", due > 0 ? "text-destructive" : "")}>
-                            ${due.toFixed(2)}
+                            ৳{due.toFixed(2)}
                           </TableCell>
                           <TableCell>
                             <DropdownMenu>
@@ -331,7 +331,7 @@ export default function PartnersPage() {
                                             </Badge>
                                         <div className="text-right">
                                             <p className="text-sm text-muted-foreground">Total Due</p>
-                                            <p className={cn("font-semibold font-mono", due > 0 ? "text-destructive" : "")}>${due.toFixed(2)}</p>
+                                            <p className={cn("font-semibold font-mono", due > 0 ? "text-destructive" : "")}>৳{due.toFixed(2)}</p>
                                         </div>
                                     </div>
                                 </CardContent>
@@ -346,3 +346,5 @@ export default function PartnersPage() {
     </div>
   );
 }
+
+    

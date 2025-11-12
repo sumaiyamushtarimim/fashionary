@@ -156,10 +156,10 @@ export default function OrdersPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex-grow grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex-grow flex items-center gap-2">
            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -244,7 +244,7 @@ export default function OrdersPage() {
                                 </Badge>
                             </div>
                            <div className="text-right font-bold sm:hidden mt-2 sm:mt-0">
-                                ${order.total.toFixed(2)}
+                                ৳{order.total.toFixed(2)}
                             </div>
                         </div>
                    </div>
@@ -262,7 +262,7 @@ export default function OrdersPage() {
                     </Badge>
                   </td>
                   <td className="hidden text-right sm:table-cell p-4">
-                    ${order.total.toFixed(2)}
+                    ৳{order.total.toFixed(2)}
                   </td>
                   <TableCell className="p-0 sm:p-4">
                      <div className="absolute sm:relative top-2 right-2">
@@ -304,3 +304,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    

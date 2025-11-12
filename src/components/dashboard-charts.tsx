@@ -51,8 +51,8 @@ export default function DashboardCharts() {
                 <div key={data.month} className="flex justify-between items-center text-sm pb-2 border-b last:border-b-0">
                   <span className="font-medium text-muted-foreground">{data.month}</span>
                   <div className="text-right">
-                    <p className="font-bold text-foreground">${data.revenue.toLocaleString()}</p>
-                    <p className="text-xs text-green-600">${data.profit.toLocaleString()} Profit</p>
+                    <p className="font-bold text-foreground">৳{data.revenue.toLocaleString()}</p>
+                    <p className="text-xs text-green-600">৳{data.profit.toLocaleString()} Profit</p>
                   </div>
                 </div>
               ))}
@@ -108,3 +108,5 @@ export default function DashboardCharts() {
     </>
   );
 }
+
+    

@@ -459,7 +459,7 @@ export default function ProductsPage() {
                                                                     <Image src={product.image.imageUrl} alt={product.name} width={40} height={40} className="rounded-md" />
                                                                 </TableCell>
                                                                 <TableCell className="font-medium">{product.name}</TableCell>
-                                                                <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
+                                                                <TableCell className="text-right">৳{product.price.toFixed(2)}</TableCell>
                                                             </TableRow>
                                                         ))}
                                                         </TableBody>
@@ -532,7 +532,7 @@ export default function ProductsPage() {
                                                 name="regularPrice"
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                    <FormLabel>Regular price ($)</FormLabel>
+                                                    <FormLabel>Regular price (৳)</FormLabel>
                                                     <FormControl>
                                                         <Input type="number" placeholder="25.00" {...field} disabled={productType === 'combo'} />
                                                     </FormControl>
@@ -546,7 +546,7 @@ export default function ProductsPage() {
                                                 name="salePrice"
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                    <FormLabel>Sale price ($)</FormLabel>
+                                                    <FormLabel>Sale price (৳)</FormLabel>
                                                     <FormControl>
                                                         <Input type="number" placeholder="19.99" {...field} />
                                                     </FormControl>
@@ -704,7 +704,7 @@ export default function ProductsPage() {
                     />
                   </TableCell>
                   <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>${product.price.toFixed(2)}</TableCell>
+                  <TableCell>৳{product.price.toFixed(2)}</TableCell>
                   <TableCell className="hidden md:table-cell">
                     {product.inventory}
                   </TableCell>
@@ -741,3 +741,5 @@ export default function ProductsPage() {
     </div>
   );
 }
+
+    

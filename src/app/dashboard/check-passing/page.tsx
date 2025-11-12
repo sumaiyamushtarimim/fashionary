@@ -91,7 +91,7 @@ const CheckOverviewCarousel = dynamic(
                                     <span className="text-xs text-muted-foreground">{format(day.date, 'MMM d')}</span>
                                 </CardHeader>
                                 <CardContent className="flex flex-col items-center justify-center p-6 pt-2">
-                                    <div className="text-3xl font-bold">${day.total.toLocaleString()}</div>
+                                    <div className="text-3xl font-bold">৳{day.total.toLocaleString()}</div>
                                     <p className="text-xs text-muted-foreground mt-1">{day.count} pending {day.count === 1 ? 'check' : 'checks'}</p>
                                 </CardContent>
                             </Card>
@@ -227,7 +227,7 @@ export default function CheckPassingPage() {
                             <span className="text-xs text-muted-foreground">{format(day.date, 'MMM d')}</span>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">${day.total.toLocaleString()}</div>
+                            <div className="text-2xl font-bold">৳{day.total.toLocaleString()}</div>
                             <p className="text-xs text-muted-foreground">{day.count} pending {day.count === 1 ? 'check' : 'checks'}</p>
                         </CardContent>
                     </Card>
@@ -290,7 +290,7 @@ export default function CheckPassingPage() {
                           <TableCell>
                             <Badge variant="outline" className={cn(statusColors[check.status])}>{check.status}</Badge>
                           </TableCell>
-                          <TableCell className="text-right font-mono">${check.amount.toFixed(2)}</TableCell>
+                          <TableCell className="text-right font-mono">৳{check.amount.toFixed(2)}</TableCell>
                            <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -354,7 +354,7 @@ export default function CheckPassingPage() {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="font-semibold font-mono">${check.amount.toFixed(2)}</p>
+                                            <p className="font-semibold font-mono">৳{check.amount.toFixed(2)}</p>
                                             <div className="mt-2">
                                                 <Badge variant="outline" className={cn(statusColors[check.status])}>{check.status}</Badge>
                                             </div>
@@ -408,3 +408,5 @@ export default function CheckPassingPage() {
     </div>
   );
 }
+
+    

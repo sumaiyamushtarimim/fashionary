@@ -154,8 +154,8 @@ export default function NewOrderPage() {
                                             <TableCell>
                                                 <Input type="number" value={item.quantity} onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)} className="w-20" />
                                             </TableCell>
-                                            <TableCell className="text-right font-mono">${item.price.toFixed(2)}</TableCell>
-                                            <TableCell className="text-right font-mono">${(item.price * item.quantity).toFixed(2)}</TableCell>
+                                            <TableCell className="text-right font-mono">৳{item.price.toFixed(2)}</TableCell>
+                                            <TableCell className="text-right font-mono">৳{(item.price * item.quantity).toFixed(2)}</TableCell>
                                             <TableCell>
                                                 <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>
                                                     <Trash2 className="h-4 w-4 text-destructive" />
@@ -277,7 +277,7 @@ export default function NewOrderPage() {
                              <div className="space-y-1 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Subtotal</span>
-                                    <span className="font-mono">${subtotal.toFixed(2)}</span>
+                                    <span className="font-mono">৳{subtotal.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-muted-foreground">Shipping</span>
@@ -285,12 +285,12 @@ export default function NewOrderPage() {
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Tax (8%)</span>
-                                    <span className="font-mono">${tax.toFixed(2)}</span>
+                                    <span className="font-mono">৳{tax.toFixed(2)}</span>
                                 </div>
                                 <Separator className="my-2" />
                                 <div className="flex justify-between font-semibold text-lg">
                                     <span>Total</span>
-                                    <span className="font-mono">${total.toFixed(2)}</span>
+                                    <span className="font-mono">৳{total.toFixed(2)}</span>
                                 </div>
                             </div>
                             <Separator />
@@ -311,7 +311,7 @@ export default function NewOrderPage() {
                             </div>
                              <div className="flex justify-between font-semibold text-base mt-4">
                                 <span className={cn(dueAmount > 0 && "text-destructive")}>Due Amount</span>
-                                <span className={cn("font-mono", dueAmount > 0 && "text-destructive")}>${dueAmount.toFixed(2)}</span>
+                                <span className={cn("font-mono", dueAmount > 0 && "text-destructive")}>৳{dueAmount.toFixed(2)}</span>
                             </div>
                         </CardContent>
                     </Card>
@@ -320,3 +320,5 @@ export default function NewOrderPage() {
         </div>
     );
 }
+
+    

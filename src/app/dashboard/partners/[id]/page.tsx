@@ -172,16 +172,16 @@ export default function PartnerDetailsPage() {
             <CardContent className="grid grid-cols-1 gap-y-4 sm:grid-cols-3 sm:gap-x-4">
                 <div className="rounded-lg border bg-card p-4">
                     <p className="text-xs text-muted-foreground">Total Business</p>
-                    <p className="text-2xl font-bold">${financials.totalBusiness.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+                    <p className="text-2xl font-bold">৳{financials.totalBusiness.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
                 </div>
                 <div className="rounded-lg border bg-card p-4">
                     <p className="text-xs text-muted-foreground">Total Paid</p>
-                    <p className="text-2xl font-bold text-green-600">${financials.totalPaid.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+                    <p className="text-2xl font-bold text-green-600">৳{financials.totalPaid.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
                 </div>
                 <div className="rounded-lg border bg-card p-4">
                     <p className="text-xs text-muted-foreground">Total Due</p>
                     <p className={cn("text-2xl font-bold", financials.totalDue > 0 ? "text-destructive" : "")}>
-                        ${financials.totalDue.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                        ৳{financials.totalDue.toLocaleString(undefined, {minimumFractionDigits: 2})}
                     </p>
                 </div>
             </CardContent>
@@ -213,7 +213,7 @@ export default function PartnerDetailsPage() {
                                 </div>
                                 <Separator className="my-3" />
                                 <div className="flex justify-end items-center">
-                                    <p className="font-semibold font-mono">${po.total.toFixed(2)}</p>
+                                    <p className="font-semibold font-mono">৳{po.total.toFixed(2)}</p>
                                 </div>
                                 </CardContent>
                             </Card>
@@ -244,7 +244,7 @@ export default function PartnerDetailsPage() {
                                             {po.status}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-right font-mono">${po.total.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right font-mono">৳{po.total.toFixed(2)}</TableCell>
                                 </TableRow>
                                 ))}
                             </TableBody>
@@ -292,7 +292,7 @@ export default function PartnerDetailsPage() {
                                             {payment.poId}
                                         </Link>
                                     </TableCell>
-                                    <TableCell className="text-right font-mono">${totalPayment.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right font-mono">৳{totalPayment.toFixed(2)}</TableCell>
                                 </TableRow>
                             )})}
                         </TableBody>
@@ -309,5 +309,7 @@ export default function PartnerDetailsPage() {
     </div>
   );
 }
+
+    
 
     

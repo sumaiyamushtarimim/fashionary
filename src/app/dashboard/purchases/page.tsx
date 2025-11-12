@@ -112,7 +112,7 @@ export default function PurchasesPage() {
                           {po.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">${po.total.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">৳{po.total.toFixed(2)}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -184,7 +184,7 @@ export default function PurchasesPage() {
                             </div>
                             <div className="text-right">
                                 <p className="text-sm text-muted-foreground">Total</p>
-                                <p className="font-semibold font-mono">${po.total.toFixed(2)}</p>
+                                <p className="font-semibold font-mono">৳{po.total.toFixed(2)}</p>
                             </div>
                         </div>
 
@@ -197,3 +197,5 @@ export default function PurchasesPage() {
     </div>
   );
 }
+
+    

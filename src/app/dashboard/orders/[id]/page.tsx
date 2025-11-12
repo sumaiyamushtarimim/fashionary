@@ -316,7 +316,7 @@ export default function OrderDetailsPage() {
     return parts.join('\n\n');
   }, [sendToCourier, customerNote, officeNote]);
   
-  const whatsappMessage = `Hello ${order.customerName}, regarding your order ${order.id}:\n- Total: $${order.total.toFixed(2)}\n- Status: ${order.status}\n\nWe will update you shortly. Thank you!`;
+  const whatsappMessage = `Hello ${order.customerName}, regarding your order ${order.id}:\n- Total: ৳${order.total.toFixed(2)}\n- Status: ${order.status}\n\nWe will update you shortly. Thank you!`;
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -428,11 +428,11 @@ export default function OrderDetailsPage() {
                                     </div>
                                     <div className="col-span-1 text-right">
                                         <p className="text-sm text-muted-foreground">Price</p>
-                                        <p className="font-medium">${product.price.toFixed(2)}</p>
+                                        <p className="font-medium">৳{product.price.toFixed(2)}</p>
                                     </div>
                                      <div className="col-span-1 text-right">
                                         <p className="text-sm text-muted-foreground">Total</p>
-                                        <p className="font-medium">${(product.price * product.quantity).toFixed(2)}</p>
+                                        <p className="font-medium">৳{(product.price * product.quantity).toFixed(2)}</p>
                                     </div>
                                 </div>
                             </div>
@@ -446,10 +446,10 @@ export default function OrderDetailsPage() {
                           )}
                       </TableCell>
                       <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
-                        ${product.price.toFixed(2)}
+                        ৳{product.price.toFixed(2)}
                       </TableCell>
                       <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
-                        ${(product.price * product.quantity).toFixed(2)}
+                        ৳{(product.price * product.quantity).toFixed(2)}
                       </TableCell>
                        {isEditing && (
                             <TableCell className="hidden sm:table-cell">
@@ -476,24 +476,24 @@ export default function OrderDetailsPage() {
             <CardContent className="grid gap-4">
               <div className="flex items-center justify-between">
                 <dt className="text-muted-foreground">Subtotal</dt>
-                <dd>${subtotal.toFixed(2)}</dd>
+                <dd>৳{subtotal.toFixed(2)}</dd>
               </div>
               <div className="flex items-center justify-between">
                 <dt className="text-muted-foreground">Shipping</dt>
                 {isEditing ? (
                     <Input type="number" value={editedShipping} onChange={(e) => setEditedShipping(parseFloat(e.target.value) || 0)} className="h-8 w-24 text-right" />
                 ) : (
-                    <dd>${shipping.toFixed(2)}</dd>
+                    <dd>৳{shipping.toFixed(2)}</dd>
                 )}
               </div>
               <div className="flex items-center justify-between">
                 <dt className="text-muted-foreground">Tax</dt>
-                <dd>${tax.toFixed(2)}</dd>
+                <dd>৳{tax.toFixed(2)}</dd>
               </div>
               <Separator />
               <div className="flex items-center justify-between font-semibold">
                 <dt>Total</dt>
-                <dd>${total.toFixed(2)}</dd>
+                <dd>৳{total.toFixed(2)}</dd>
               </div>
             </CardContent>
           </Card>
@@ -680,3 +680,5 @@ export default function OrderDetailsPage() {
     </div>
   );
 }
+
+    
