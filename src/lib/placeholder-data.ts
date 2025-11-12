@@ -44,6 +44,7 @@ export type Order = {
   id: string;
   customerName: string;
   customerEmail: string;
+  customerPhone: string;
   date: string;
   status: OrderStatus;
   total: number;
@@ -124,6 +125,7 @@ export const orders: Order[] = [
     id: 'ORD-2024-001', 
     customerName: 'Alice Johnson', 
     customerEmail: 'alice@example.com', 
+    customerPhone: '+1234567890',
     date: '2024-05-20', 
     status: 'Delivered', 
     total: 104.99, 
@@ -145,6 +147,7 @@ export const orders: Order[] = [
     id: 'ORD-2024-002', 
     customerName: 'Bob Williams', 
     customerEmail: 'bob@example.com', 
+    customerPhone: '+1234567891',
     date: '2024-05-21', 
     status: 'Packing', 
     total: 25.00, 
@@ -163,6 +166,7 @@ export const orders: Order[] = [
     id: 'ORD-2024-003', 
     customerName: 'Charlie Brown', 
     customerEmail: 'charlie@example.com', 
+    customerPhone: '+1234567892',
     date: '2024-05-22', 
     status: 'New', 
     total: 215.49, 
@@ -180,6 +184,7 @@ export const orders: Order[] = [
     id: 'ORD-2024-004', 
     customerName: 'Diana Prince', 
     customerEmail: 'diana@example.com', 
+    customerPhone: '+1234567893',
     date: '2024-05-22', 
     status: 'Shipped', 
     total: 350.00, 
@@ -199,6 +204,7 @@ export const orders: Order[] = [
     id: 'ORD-2024-005', 
     customerName: 'Ethan Hunt', 
     customerEmail: 'ethan@example.com', 
+    customerPhone: '+1234567894',
     date: '2024-05-23', 
     status: 'Confirmed', 
     total: 120.50, 
@@ -275,3 +281,5 @@ export const ordersByStatusData = [
     { status: 'Processing', value: 1, fill: 'var(--color-processing)' },
     { status: 'Completed', value: 2, fill: 'var(--color-completed)' },
 ];
+
+    
