@@ -1,5 +1,4 @@
 
-
 import type { ImagePlaceholder } from './placeholder-images';
 import { PlaceHolderImages } from './placeholder-images';
 
@@ -7,6 +6,11 @@ export type Category = {
     id: string;
     name: string;
     parentId?: string;
+};
+
+export type ExpenseCategory = {
+    id: string;
+    name: string;
 };
 
 export type ProductVariant = {
@@ -221,11 +225,6 @@ export type Vendor = {
     email: string;
     phone: string;
     rate: string;
-};
-
-export type ExpenseCategory = {
-    id: string;
-    name: string;
 };
 
 export type Expense = {
@@ -765,6 +764,7 @@ export const bdDistricts: string[] = [
     
 
     
+
 
 
 
