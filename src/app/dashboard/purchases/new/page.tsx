@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from "react";
@@ -30,7 +31,7 @@ import {
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { PlusCircle, Trash2 } from "lucide-react";
-import { products, suppliers, vendors } from "@/lib/placeholder-data";
+import { products, suppliers, vendors, ProductVariant } from "@/lib/placeholder-data";
 import Link from "next/link";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
@@ -79,6 +80,8 @@ export default function NewPurchaseOrderPage() {
   
   const [fabricPayment, setFabricPayment] = useState<Payment>(initialPaymentState);
   const [generalPayment, setGeneralPayment] = useState<Payment>(initialPaymentState);
+
+  const [availableVariants, setAvailableVariants] = useState<Record<string, ProductVariant[]>>({});
 
   const fabricBillSummary = useMemo(() => {
     let totalOrnaYards = 0;
@@ -145,8 +148,14 @@ export default function NewPurchaseOrderPage() {
   const handleItemChange = (id: string, field: keyof Omit<OrderItem, 'id' | 'lineTotal'>, value: string | number) => {
     setOrderItems(prevItems => prevItems.map(item => {
       if (item.id === id) {
-        const updatedItem = { ...item, [field]: value };
+        let updatedItem = { ...item, [field]: value };
         
+        if (field === 'productId') {
+          const selectedProduct = products.find(p => p.id === value);
+          setAvailableVariants(prev => ({...prev, [id]: selectedProduct?.variants || []}));
+          updatedItem.variantId = ''; // Reset variant selection
+        }
+
         const ornaFabric = 2.5; 
         const jamaFabric = 3.0; 
         const selowarFabric = 2.0;
@@ -168,6 +177,13 @@ export default function NewPurchaseOrderPage() {
     setGeneralOrderItems(prevItems => prevItems.map(item => {
         if (item.id === id) {
             let updatedItem = { ...item, [field]: value };
+            
+            if (field === 'productId') {
+                const selectedProduct = products.find(p => p.id === value);
+                setAvailableVariants(prev => ({...prev, [id]: selectedProduct?.variants || []}));
+                updatedItem.variantId = ''; // Reset variant
+                updatedItem.unitCost = 0; // Reset cost
+            }
 
             const lineTotal = (Number(updatedItem.quantity) || 0) * (Number(updatedItem.unitCost) || 0);
             return { ...updatedItem, lineTotal };
@@ -269,14 +285,12 @@ export default function NewPurchaseOrderPage() {
                                                     </Select>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Select onValueChange={(value) => handleItemChange(item.id, 'variantId', value)}>
+                                                    <Select value={item.variantId} onValueChange={(value) => handleItemChange(item.id, 'variantId', value)} disabled={!availableVariants[item.id] || availableVariants[item.id].length === 0}>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder="Select Variant" />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="s">Small</SelectItem>
-                                                            <SelectItem value="m">Medium</SelectItem>
-                                                            <SelectItem value="l">Large</SelectItem>
+                                                            {availableVariants[item.id]?.map(v => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
                                                         </SelectContent>
                                                     </Select>
                                                 </TableCell>
@@ -440,15 +454,12 @@ export default function NewPurchaseOrderPage() {
                                                 </Select>
                                             </TableCell>
                                             <TableCell>
-                                                <Select value={item.variantId} onValueChange={(value) => handleGeneralItemChange(item.id, 'variantId', value)}>
+                                                <Select value={item.variantId} onValueChange={(value) => handleGeneralItemChange(item.id, 'variantId', value)} disabled={!availableVariants[item.id] || availableVariants[item.id].length === 0}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="Select Variant" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {/* This should be populated based on the selected product */}
-                                                        <SelectItem value="s">Small</SelectItem>
-                                                        <SelectItem value="m">Medium</SelectItem>
-                                                        <SelectItem value="l">Large</SelectItem>
+                                                        {availableVariants[item.id]?.map(v => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
                                                     </SelectContent>
                                                 </Select>
                                             </TableCell>

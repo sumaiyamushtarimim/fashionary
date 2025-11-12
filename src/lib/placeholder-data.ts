@@ -9,6 +9,12 @@ export type Category = {
     parentId?: string;
 };
 
+export type ProductVariant = {
+    id: string;
+    name: string; // e.g., "Small, Red"
+    sku: string;
+};
+
 export type Product = {
   id: string;
   name: string;
@@ -20,6 +26,7 @@ export type Product = {
   ornaFabric?: number;
   jamaFabric?: number;
   selowarFabric?: number;
+  variants?: ProductVariant[];
 };
 
 export type OrderStatus = 
@@ -214,11 +221,78 @@ export const categories: Category[] = [
 ];
 
 export const products: Product[] = [
-  { id: 'PROD001', name: 'Organic Cotton T-Shirt', description: 'Soft, breathable, and eco-friendly.', price: 25.00, inventory: 150, image: PlaceHolderImages[0], categoryId: 'cat-2-1' },
-  { id: 'PROD002', name: 'Slim Fit Denim Jeans', description: 'Classic five-pocket styling.', price: 79.99, inventory: 80, image: PlaceHolderImages[1], categoryId: 'cat-2-2' },
-  { id: 'PROD003', name: 'Cotton Three-Piece', description: 'Luxuriously soft and warm.', price: 120.50, inventory: 45, image: PlaceHolderImages[2], categoryId: 'cat-1-1', ornaFabric: 2.5, jamaFabric: 3, selowarFabric: 2 },
-  { id: 'PROD004', name: 'Leather Biker Jacket', description: 'Timeless style with a modern edge.', price: 350.00, inventory: 20, image: PlaceHolderImages[3], categoryId: 'cat-2-1' },
-  { id: 'PROD005', name: 'Linen Three-Piece', description: 'Lightweight and perfect for summer.', price: 95.00, inventory: 60, image: PlaceHolderImages[4], categoryId: 'cat-1-2', ornaFabric: 2.5, jamaFabric: 3, selowarFabric: 2 },
+  { 
+    id: 'PROD001', 
+    name: 'Organic Cotton T-Shirt', 
+    description: 'Soft, breathable, and eco-friendly.', 
+    price: 25.00, 
+    inventory: 150, 
+    image: PlaceHolderImages[0], 
+    categoryId: 'cat-2-1',
+    variants: [
+        { id: 'VAR001', name: 'Small, White', sku: 'OCT-W-S' },
+        { id: 'VAR002', name: 'Medium, White', sku: 'OCT-W-M' },
+        { id: 'VAR003', name: 'Large, White', sku: 'OCT-W-L' },
+        { id: 'VAR004', name: 'Small, Black', sku: 'OCT-B-S' },
+    ]
+  },
+  { 
+    id: 'PROD002', 
+    name: 'Slim Fit Denim Jeans', 
+    description: 'Classic five-pocket styling.', 
+    price: 79.99, 
+    inventory: 80, 
+    image: PlaceHolderImages[1], 
+    categoryId: 'cat-2-2',
+    variants: [
+        { id: 'VAR005', name: '30x30', sku: 'SFDJ-3030' },
+        { id: 'VAR006', name: '32x30', sku: 'SFDJ-3230' },
+        { id: 'VAR007', name: '34x32', sku: 'SFDJ-3432' },
+    ]
+  },
+  { 
+    id: 'PROD003', 
+    name: 'Cotton Three-Piece', 
+    description: 'Luxuriously soft and warm.', 
+    price: 120.50, 
+    inventory: 45, 
+    image: PlaceHolderImages[2], 
+    categoryId: 'cat-1-1', 
+    ornaFabric: 2.5, 
+    jamaFabric: 3, 
+    selowarFabric: 2,
+    variants: [
+        { id: 'VAR008', name: 'Unstitched', sku: 'CTP-UNS' },
+        { id: 'VAR009', name: 'Semi-Stitched', sku: 'CTP-STS' },
+    ]
+  },
+  { 
+    id: 'PROD004', 
+    name: 'Leather Biker Jacket', 
+    description: 'Timeless style with a modern edge.', 
+    price: 350.00, 
+    inventory: 20, 
+    image: PlaceHolderImages[3], 
+    categoryId: 'cat-2-1'
+    // No variants for this product
+  },
+  { 
+    id: 'PROD005', 
+    name: 'Linen Three-Piece', 
+    description: 'Lightweight and perfect for summer.', 
+    price: 95.00, 
+    inventory: 60, 
+    image: PlaceHolderImages[4], 
+    categoryId: 'cat-1-2', 
+    ornaFabric: 2.5, 
+    jamaFabric: 3, 
+    selowarFabric: 2,
+    variants: [
+        { id: 'VAR010', name: 'Small', sku: 'LTP-S' },
+        { id: 'VAR011', name: 'Medium', sku: 'LTP-M' },
+        { id: 'VAR012', name: 'Large', sku: 'LTP-L' },
+    ]
+  },
 ];
 
 export const businesses: Business[] = [
@@ -568,10 +642,10 @@ export const suppliers: Supplier[] = [
 ];
 
 export const vendors: Vendor[] = [
-    { id: 'VEN001', name: 'Precision Prints', type: 'Printing', contactPerson: 'Anna Garcia', email: 'anna.g@precisionprints.com', phone: '+8801555666777', rate: '$0.50 / print' },
-    { id: 'VEN002', name: 'Sharp Cuts', type: 'Cutting', contactPerson: 'David Lee', email: 'david.l@sharpcuts.com', phone: '+8801766777888', rate: '$0.20 / piece' },
-    { id: 'VEN003', name: 'Ink & Thread', type: 'Printing', contactPerson: 'Maria Rodriguez', email: 'maria.r@inkthread.com', phone: '+8801877888999', rate: '$0.45 / print' },
-    { id: 'VEN004', name: 'CutRight Solutions', type: 'Cutting', contactPerson: 'Tom Wilson', email: 'tom.w@cutright.com', phone: '+8801988999000', rate: '$0.18 / piece' },
+    { id: 'VEN001', name: 'Precision Prints', type: 'Printing', contactPerson: 'Anna Garcia', email: 'anna.g@precisionprints.com', phone: '+8801555666777', rate: '৳0.50 / print' },
+    { id: 'VEN002', name: 'Sharp Cuts', type: 'Cutting', contactPerson: 'David Lee', email: 'david.l@sharpcuts.com', phone: '+8801766777888', rate: '৳0.20 / piece' },
+    { id: 'VEN003', name: 'Ink & Thread', type: 'Printing', contactPerson: 'Maria Rodriguez', email: 'maria.r@inkthread.com', phone: '+8801877888999', rate: '৳0.45 / print' },
+    { id: 'VEN004', name: 'CutRight Solutions', type: 'Cutting', contactPerson: 'Tom Wilson', email: 'tom.w@cutright.com', phone: '+8801988999000', rate: '৳0.18 / piece' },
 ];
 
 
@@ -606,3 +680,4 @@ export const bdDistricts: string[] = [
     
 
     
+
