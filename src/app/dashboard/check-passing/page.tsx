@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { purchaseOrders } from "@/lib/placeholder-data";
+import { purchaseOrders, CheckStatus } from "@/lib/placeholder-data";
 import {
   addDays,
   format,
@@ -31,14 +31,32 @@ import {
 import { cn } from "@/lib/utils";
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from 'lucide-react';
 
 type CheckPayment = {
+  id: string;
   date: string;
   amount: number;
   poId: string;
   vendor: string;
   type: 'Fabric' | 'Printing' | 'Cutting';
+  status: CheckStatus;
 };
+
+const statusColors: Record<CheckStatus, string> = {
+  Pending: "bg-yellow-500/20 text-yellow-700",
+  Passed: "bg-green-500/20 text-green-700",
+  Bounced: "bg-red-500/20 text-red-700",
+  Cancelled: "bg-gray-500/20 text-gray-700",
+};
+
 
 export default function CheckPassingPage() {
   const [isClient, setIsClient] = React.useState(false);
@@ -52,29 +70,35 @@ export default function CheckPassingPage() {
     purchaseOrders.forEach((po) => {
       if (po.fabricPayment?.check && po.fabricPayment?.checkDate) {
         checks.push({
+          id: `${po.id}-fabric`,
           date: po.fabricPayment.checkDate,
           amount: po.fabricPayment.check,
           poId: po.id,
           vendor: po.supplier,
           type: 'Fabric',
+          status: po.fabricPayment.checkStatus || 'Pending',
         });
       }
       if (po.printingPayment?.check && po.printingPayment?.checkDate) {
         checks.push({
+          id: `${po.id}-printing`,
           date: po.printingPayment.checkDate,
           amount: po.printingPayment.check,
           poId: po.id,
           vendor: po.printingVendor || 'N/A',
           type: 'Printing',
+          status: po.printingPayment.checkStatus || 'Pending',
         });
       }
       if (po.cuttingPayment?.check && po.cuttingPayment?.checkDate) {
         checks.push({
+          id: `${po.id}-cutting`,
           date: po.cuttingPayment.checkDate,
           amount: po.cuttingPayment.check,
           poId: po.id,
           vendor: po.cuttingVendor || 'N/A',
           type: 'Cutting',
+          status: po.cuttingPayment.checkStatus || 'Pending',
         });
       }
     });
@@ -90,7 +114,7 @@ export default function CheckPassingPage() {
   ];
 
   const overviewData = overviewDays.map(day => {
-    const checksForDay = allChecks.filter(check => isSameDay(new Date(check.date), day.date));
+    const checksForDay = allChecks.filter(check => isSameDay(new Date(check.date), day.date) && check.status === 'Pending');
     const totalAmount = checksForDay.reduce((acc, check) => acc + check.amount, 0);
     return {
       label: day.label,
@@ -123,7 +147,7 @@ export default function CheckPassingPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">${day.total.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground">{day.count} {day.count === 1 ? 'check' : 'checks'} passing</p>
+                        <p className="text-xs text-muted-foreground">{day.count} pending {day.count === 1 ? 'check' : 'checks'}</p>
                     </CardContent>
                 </Card>
             ))}
@@ -144,17 +168,19 @@ export default function CheckPassingPage() {
                     <TableHead>PO Number</TableHead>
                     <TableHead>Vendor/Supplier</TableHead>
                     <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
+                    <TableHead><span className="sr-only">Actions</span></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isClient && upcomingChecks.length > 0 ? (
-                    upcomingChecks.map((check, index) => {
+                    upcomingChecks.map((check) => {
                       const checkDate = new Date(check.date);
                       const isTodayCheck = isToday(checkDate);
                       const isTomorrowCheck = isTomorrow(checkDate);
                       return (
-                        <TableRow key={`${check.poId}-${check.type}-${index}`} className={cn(isTodayCheck && "bg-primary/10")}>
+                        <TableRow key={check.id} className={cn(isTodayCheck && "bg-primary/10")}>
                           <TableCell className="font-medium">
                             <div className="flex flex-col">
                                 <span>{format(checkDate, "MMMM d, yyyy")}</span>
@@ -174,19 +200,42 @@ export default function CheckPassingPage() {
                           <TableCell>
                               <Badge variant="outline">{check.type}</Badge>
                           </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={cn(statusColors[check.status])}>{check.status}</Badge>
+                          </TableCell>
                           <TableCell className="text-right font-mono">${check.amount.toFixed(2)}</TableCell>
+                           <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  aria-haspopup="true"
+                                  size="icon"
+                                  variant="ghost"
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">Toggle menu</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Update Status</DropdownMenuLabel>
+                                <DropdownMenuItem>Mark as Passed</DropdownMenuItem>
+                                <DropdownMenuItem>Mark as Bounced</DropdownMenuItem>
+                                <DropdownMenuItem>Mark as Cancelled</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
                         </TableRow>
                       );
                     })
                   ) : isClient && upcomingChecks.length === 0 ? (
                      <TableRow>
-                        <TableCell colSpan={5} className="h-24 text-center">
+                        <TableCell colSpan={7} className="h-24 text-center">
                             No upcoming checks found.
                         </TableCell>
                     </TableRow>
                   ) : (
                     <TableRow>
-                        <TableCell colSpan={5} className="h-24 text-center">
+                        <TableCell colSpan={7} className="h-24 text-center">
                            Loading checks...
                         </TableCell>
                     </TableRow>
@@ -198,12 +247,12 @@ export default function CheckPassingPage() {
             {/* Card list for smaller screens */}
             <div className="sm:hidden space-y-4">
                  {isClient && upcomingChecks.length > 0 ? (
-                    upcomingChecks.map((check, index) => {
+                    upcomingChecks.map((check) => {
                         const checkDate = new Date(check.date);
                         const isTodayCheck = isToday(checkDate);
                         const isTomorrowCheck = isTomorrow(checkDate);
                         return (
-                            <Card key={`${check.poId}-${check.type}-${index}`} className={cn(isTodayCheck && "bg-primary/10")}>
+                            <Card key={check.id} className={cn(isTodayCheck && "bg-primary/10")}>
                                 <CardContent className="p-4">
                                     <div className="flex justify-between items-start">
                                         <div>
@@ -213,8 +262,16 @@ export default function CheckPassingPage() {
                                                         <Link href={`/dashboard/purchases/${check.poId}`}>{check.poId}</Link>
                                                     </Button>
                                             </p>
+                                            <div className="mt-2">
+                                                <Badge variant="outline">{check.type}</Badge>
+                                            </div>
                                         </div>
-                                        <p className="font-semibold font-mono text-right">${check.amount.toFixed(2)}</p>
+                                        <div className="text-right">
+                                            <p className="font-semibold font-mono">${check.amount.toFixed(2)}</p>
+                                            <div className="mt-2">
+                                                <Badge variant="outline" className={cn(statusColors[check.status])}>{check.status}</Badge>
+                                            </div>
+                                        </div>
                                     </div>
                                     <Separator className="my-3" />
                                     <div className="flex justify-between items-center text-sm">
@@ -226,7 +283,24 @@ export default function CheckPassingPage() {
                                                 </Badge>
                                              )}
                                         </div>
-                                        <Badge variant="outline">{check.type}</Badge>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button
+                                                aria-haspopup="true"
+                                                size="icon"
+                                                variant="ghost"
+                                                >
+                                                <MoreHorizontal className="h-4 w-4" />
+                                                <span className="sr-only">Toggle menu</span>
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuLabel>Update Status</DropdownMenuLabel>
+                                                <DropdownMenuItem>Mark as Passed</DropdownMenuItem>
+                                                <DropdownMenuItem>Mark as Bounced</DropdownMenuItem>
+                                                <DropdownMenuItem>Mark as Cancelled</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </div>
                                 </CardContent>
                             </Card>

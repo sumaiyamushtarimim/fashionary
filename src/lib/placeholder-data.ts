@@ -85,10 +85,13 @@ export type PurchaseOrderLog = {
     user: string;
 };
 
+export type CheckStatus = 'Pending' | 'Passed' | 'Bounced' | 'Cancelled';
+
 export type Payment = {
     cash: number;
     check: number;
     checkDate: string;
+    checkStatus?: CheckStatus;
 };
 
 export type PurchaseOrder = {
@@ -277,7 +280,7 @@ export const purchaseOrders: PurchaseOrder[] = [
             { status: 'Printing', timestamp: '2024-06-06T09:00:00Z', description: 'Sent to Printing Vendor.', user: 'Jane Doe' },
             { status: 'Fabric Ordered', timestamp: '2024-06-05T17:00:00Z', description: 'Fabric order placed with supplier.', user: 'John Smith' },
         ],
-        fabricPayment: { cash: 2000, check: 3000, checkDate: formatDate(new Date()) }
+        fabricPayment: { cash: 2000, check: 3000, checkDate: formatDate(new Date()), checkStatus: 'Passed' }
     },
     { 
         id: 'PO-2024-002', 
@@ -292,7 +295,7 @@ export const purchaseOrders: PurchaseOrder[] = [
             { status: 'Fabric Ordered', timestamp: '2024-06-05T17:00:00Z', description: 'Fabric order placed with supplier.', user: 'John Smith' },
         ],
         printingVendor: 'Precision Prints',
-        printingPayment: { cash: 500, check: 1000, checkDate: formatDate(new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000)) }
+        printingPayment: { cash: 500, check: 1000, checkDate: formatDate(new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000)), checkStatus: 'Pending' }
     },
     { 
         id: 'PO-2024-003', 
@@ -306,7 +309,7 @@ export const purchaseOrders: PurchaseOrder[] = [
             { status: 'Fabric Ordered', timestamp: '2024-06-05T17:00:00Z', description: 'Fabric order placed with supplier.', user: 'John Smith' },
         ],
         cuttingVendor: 'Sharp Cuts',
-        cuttingPayment: { cash: 0, check: 800, checkDate: formatDate(new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)) }
+        cuttingPayment: { cash: 0, check: 800, checkDate: formatDate(new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)), checkStatus: 'Pending' }
     },
     { 
         id: 'PO-2024-004', 
@@ -318,7 +321,7 @@ export const purchaseOrders: PurchaseOrder[] = [
         logs: [
             { status: 'Fabric Ordered', timestamp: '2024-06-05T17:00:00Z', description: 'Fabric order placed with supplier.', user: 'John Smith' },
         ],
-        fabricPayment: { cash: 25000, check: 0, checkDate: '' }
+        fabricPayment: { cash: 25000, check: 0, checkDate: '', checkStatus: 'Pending' }
     },
     { 
         id: 'PO-2024-005', 
@@ -331,7 +334,7 @@ export const purchaseOrders: PurchaseOrder[] = [
             { status: 'Draft', timestamp: '2024-05-25T10:00:00Z', description: 'Purchase order created as draft.', user: 'John Smith' },
         ],
         printingVendor: 'Ink & Thread',
-        printingPayment: { cash: 0, check: 2500, checkDate: formatDate(new Date(today.getTime() + 1 * 24 * 60 * 60 * 1000)) }
+        printingPayment: { cash: 0, check: 2500, checkDate: formatDate(new Date(today.getTime() + 1 * 24 * 60 * 60 * 1000)), checkStatus: 'Bounced' }
     },
     { 
         id: 'PO-2024-006', 
@@ -344,7 +347,7 @@ export const purchaseOrders: PurchaseOrder[] = [
              { status: 'Cancelled', timestamp: '2024-05-11T12:00:00Z', description: 'Order cancelled by management.', user: 'Jane Doe' },
         ],
         cuttingVendor: 'CutRight Solutions',
-        cuttingPayment: { cash: 0, check: 1200, checkDate: formatDate(new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000)) }
+        cuttingPayment: { cash: 0, check: 1200, checkDate: formatDate(new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000)), checkStatus: 'Cancelled' }
     },
 ];
 
