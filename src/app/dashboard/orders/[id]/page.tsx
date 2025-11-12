@@ -143,7 +143,7 @@ export default function OrderDetailsPage() {
             </CardHeader>
             <CardContent>
               <Table>
-                <TableHeader>
+                <TableHeader className="hidden sm:table-header-group">
                   <TableRow>
                     <TableHead className="w-[80px]">Image</TableHead>
                     <TableHead>Name</TableHead>
@@ -153,10 +153,10 @@ export default function OrderDetailsPage() {
                     <TableHead className="text-right">Total</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="flex flex-col sm:table-row-group gap-4">
                   {order.products.map((product) => (
-                    <TableRow key={product.productId}>
-                      <TableCell>
+                    <TableRow key={product.productId} className="flex sm:table-row flex-col sm:flex-row rounded-lg border sm:border-0 p-4 sm:p-0">
+                      <TableCell className="p-0 sm:p-4 w-[80px] hidden sm:table-cell">
                         <Image
                           alt={product.name}
                           className="aspect-square rounded-md object-cover"
@@ -165,11 +165,32 @@ export default function OrderDetailsPage() {
                           width="64"
                         />
                       </TableCell>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                       <TableCell>SKU-452-187</TableCell>
-                      <TableCell className="text-right">{product.quantity}</TableCell>
-                      <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">
+                       <TableCell className="font-medium p-0 sm:p-4 border-b sm:border-0 pb-4 sm:pb-0">
+                            <div className="flex items-start gap-4">
+                                <Image
+                                    alt={product.name}
+                                    className="aspect-square rounded-md object-cover sm:hidden"
+                                    height="64"
+                                    src={product.image.imageUrl}
+                                    width="64"
+                                />
+                                <div className="flex-1">
+                                    <p className="font-medium">{product.name}</p>
+                                    <p className="text-sm text-muted-foreground">SKU-452-187</p>
+                                </div>
+                            </div>
+                        </TableCell>
+                      <TableCell className="hidden sm:table-cell">SKU-452-187</TableCell>
+                      <TableCell className="p-0 sm:p-4 text-right">
+                          <div className="sm:hidden text-left text-sm text-muted-foreground mb-1">Qty</div>
+                          {product.quantity}
+                      </TableCell>
+                      <TableCell className="p-0 sm:p-4 text-right">
+                         <div className="sm:hidden text-left text-sm text-muted-foreground mb-1">Price</div>
+                        ${product.price.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="p-0 sm:p-4 text-right">
+                        <div className="sm:hidden text-left text-sm text-muted-foreground mb-1">Total</div>
                         ${(product.price * product.quantity).toFixed(2)}
                       </TableCell>
                     </TableRow>
