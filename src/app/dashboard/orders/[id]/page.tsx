@@ -14,6 +14,7 @@ import {
   CheckCircle,
   XCircle,
   History,
+  FileText,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import * as React from 'react';
@@ -60,6 +61,9 @@ import {
     SelectValue,
   } from "@/components/ui/select";
 import { Skeleton } from '@/components/ui/skeleton';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 
 
 const statusColors: Record<OrderStatus, string> = {
@@ -164,6 +168,9 @@ export default function OrderDetailsPage() {
   const orderId = params.id;
   const order = orders.find((o) => o.id === orderId);
 
+  const [sendToCourier, setSendToCourier] = React.useState(false);
+  const [officeNote, setOfficeNote] = React.useState(order?.officeNote || '');
+
   if (!order) {
     return (
       <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 justify-center items-center">
@@ -182,6 +189,20 @@ export default function OrderDetailsPage() {
   const shipping = 5.0;
   const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax;
+
+  const mergedNote = React.useMemo(() => {
+    if (!sendToCourier) return null;
+    
+    const parts = [];
+    if (order.customerNote) {
+        parts.push(`Customer Note: ${order.customerNote}`);
+    }
+    if (officeNote) {
+        parts.push(`Office Note: ${officeNote}`);
+    }
+    return parts.join('\n\n');
+  }, [sendToCourier, order.customerNote, officeNote]);
+
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -384,11 +405,54 @@ export default function OrderDetailsPage() {
               </div>
             </CardContent>
           </Card>
+           <Card>
+                <CardHeader>
+                    <CardTitle>Notes</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-6">
+                    <div className="grid gap-3">
+                        <Label htmlFor="customer-note">Customer Note</Label>
+                        <div className="relative">
+                            <p className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-md border min-h-[80px]">
+                                {order.customerNote || "No customer note provided."}
+                            </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Checkbox id="send-to-courier" checked={sendToCourier} onCheckedChange={(checked) => setSendToCourier(!!checked)} />
+                            <label
+                                htmlFor="send-to-courier"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                                Send note to courier
+                            </label>
+                        </div>
+                    </div>
+                     <div className="grid gap-3">
+                        <Label htmlFor="office-note">Office Note</Label>
+                        <Textarea id="office-note" placeholder="Add an internal note..." value={officeNote} onChange={(e) => setOfficeNote(e.target.value)} />
+                    </div>
+                    {mergedNote && (
+                        <div>
+                            <Separator className="my-4" />
+                            <div className="grid gap-3">
+                                <Label>Merged Note for Courier</Label>
+                                <div className="relative rounded-md border border-primary/50 bg-primary/10 p-3">
+                                    <div className="absolute top-2 right-2">
+                                        <FileText className="h-5 w-5 text-primary/80" />
+                                    </div>
+                                    <p className="text-sm whitespace-pre-wrap font-mono">{mergedNote}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </CardContent>
+                <CardFooter>
+                    <Button className="ml-auto">Save Note</Button>
+                </CardFooter>
+            </Card>
           <OrderHistory logs={order.logs} />
         </div>
       </div>
     </div>
   );
 }
-
-    

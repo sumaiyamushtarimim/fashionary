@@ -49,6 +49,8 @@ export type Order = {
   total: number;
   products: OrderProduct[];
   logs: OrderLog[];
+  customerNote: string;
+  officeNote: string;
 };
 
 export type Customer = {
@@ -136,6 +138,8 @@ export const orders: Order[] = [
         { status: 'Confirmed', timestamp: '2024-05-20T11:00:00Z', description: 'Order has been confirmed.', user: 'Jane Doe' },
         { status: 'New', timestamp: '2024-05-20T09:05:00Z', description: 'Order was placed.', user: 'Alice Johnson' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    customerNote: 'Please deliver after 5 PM. Ring the bell twice.',
+    officeNote: 'Customer called to confirm the delivery time. Seems important.',
   },
   { 
     id: 'ORD-2024-002', 
@@ -152,6 +156,8 @@ export const orders: Order[] = [
         { status: 'Confirmed', timestamp: '2024-05-21T18:00:00Z', description: 'Order has been confirmed.', user: 'System' },
         { status: 'New', timestamp: '2024-05-21T14:20:00Z', description: 'Order was placed.', user: 'Bob Williams' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    customerNote: '',
+    officeNote: 'Standard packing. No special instructions.',
   },
   { 
     id: 'ORD-2024-003', 
@@ -167,6 +173,8 @@ export const orders: Order[] = [
     logs: [
         { status: 'New', timestamp: '2024-05-22T08:00:00Z', description: 'Order was placed.', user: 'Charlie Brown' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    customerNote: 'Gift wrap this order, please. It is for a birthday.',
+    officeNote: '',
   },
   { 
     id: 'ORD-2024-004', 
@@ -184,6 +192,8 @@ export const orders: Order[] = [
         { status: 'Confirmed', timestamp: '2024-05-22T16:30:00Z', description: 'Order has been confirmed.', user: 'Jane Doe' },
         { status: 'New', timestamp: '2024-05-22T13:45:00Z', description: 'Order was placed.', user: 'Diana Prince' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    customerNote: '',
+    officeNote: '',
   },
   { 
     id: 'ORD-2024-005', 
@@ -199,6 +209,8 @@ export const orders: Order[] = [
         { status: 'Confirmed', timestamp: '2024-05-23T11:00:00Z', description: 'Order has been confirmed.', user: 'System' },
         { status: 'New', timestamp: '2024-05-23T10:10:00Z', description: 'Order was placed.', user: 'Ethan Hunt' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    customerNote: 'Is it possible to get faster delivery?',
+    officeNote: 'Follow up with customer about expedited shipping options.',
   },
 ];
 
@@ -263,5 +275,3 @@ export const ordersByStatusData = [
     { status: 'Processing', value: 1, fill: 'var(--color-processing)' },
     { status: 'Completed', value: 2, fill: 'var(--color-completed)' },
 ];
-
-    
