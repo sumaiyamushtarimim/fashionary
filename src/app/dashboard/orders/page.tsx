@@ -145,9 +145,9 @@ export default function OrdersPage() {
       const statusMatch = statusFilter === "all" || order.status === statusFilter;
       
       const orderDate = new Date(order.date);
-      const dateMatch = dateRange?.from && dateRange?.to 
+      const dateMatch = !dateRange?.from || (dateRange?.from && dateRange?.to 
         ? isWithinInterval(orderDate, { start: dateRange.from, end: dateRange.to })
-        : true;
+        : true);
 
       return statusMatch && dateMatch;
     });
@@ -156,10 +156,10 @@ export default function OrdersPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="col-span-2 sm:col-span-1 flex flex-col sm:flex-row gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex-1 flex items-center gap-2">
            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectTrigger className="w-full min-w-[150px] sm:w-[200px]">
                   <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -171,13 +171,14 @@ export default function OrdersPage() {
           </Select>
           <DateRangePicker date={dateRange} onDateChange={setDateRange} />
         </div>
-        <div className="col-span-2 sm:col-span-1 flex justify-end gap-2">
+        <div className="flex items-center gap-2">
           <Button size="sm" variant="outline">
             Export
           </Button>
-          <Button size="sm">
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Add Order
+          <Button size="sm" className="relative">
+            <PlusCircle className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Add Order</span>
+            <span className="sm:hidden absolute inset-0"></span>
           </Button>
         </div>
       </div>
