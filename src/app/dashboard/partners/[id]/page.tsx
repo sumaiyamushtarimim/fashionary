@@ -133,10 +133,10 @@ export default function PartnerDetailsPage() {
         </Button>
         <div className="flex-1">
           <h1 className="font-headline text-xl font-semibold sm:text-2xl">{partner.name}</h1>
-          <p className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
             {'type' in partner && <Badge variant="outline">{partner.type}</Badge>}
             {'address' in partner && <Badge variant="secondary">Supplier</Badge>}
-          </p>
+          </div>
         </div>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
