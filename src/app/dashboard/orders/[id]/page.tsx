@@ -15,6 +15,7 @@ import {
   XCircle,
   History,
   FileText,
+  Save,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import * as React from 'react';
@@ -51,7 +52,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { orders, OrderStatus, OrderLog } from '@/lib/placeholder-data';
+import { orders as placeholderOrders, OrderStatus, OrderLog } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
 import {
     Select,
@@ -81,7 +82,7 @@ const statusColors: Record<OrderStatus, string> = {
     'Partially Returned': 'bg-amber-500/20 text-amber-700',
 };
 
-const statusIcons: Record<OrderStatus, React.ElementType> = {
+const statusIcons: Record<string, React.ElementType> = {
     'New': Package,
     'Confirmed': CheckCircle,
     'Canceled': XCircle,
@@ -94,7 +95,9 @@ const statusIcons: Record<OrderStatus, React.ElementType> = {
     'Returned': History,
     'Partially Delivered': Truck,
     'Partially Returned': History,
+    'Notes updated': FileText, // For our new log type
 };
+
 
 const allStatuses: OrderStatus[] = [
     'New', 'Confirmed', 'Canceled', 'Hold', 'Packing', 'Packing Hold', 
@@ -110,6 +113,8 @@ function OrderHistory({ logs }: { logs: OrderLog[] }) {
         setIsClient(true);
     }, []);
 
+    const sortedLogs = React.useMemo(() => logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()), [logs]);
+
     return (
         <Card>
             <CardHeader>
@@ -120,11 +125,11 @@ function OrderHistory({ logs }: { logs: OrderLog[] }) {
                     <div className="absolute left-4 top-0 bottom-0 w-px bg-border -translate-x-1/2"></div>
                     {isClient ? (
                         <ul className="space-y-6">
-                            {logs.map((log, index) => {
-                                const Icon = statusIcons[log.status] || History;
+                            {sortedLogs.map((log, index) => {
+                                const Icon = statusIcons[log.description === 'Notes updated.' ? 'Notes updated' : log.status] || History;
                                 const isLast = index === 0;
                                 return (
-                                    <li key={log.timestamp} className="relative flex items-start gap-4">
+                                    <li key={`${log.timestamp}-${index}`} className="relative flex items-start gap-4">
                                         <div className={cn(
                                             "w-8 h-8 rounded-full flex items-center justify-center bg-background border",
                                             isLast ? "border-primary" : "border-border"
@@ -132,11 +137,11 @@ function OrderHistory({ logs }: { logs: OrderLog[] }) {
                                             <Icon className={cn("h-4 w-4", isLast ? "text-primary" : "text-muted-foreground")} />
                                         </div>
                                         <div className="flex-1 pt-1">
-                                            <p className={cn("font-medium", isLast ? "text-foreground" : "text-muted-foreground")}>{log.status}</p>
+                                            <p className={cn("font-medium", isLast ? "text-foreground" : "text-muted-foreground")}>{log.description === 'Notes updated.' ? 'Note' : log.status}</p>
                                             <p className="text-sm text-muted-foreground">{log.description}</p>
                                             <div className="text-xs text-muted-foreground mt-1">
                                                 <span>{format(new Date(log.timestamp), "MMM d, yyyy, h:mm a")}</span>
-                                                <span className="font-medium"> by {log.user}</span>
+                                                {log.user && <span className="font-medium"> by {log.user}</span>}
                                             </div>
                                         </div>
                                     </li>
@@ -166,10 +171,42 @@ function OrderHistory({ logs }: { logs: OrderLog[] }) {
 export default function OrderDetailsPage() {
   const params = useParams();
   const orderId = params.id;
+  
+  const [orders, setOrders] = React.useState(placeholderOrders);
   const order = orders.find((o) => o.id === orderId);
 
+  const [customerNote, setCustomerNote] = React.useState('');
+  const [officeNote, setOfficeNote] = React.useState('');
   const [sendToCourier, setSendToCourier] = React.useState(false);
-  const [officeNote, setOfficeNote] = React.useState(order?.officeNote || '');
+
+  React.useEffect(() => {
+    if (order) {
+        setCustomerNote(order.customerNote);
+        setOfficeNote(order.officeNote);
+    }
+  }, [order]);
+
+
+  const handleSaveNotes = () => {
+    if (!order) return;
+    // In a real app, you'd save this to a database.
+    // Here, we'll just update the state and add a log entry.
+    const newLog: OrderLog = {
+        status: order.status, // Keep current status
+        timestamp: new Date().toISOString(),
+        description: 'Notes updated.',
+        user: 'Admin' // Assuming the logged in user is an admin
+    };
+
+    setOrders(prevOrders => 
+        prevOrders.map(o => 
+            o.id === orderId 
+            ? { ...o, customerNote, officeNote, logs: [...o.logs, newLog] }
+            : o
+        )
+    );
+  };
+
 
   if (!order) {
     return (
@@ -194,14 +231,14 @@ export default function OrderDetailsPage() {
     if (!sendToCourier) return null;
     
     const parts = [];
-    if (order.customerNote) {
-        parts.push(`Customer Note: ${order.customerNote}`);
+    if (customerNote) {
+        parts.push(`Customer Note: ${customerNote}`);
     }
     if (officeNote) {
         parts.push(`Office Note: ${officeNote}`);
     }
     return parts.join('\n\n');
-  }, [sendToCourier, order.customerNote, officeNote]);
+  }, [sendToCourier, customerNote, officeNote]);
 
 
   return (
@@ -291,15 +328,14 @@ export default function OrderDetailsPage() {
                                         <p className="text-sm text-muted-foreground">Qty</p>
                                         <p className="font-medium">{product.quantity}</p>
                                     </div>
-                                    <div className="col-span-2 text-right">
+                                    <div className="col-span-1 text-right">
                                         <p className="text-sm text-muted-foreground">Price</p>
                                         <p className="font-medium">${product.price.toFixed(2)}</p>
                                     </div>
-                                </div>
-                                <Separator className="my-2" />
-                                <div className="flex justify-between items-center font-medium">
-                                    <span>Total</span>
-                                    <span>${(product.price * product.quantity).toFixed(2)}</span>
+                                     <div className="col-span-1 text-right">
+                                        <p className="text-sm text-muted-foreground">Total</p>
+                                        <p className="font-medium">${(product.price * product.quantity).toFixed(2)}</p>
+                                    </div>
                                 </div>
                             </div>
                         </TableCell>
@@ -352,7 +388,7 @@ export default function OrderDetailsPage() {
                 <CardContent className="grid gap-4">
                     <div className="space-y-2">
                         <p className="font-medium">Order Date</p>
-                        <p className="text-muted-foreground">{new Date(order.date).toLocaleDateString()}</p>
+                        <p className="text-muted-foreground">{format(new Date(order.date), "MMM d, yyyy")}</p>
                     </div>
                      <Separator />
                      <div className="space-y-2">
@@ -412,20 +448,16 @@ export default function OrderDetailsPage() {
                 <CardContent className="grid gap-6">
                     <div className="grid gap-3">
                         <Label htmlFor="customer-note">Customer Note</Label>
-                        <div className="relative">
-                            <p className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-md border min-h-[80px]">
-                                {order.customerNote || "No customer note provided."}
-                            </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Checkbox id="send-to-courier" checked={sendToCourier} onCheckedChange={(checked) => setSendToCourier(!!checked)} />
-                            <label
-                                htmlFor="send-to-courier"
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                                Send note to courier
-                            </label>
-                        </div>
+                        <Textarea id="customer-note" placeholder="No customer note provided." value={customerNote} onChange={(e) => setCustomerNote(e.target.value)} />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Checkbox id="send-to-courier" checked={sendToCourier} onCheckedChange={(checked) => setSendToCourier(!!checked)} />
+                        <label
+                            htmlFor="send-to-courier"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                            Send note to courier
+                        </label>
                     </div>
                      <div className="grid gap-3">
                         <Label htmlFor="office-note">Office Note</Label>
@@ -447,7 +479,10 @@ export default function OrderDetailsPage() {
                     )}
                 </CardContent>
                 <CardFooter>
-                    <Button className="ml-auto">Save Note</Button>
+                    <Button className="ml-auto" onClick={handleSaveNotes}>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Notes
+                    </Button>
                 </CardFooter>
             </Card>
           <OrderHistory logs={order.logs} />
