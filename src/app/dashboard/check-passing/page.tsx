@@ -30,6 +30,7 @@ import {
 } from "date-fns";
 import { cn } from "@/lib/utils";
 import Link from 'next/link';
+import { Separator } from '@/components/ui/separator';
 
 type CheckPayment = {
   date: string;
@@ -134,62 +135,113 @@ export default function CheckPassingPage() {
             <CardDescription>All scheduled check payments from today onwards.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Passing Date</TableHead>
-                <TableHead>PO Number</TableHead>
-                <TableHead>Vendor/Supplier</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isClient && upcomingChecks.length > 0 ? (
-                upcomingChecks.map((check, index) => {
-                  const checkDate = new Date(check.date);
-                  const isTodayCheck = isToday(checkDate);
-                  const isTomorrowCheck = isTomorrow(checkDate);
-                  return (
-                    <TableRow key={`${check.poId}-${check.type}-${index}`} className={cn(isTodayCheck && "bg-primary/10")}>
-                      <TableCell className="font-medium">
-                        <div className="flex flex-col">
-                            <span>{format(checkDate, "MMMM d, yyyy")}</span>
-                             {(isTodayCheck || isTomorrowCheck) && (
-                                <Badge variant={isTodayCheck ? "destructive" : "secondary"} className="w-fit mt-1">
-                                    {isTodayCheck ? "Today" : "Tomorrow"}
-                                </Badge>
-                             )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="link" asChild className="p-0 h-auto">
-                            <Link href={`/dashboard/purchases/${check.poId}`}>{check.poId}</Link>
-                        </Button>
-                      </TableCell>
-                      <TableCell>{check.vendor}</TableCell>
-                      <TableCell>
-                          <Badge variant="outline">{check.type}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-mono">${check.amount.toFixed(2)}</TableCell>
+            {/* Table for larger screens */}
+            <div className="hidden sm:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Passing Date</TableHead>
+                    <TableHead>PO Number</TableHead>
+                    <TableHead>Vendor/Supplier</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isClient && upcomingChecks.length > 0 ? (
+                    upcomingChecks.map((check, index) => {
+                      const checkDate = new Date(check.date);
+                      const isTodayCheck = isToday(checkDate);
+                      const isTomorrowCheck = isTomorrow(checkDate);
+                      return (
+                        <TableRow key={`${check.poId}-${check.type}-${index}`} className={cn(isTodayCheck && "bg-primary/10")}>
+                          <TableCell className="font-medium">
+                            <div className="flex flex-col">
+                                <span>{format(checkDate, "MMMM d, yyyy")}</span>
+                                 {(isTodayCheck || isTomorrowCheck) && (
+                                    <Badge variant={isTodayCheck ? "destructive" : "secondary"} className="w-fit mt-1">
+                                        {isTodayCheck ? "Today" : "Tomorrow"}
+                                    </Badge>
+                                 )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="link" asChild className="p-0 h-auto">
+                                <Link href={`/dashboard/purchases/${check.poId}`}>{check.poId}</Link>
+                            </Button>
+                          </TableCell>
+                          <TableCell>{check.vendor}</TableCell>
+                          <TableCell>
+                              <Badge variant="outline">{check.type}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-mono">${check.amount.toFixed(2)}</TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : isClient && upcomingChecks.length === 0 ? (
+                     <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center">
+                            No upcoming checks found.
+                        </TableCell>
                     </TableRow>
-                  );
-                })
-              ) : isClient && upcomingChecks.length === 0 ? (
-                 <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                  ) : (
+                    <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center">
+                           Loading checks...
+                        </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Card list for smaller screens */}
+            <div className="sm:hidden space-y-4">
+                 {isClient && upcomingChecks.length > 0 ? (
+                    upcomingChecks.map((check, index) => {
+                        const checkDate = new Date(check.date);
+                        const isTodayCheck = isToday(checkDate);
+                        const isTomorrowCheck = isTomorrow(checkDate);
+                        return (
+                            <Card key={`${check.poId}-${check.type}-${index}`} className={cn(isTodayCheck && "bg-primary/10")}>
+                                <CardContent className="p-4">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <p className="font-semibold">{check.vendor}</p>
+                                            <p className="text-sm">
+                                                PO: <Button variant="link" asChild className="p-0 h-auto text-sm">
+                                                        <Link href={`/dashboard/purchases/${check.poId}`}>{check.poId}</Link>
+                                                    </Button>
+                                            </p>
+                                        </div>
+                                        <p className="font-semibold font-mono text-right">${check.amount.toFixed(2)}</p>
+                                    </div>
+                                    <Separator className="my-3" />
+                                    <div className="flex justify-between items-center text-sm">
+                                        <div className="flex flex-col">
+                                            <span className="text-muted-foreground">{format(checkDate, "MMMM d, yyyy")}</span>
+                                             {(isTodayCheck || isTomorrowCheck) && (
+                                                <Badge variant={isTodayCheck ? "destructive" : "secondary"} className="w-fit mt-1">
+                                                    {isTodayCheck ? "Today" : "Tomorrow"}
+                                                </Badge>
+                                             )}
+                                        </div>
+                                        <Badge variant="outline">{check.type}</Badge>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )
+                    })
+                ) : isClient && upcomingChecks.length === 0 ? (
+                    <div className="h-24 text-center text-muted-foreground flex items-center justify-center">
                         No upcoming checks found.
-                    </TableCell>
-                </TableRow>
-              ) : (
-                <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
-                       Loading checks...
-                    </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                    </div>
+                ) : (
+                    <div className="h-24 text-center text-muted-foreground flex items-center justify-center">
+                        Loading checks...
+                    </div>
+                )}
+            </div>
         </CardContent>
       </Card>
     </div>
