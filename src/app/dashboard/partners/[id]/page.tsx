@@ -101,6 +101,7 @@ export default function PartnerDetailsPage() {
   }, [associatedPOs, partner]);
 
   const paymentHistory: PaymentWithPO[] = React.useMemo(() => {
+    if (!isClient) return [];
     const payments: PaymentWithPO[] = [];
     associatedPOs.forEach(po => {
         if (po.supplier === partner?.name && po.fabricPayment) {
@@ -114,7 +115,7 @@ export default function PartnerDetailsPage() {
         }
     });
     return payments.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [associatedPOs, partner]);
+  }, [associatedPOs, partner, isClient]);
 
 
   if (!partner) {
