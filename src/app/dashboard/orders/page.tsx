@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/table";
 import { orders, businesses, OrderStatus, OrderProduct } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 const statusColors: Record<OrderStatus, string> = {
     'New': 'bg-blue-500/20 text-blue-700',
@@ -140,6 +141,7 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [businessFilter, setBusinessFilter] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -147,6 +149,7 @@ export default function OrdersPage() {
   }, []);
 
   const filteredOrders = useMemo(() => {
+    const lowercasedSearchTerm = searchTerm.toLowerCase();
     return orders.filter((order) => {
       const statusMatch = statusFilter === "all" || order.status === statusFilter;
       const businessMatch = businessFilter === 'all' || order.businessId === businessFilter;
@@ -156,9 +159,16 @@ export default function OrdersPage() {
         ? isWithinInterval(orderDate, { start: dateRange.from, end: dateRange.to })
         : true);
 
-      return statusMatch && businessMatch && dateMatch;
+      const searchMatch = !searchTerm || (
+        order.id.toLowerCase().includes(lowercasedSearchTerm) ||
+        order.customerName.toLowerCase().includes(lowercasedSearchTerm) ||
+        order.customerPhone.toLowerCase().includes(lowercasedSearchTerm) ||
+        order.customerEmail.toLowerCase().includes(lowercasedSearchTerm)
+      );
+
+      return statusMatch && businessMatch && dateMatch && searchMatch;
     });
-  }, [statusFilter, businessFilter, dateRange]);
+  }, [statusFilter, businessFilter, dateRange, searchTerm]);
 
 
   const renderTable = () => (
@@ -343,10 +353,16 @@ export default function OrdersPage() {
         <CardHeader>
           <CardTitle className="font-headline">Orders</CardTitle>
           <CardDescription>
-            {statusFilter === "all" ? "Manage and track all customer orders." : `Showing orders with status: ${statusFilter}`}
-            {dateRange?.from && ` from ${format(dateRange.from, "LLL dd, y")}`}
-            {dateRange?.to && ` to ${format(dateRange.to, "LLL dd, y")}`}.
+            Manage and track all customer orders.
           </CardDescription>
+          <div className="pt-4">
+              <Input
+                placeholder="Search by Order ID, Customer..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm"
+              />
+            </div>
         </CardHeader>
         <CardContent>
            {isClient ? (
@@ -367,3 +383,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
