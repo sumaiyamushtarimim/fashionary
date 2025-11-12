@@ -223,6 +223,41 @@ export type Vendor = {
     rate: string;
 };
 
+export type ExpenseCategory = {
+    id: string;
+    name: string;
+};
+
+export type Expense = {
+    id: string;
+    date: string;
+    category: string;
+    amount: number;
+    notes: string;
+    isAdExpense: boolean;
+    business?: string;
+    platform?: OrderPlatform;
+};
+
+export const expenseCategories: ExpenseCategory[] = [
+    { id: 'exp-cat-1', name: 'Office Rent' },
+    { id: 'exp-cat-2', name: 'Utilities (Electricity, Water)' },
+    { id: 'exp-cat-3', name: 'Marketing & Advertising' },
+    { id: 'exp-cat-4', name: 'Salaries & Wages' },
+    { id: 'exp-cat-5', name: 'Office Supplies' },
+    { id: 'exp-cat-6', name: 'Transportation' },
+    { id: 'exp-cat-7', name: 'Miscellaneous' },
+];
+
+export const expenses: Expense[] = [
+    { id: 'EXP001', date: '2024-05-20', category: 'Marketing & Advertising', amount: 5000, notes: 'Facebook boost for Eid campaign', isAdExpense: true, business: 'Fashionary Main', platform: 'Facebook' },
+    { id: 'EXP002', date: '2024-05-18', category: 'Office Supplies', amount: 1500, notes: 'A4 paper, pens, and folders', isAdExpense: false },
+    { id: 'EXP003', date: '2024-05-15', category: 'Salaries & Wages', amount: 150000, notes: 'May 2024 Staff Salaries', isAdExpense: false },
+    { id: 'EXP004', date: '2024-05-10', category: 'Utilities (Electricity, Water)', amount: 8500, notes: 'Monthly electricity bill', isAdExpense: false },
+    { id: 'EXP005', date: '2024-05-05', category: 'Transportation', amount: 2000, notes: 'Delivery charges for May (first week)', isAdExpense: false },
+];
+
+
 export const categories: Category[] = [
     { id: 'cat-1', name: 'Three-Piece' },
     { id: 'cat-1-1', name: 'Cotton', parentId: 'cat-1' },
@@ -702,5 +737,6 @@ export const bdDistricts: string[] = [
     
 
     
+
 
 

@@ -16,6 +16,7 @@ import {
   Building,
   Handshake,
   Landmark,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +39,7 @@ const navItems = [
   { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
   { href: "/dashboard/customers", icon: Users, label: "Customers" },
   { href: "/dashboard/purchases", icon: Truck, label: "Purchases" },
+  { href: "/dashboard/expenses", icon: Wallet, label: "Expenses" },
   { href: "/dashboard/check-passing", icon: Landmark, label: "Check Passing"},
   { href: "/dashboard/partners", icon: Handshake, label: "Partners" },
   { href: "/dashboard/staff", icon: User, label: "Staff" },
@@ -53,6 +55,7 @@ function NavLinks() {
             href={href}
             className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                pathname.startsWith(href) && href !== "/dashboard" && "bg-muted text-primary",
                 pathname === href && "bg-muted text-primary"
             )}
             >
@@ -81,6 +84,7 @@ function MobileNavLinks() {
                 href={href}
                 className={cn(
                     "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
+                    pathname.startsWith(href) && href !== "/dashboard" && "bg-muted text-foreground",
                     pathname === href && "bg-muted text-foreground"
                 )}
                 >

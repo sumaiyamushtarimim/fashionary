@@ -1,12 +1,11 @@
 import Link from "next/link";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { User, Building, Settings, Handshake, Bell, CreditCard } from "lucide-react";
+import { User, Building, Settings, Handshake, Bell, CreditCard, FolderKanban } from "lucide-react";
 
 const settingsItems = [
     {
@@ -14,6 +13,12 @@ const settingsItems = [
         icon: User,
         title: "Profile & Staff",
         description: "Manage your personal profile and staff members."
+    },
+    {
+        href: "/dashboard/settings/categories",
+        icon: FolderKanban,
+        title: "Categories",
+        description: "Manage product and expense categories."
     },
     {
         href: "#",
