@@ -27,6 +27,7 @@ import {
   isTomorrow,
   isToday,
   startOfToday,
+  isWithinInterval,
 } from "date-fns";
 import { cn } from "@/lib/utils";
 import Link from 'next/link';
@@ -49,6 +50,8 @@ import {
 } from "@/components/ui/carousel"
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { DateRange } from 'react-day-picker';
 
 
 type CheckPayment = {
@@ -117,6 +120,10 @@ type OverviewData = {
 
 export default function CheckPassingPage() {
   const [isClient, setIsClient] = React.useState(false);
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: startOfToday(),
+    to: addDays(new Date(), 30),
+  });
   const isMobile = useIsMobile();
 
   React.useEffect(() => {
@@ -182,7 +189,15 @@ export default function CheckPassingPage() {
     };
   });
 
-  const upcomingChecks = allChecks.filter(check => new Date(check.date) >= startOfToday());
+  const upcomingChecks = React.useMemo(() => {
+    return allChecks.filter(check => {
+        const checkDate = new Date(check.date);
+        const dateMatch = dateRange?.from && dateRange?.to 
+            ? isWithinInterval(checkDate, { start: dateRange.from, end: dateRange.to })
+            : true;
+        return dateMatch;
+    });
+  }, [allChecks, dateRange]);
 
 
   return (
@@ -193,6 +208,9 @@ export default function CheckPassingPage() {
           <p className="text-muted-foreground">
             Overview and list of upcoming check payments.
           </p>
+        </div>
+        <div>
+            <DateRangePicker date={dateRange} onDateChange={setDateRange} />
         </div>
       </div>
 
@@ -220,7 +238,12 @@ export default function CheckPassingPage() {
       <Card>
         <CardHeader>
             <CardTitle>Upcoming Checks</CardTitle>
-            <CardDescription>All scheduled check payments from today onwards.</CardDescription>
+            <CardDescription>
+                {dateRange?.from && dateRange?.to 
+                    ? `Showing checks from ${format(dateRange.from, "LLL dd, y")} to ${format(dateRange.to, "LLL dd, y")}`
+                    : "All scheduled check payments from today onwards."
+                }
+            </CardDescription>
         </CardHeader>
         <CardContent>
             {/* Table for larger screens */}
@@ -294,7 +317,7 @@ export default function CheckPassingPage() {
                   ) : isClient && upcomingChecks.length === 0 ? (
                      <TableRow>
                         <TableCell colSpan={7} className="h-24 text-center">
-                            No upcoming checks found.
+                            No upcoming checks found for the selected date range.
                         </TableCell>
                     </TableRow>
                   ) : (

@@ -4,18 +4,14 @@
 import { MoreHorizontal, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { DateRange } from "react-day-picker";
-import { addDays, format, isWithinInterval } from "date-fns";
+import { format, isWithinInterval } from "date-fns";
 import React, { useState, useMemo } from "react";
-import { Calendar as CalendarIcon } from "lucide-react";
-
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -37,12 +33,7 @@ import {
 import { purchaseOrders } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 
 
 const statusColors = {
@@ -56,10 +47,7 @@ const statusColors = {
 
 export default function PurchasesPage() {
 
-    const [dateRange, setDateRange] = useState<DateRange | undefined>({
-        from: addDays(new Date(), -30),
-        to: new Date(),
-    });
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
     const filteredPurchaseOrders = useMemo(() => {
         return purchaseOrders.filter((po) => {
@@ -80,42 +68,7 @@ export default function PurchasesPage() {
             <p className="text-muted-foreground">Manage purchase orders and supplier payments.</p>
         </div>
         <div className="flex items-center gap-2">
-            <Popover>
-                <PopoverTrigger asChild>
-                <Button
-                    id="date"
-                    variant={"outline"}
-                    className={cn(
-                    "w-[260px] justify-start text-left font-normal",
-                    !dateRange && "text-muted-foreground"
-                    )}
-                >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateRange?.from ? (
-                    dateRange.to ? (
-                        <>
-                        {format(dateRange.from, "LLL dd, y")} -{" "}
-                        {format(dateRange.to, "LLL dd, y")}
-                        </>
-                    ) : (
-                        format(dateRange.from, "LLL dd, y")
-                    )
-                    ) : (
-                    <span>Pick a date</span>
-                    )}
-                </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                <Calendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={dateRange?.from}
-                    selected={dateRange}
-                    onSelect={setDateRange}
-                    numberOfMonths={2}
-                />
-                </PopoverContent>
-            </Popover>
+            <DateRangePicker date={dateRange} onDateChange={setDateRange} />
           <Button size="sm" asChild>
             <Link href="/dashboard/purchases/new">
                 <PlusCircle className="h-4 w-4 mr-2" />
@@ -125,7 +78,10 @@ export default function PurchasesPage() {
         </div>
       </div>
       <Card>
-        <CardContent className="pt-6">
+        <CardHeader>
+            <CardTitle>Purchase Orders</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
           {/* Table for larger screens */}
           <div className="hidden sm:block">
             <Table>
@@ -241,3 +197,5 @@ export default function PurchasesPage() {
     </div>
   );
 }
+
+    

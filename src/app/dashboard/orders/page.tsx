@@ -4,9 +4,9 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MoreHorizontal, PlusCircle, Calendar as CalendarIcon } from "lucide-react";
+import { MoreHorizontal, PlusCircle } from "lucide-react";
 import { DateRange } from "react-day-picker";
-import { addDays, format, isWithinInterval } from "date-fns";
+import { format, isWithinInterval } from "date-fns";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,12 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import {
   Table,
   TableBody,
@@ -143,10 +138,7 @@ function OrderImages({ products }: { products: OrderProduct[] }) {
 
 export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState("all");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -30),
-    to: new Date(),
-  });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
@@ -177,42 +169,7 @@ export default function OrdersPage() {
                   ))}
               </SelectContent>
           </Select>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                id="date"
-                variant={"outline"}
-                className={cn(
-                  "w-full sm:w-[300px] justify-start text-left font-normal",
-                  !dateRange && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateRange?.from ? (
-                  dateRange.to ? (
-                    <>
-                      {format(dateRange.from, "LLL dd, y")} -{" "}
-                      {format(dateRange.to, "LLL dd, y")}
-                    </>
-                  ) : (
-                    format(dateRange.from, "LLL dd, y")
-                  )
-                ) : (
-                  <span>Pick a date</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={dateRange?.from}
-                selected={dateRange}
-                onSelect={setDateRange}
-                numberOfMonths={2}
-              />
-            </PopoverContent>
-          </Popover>
+          <DateRangePicker date={dateRange} onDateChange={setDateRange} />
         </div>
         <div className="flex flex-row-reverse sm:flex-row gap-2">
           <Button size="sm">
@@ -230,6 +187,8 @@ export default function OrdersPage() {
           <CardTitle className="font-headline">Orders</CardTitle>
           <CardDescription>
             {statusFilter === "all" ? "Manage and track all customer orders." : `Showing orders with status: ${statusFilter}`}
+            {dateRange?.from && ` from ${format(dateRange.from, "LLL dd, y")}`}
+            {dateRange?.to && ` to ${format(dateRange.to, "LLL dd, y")}`}.
           </CardDescription>
         </CardHeader>
         <CardContent>
