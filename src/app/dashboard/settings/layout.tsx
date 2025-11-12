@@ -72,14 +72,6 @@ interface SettingsLayoutProps {
   children: React.ReactNode
 }
 
-function buttonVariants({ variant }: { variant: "ghost" }): string {
-    if (variant === "ghost") {
-        return "hover:bg-accent hover:text-accent-foreground";
-    }
-    return "";
-}
-
-
 export default function SettingsLayout({ children }: SettingsLayoutProps) {
   const pathname = usePathname()
 
