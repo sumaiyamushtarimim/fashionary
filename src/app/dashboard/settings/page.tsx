@@ -40,22 +40,22 @@ const settingsItems = [
         description: "Connect your other services to Fashionary."
     },
     {
-        href: "#",
-        icon: Bell,
-        title: "Notifications",
-        description: "Configure how you receive notifications."
-    },
-    {
-        href: "#",
+        href: "/dashboard/settings/billing",
         icon: CreditCard,
         title: "Billing",
         description: "Manage your subscription and payment methods."
     },
     {
-        href: "#",
+        href: "/dashboard/settings/general",
         icon: Settings,
         title: "General",
         description: "Manage general application settings."
+    },
+    {
+        href: "#",
+        icon: Bell,
+        title: "Notifications",
+        description: "Configure how you receive notifications."
     }
 ]
 
