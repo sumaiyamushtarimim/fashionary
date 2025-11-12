@@ -52,6 +52,8 @@ export type Order = {
   logs: OrderLog[];
   customerNote: string;
   officeNote: string;
+  createdBy?: string;
+  confirmedBy?: string;
 };
 
 export type Customer = {
@@ -116,6 +118,25 @@ export type StaffMember = {
     email: string;
     role: 'Admin' | 'Manager' | 'Sales' | 'Warehouse';
     lastLogin: string;
+    paymentType: 'Salary' | 'Commission' | 'Both';
+    salaryDetails?: {
+        amount: number;
+        frequency: 'Daily' | 'Weekly' | 'Monthly' | 'Yearly';
+    };
+    commissionDetails?: {
+        onOrderCreate: number; // Amount per order created
+        onOrderConfirm: number; // Amount per order confirmed
+    };
+    performance: {
+        ordersCreated: number;
+        ordersConfirmed: number;
+        statusBreakdown: Record<OrderStatus, number>;
+    };
+    financials: {
+        totalEarned: number;
+        totalPaid: number;
+        dueAmount: number;
+    };
 };
 
 export type Supplier = {
@@ -167,6 +188,8 @@ export const orders: Order[] = [
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
     customerNote: 'Please deliver after 5 PM. Ring the bell twice.',
     officeNote: 'Customer called to confirm the delivery time. Seems important.',
+    createdBy: 'Emily White',
+    confirmedBy: 'Jane Doe'
   },
   { 
     id: 'ORD-2024-002', 
@@ -186,6 +209,8 @@ export const orders: Order[] = [
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
     customerNote: '',
     officeNote: 'Standard packing. No special instructions.',
+    createdBy: 'Emily White',
+    confirmedBy: 'Emily White'
   },
   { 
     id: 'ORD-2024-003', 
@@ -204,6 +229,7 @@ export const orders: Order[] = [
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
     customerNote: 'Gift wrap this order, please. It is for a birthday.',
     officeNote: '',
+    createdBy: 'Emily White'
   },
   { 
     id: 'ORD-2024-004', 
@@ -224,6 +250,8 @@ export const orders: Order[] = [
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
     customerNote: '',
     officeNote: '',
+    createdBy: 'Emily White',
+    confirmedBy: 'Jane Doe'
   },
   { 
     id: 'ORD-2024-005', 
@@ -242,6 +270,8 @@ export const orders: Order[] = [
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
     customerNote: 'Is it possible to get faster delivery?',
     officeNote: 'Follow up with customer about expedited shipping options.',
+    createdBy: 'Emily White',
+    confirmedBy: 'Jane Doe'
   },
 ];
 
@@ -352,11 +382,52 @@ export const purchaseOrders: PurchaseOrder[] = [
 ];
 
 export const staff: StaffMember[] = [
-    { id: 'STAFF001', name: 'Jane Doe', email: 'jane.doe@fashionary.com', role: 'Admin', lastLogin: '2024-05-23T10:00:00Z' },
-    { id: 'STAFF002', name: 'John Smith', email: 'john.smith@fashionary.com', role: 'Manager', lastLogin: '2024-05-23T09:30:00Z' },
-    { id: 'STAFF003', name: 'Emily White', email: 'emily.white@fashionary.com', role: 'Sales', lastLogin: '2024-05-22T15:45:00Z' },
-    { id: 'STAFF004', name: 'Michael Brown', email: 'michael.brown@fashionary.com', role: 'Warehouse', lastLogin: '2024-05-23T08:15:00Z' },
+    { 
+        id: 'STAFF001', 
+        name: 'Jane Doe', 
+        email: 'jane.doe@fashionary.com', 
+        role: 'Admin', 
+        lastLogin: '2024-05-23T10:00:00Z',
+        paymentType: 'Salary',
+        salaryDetails: { amount: 50000, frequency: 'Monthly' },
+        performance: { ordersCreated: 0, ordersConfirmed: 3, statusBreakdown: { 'New': 0, 'Confirmed': 3, 'Canceled': 0, 'Hold': 0, 'Packing': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 2, 'Delivered': 1, 'Returned': 0, 'Partially Delivered': 0, 'Partially Returned': 0 } },
+        financials: { totalEarned: 50000, totalPaid: 50000, dueAmount: 0 }
+    },
+    { 
+        id: 'STAFF002', 
+        name: 'John Smith', 
+        email: 'john.smith@fashionary.com', 
+        role: 'Manager', 
+        lastLogin: '2024-05-23T09:30:00Z',
+        paymentType: 'Salary',
+        salaryDetails: { amount: 60000, frequency: 'Monthly' },
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Canceled': 0, 'Hold': 0, 'Packing': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Partially Delivered': 0, 'Partially Returned': 0 } },
+        financials: { totalEarned: 60000, totalPaid: 55000, dueAmount: 5000 }
+    },
+    { 
+        id: 'STAFF003', 
+        name: 'Emily White', 
+        email: 'emily.white@fashionary.com', 
+        role: 'Sales', 
+        lastLogin: '2024-05-22T15:45:00Z',
+        paymentType: 'Commission',
+        commissionDetails: { onOrderCreate: 50, onOrderConfirm: 100 },
+        performance: { ordersCreated: 5, ordersConfirmed: 1, statusBreakdown: { 'New': 1, 'Confirmed': 1, 'Canceled': 0, 'Hold': 0, 'Packing': 1, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 1, 'Delivered': 1, 'Returned': 0, 'Partially Delivered': 0, 'Partially Returned': 0 } },
+        financials: { totalEarned: 350, totalPaid: 200, dueAmount: 150 }
+    },
+    { 
+        id: 'STAFF004', 
+        name: 'Michael Brown', 
+        email: 'michael.brown@fashionary.com', 
+        role: 'Warehouse', 
+        lastLogin: '2024-05-23T08:15:00Z',
+        paymentType: 'Salary',
+        salaryDetails: { amount: 35000, frequency: 'Monthly' },
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Canceled': 0, 'Hold': 0, 'Packing': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Partially Delivered': 0, 'Partially Returned': 0 } },
+        financials: { totalEarned: 35000, totalPaid: 35000, dueAmount: 0 }
+    },
 ];
+
 
 export const suppliers: Supplier[] = [
     { id: 'SUP001', name: 'Global Textiles Inc.', contactPerson: 'Sarah Chen', email: 'sarah.chen@globaltextiles.com', phone: '+8801711223344', address: '123 Fabric Row, Textile City, 12345' },
