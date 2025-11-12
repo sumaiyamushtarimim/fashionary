@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/table";
 import { purchaseOrders } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
 
 const statusColors = {
     'Received': 'bg-green-500/20 text-green-700',
@@ -56,60 +58,116 @@ export default function PurchasesPage() {
       </div>
       <Card>
         <CardContent className="pt-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>PO Number</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead className="hidden sm:table-cell">Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden text-right sm:table-cell">Total</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {purchaseOrders.map((po) => (
-                <TableRow key={po.id}>
-                  <TableCell className="font-medium">
-                    <Link href={`/dashboard/purchases/${po.id}`} className="hover:underline">
-                      {po.id}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{po.supplier}</TableCell>
-                  <TableCell className="hidden sm:table-cell">{po.date}</TableCell>
-                  <TableCell>
-                    <Badge variant={'outline'} className={cn(statusColors[po.status] || 'bg-gray-500/20 text-gray-700')}>
-                        {po.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden text-right sm:table-cell">${po.total.toFixed(2)}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem asChild>
-                           <Link href={`/dashboard/purchases/${po.id}`}>View Details</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>Mark as Received</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          {/* Table for larger screens */}
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>PO Number</TableHead>
+                  <TableHead>Supplier</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {purchaseOrders.map((po) => (
+                  <TableRow key={po.id}>
+                    <TableCell className="font-medium">
+                      <Link href={`/dashboard/purchases/${po.id}`} className="hover:underline">
+                        {po.id}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{po.supplier}</TableCell>
+                    <TableCell>{po.date}</TableCell>
+                    <TableCell>
+                      <Badge variant={'outline'} className={cn(statusColors[po.status] || 'bg-gray-500/20 text-gray-700')}>
+                          {po.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">${po.total.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            aria-haspopup="true"
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem asChild>
+                             <Link href={`/dashboard/purchases/${po.id}`}>View Details</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>Mark as Received</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Card list for smaller screens */}
+          <div className="sm:hidden space-y-4">
+            {purchaseOrders.map((po) => (
+                <Card key={po.id} className="overflow-hidden">
+                    <CardContent className="p-4 space-y-3">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <Link href={`/dashboard/purchases/${po.id}`} className="font-semibold hover:underline">
+                                  {po.id}
+                                </Link>
+                                <p className="text-sm text-muted-foreground">{po.supplier}</p>
+                            </div>
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                <Button
+                                    aria-haspopup="true"
+                                    size="icon"
+                                    variant="ghost"
+                                >
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Toggle menu</span>
+                                </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/dashboard/purchases/${po.id}`}>View Details</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>Mark as Received</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                        
+                        <Separator />
+                        
+                        <div className="flex justify-between items-end">
+                            <div>
+                                <p className="text-xs text-muted-foreground mb-1">{po.date}</p>
+                                <Badge variant={'outline'} className={cn('text-xs', statusColors[po.status] || 'bg-gray-500/20 text-gray-700')}>
+                                    {po.status}
+                                </Badge>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-sm text-muted-foreground">Total</p>
+                                <p className="font-semibold font-mono">${po.total.toFixed(2)}</p>
+                            </div>
+                        </div>
+
+                    </CardContent>
+                </Card>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>
