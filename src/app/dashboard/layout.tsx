@@ -18,6 +18,7 @@ import {
   Handshake,
   Landmark,
   Wallet,
+  BarChartHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,6 +44,7 @@ const navItems = [
   { href: "/dashboard/expenses", icon: Wallet, label: "Expenses" },
   { href: "/dashboard/check-passing", icon: Landmark, label: "Check Passing"},
   { href: "/dashboard/partners", icon: Handshake, label: "Partners" },
+  { href: "/dashboard/analytics", icon: BarChartHorizontal, label: "Analytics" },
   { href: "/dashboard/staff", icon: User, label: "Staff" },
 ];
 
