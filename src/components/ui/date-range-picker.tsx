@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { Calendar as CalendarIcon } from "lucide-react"
-import { addDays, format, startOfMonth, startOfToday, subDays } from "date-fns"
+import { addDays, format, startOfMonth, startOfToday, subDays, startOfYear, endOfYear, subYears } from "date-fns"
 import { DateRange } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
@@ -14,13 +14,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
 
 interface DateRangePickerProps {
     date: DateRange | undefined;
@@ -50,13 +43,9 @@ export function DateRangePicker({
         case 'last30':
             onDateChange({ from: subDays(now, 29), to: now });
             break;
-        case 'thisMonth':
-            onDateChange({ from: startOfMonth(now), to: now });
-            break;
-        case 'lastMonth':
-            const lastMonthStart = startOfMonth(subDays(startOfMonth(now), 1));
-            const lastMonthEnd = subDays(startOfMonth(now), 1);
-            onDateChange({ from: lastMonthStart, to: lastMonthEnd });
+        case 'lastYear':
+            const lastYear = subYears(now, 1);
+            onDateChange({ from: startOfYear(lastYear), to: endOfYear(lastYear) });
             break;
         default:
             onDateChange(undefined);
@@ -97,8 +86,7 @@ export function DateRangePicker({
               <Button variant="ghost" className="justify-start" onClick={() => handlePresetChange('yesterday')}>Yesterday</Button>
               <Button variant="ghost" className="justify-start" onClick={() => handlePresetChange('last7')}>Last 7 days</Button>
               <Button variant="ghost" className="justify-start" onClick={() => handlePresetChange('last30')}>Last 30 days</Button>
-              <Button variant="ghost" className="justify-start" onClick={() => handlePresetChange('thisMonth')}>This Month</Button>
-              <Button variant="ghost" className="justify-start" onClick={() => handlePresetChange('lastMonth')}>Last Month</Button>
+              <Button variant="ghost" className="justify-start" onClick={() => handlePresetChange('lastYear')}>Last Year</Button>
           </div>
           <Calendar
             initialFocus
@@ -113,5 +101,3 @@ export function DateRangePicker({
     </div>
   )
 }
-
-    
