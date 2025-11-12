@@ -122,9 +122,9 @@ export default function StaffDetailsPage() {
                 </Button>
                 <div className="flex-1">
                     <h1 className="font-headline text-xl font-semibold sm:text-2xl">{staffMember.name}</h1>
-                    <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                    <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
                         <Badge variant="outline">{staffMember.role}</Badge>
-                    </p>
+                    </div>
                 </div>
             </div>
 
@@ -275,4 +275,3 @@ export default function StaffDetailsPage() {
         </div>
     );
 }
-
