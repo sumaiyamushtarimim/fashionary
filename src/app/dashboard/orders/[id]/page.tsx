@@ -16,6 +16,8 @@ import {
   History,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import * as React from 'react';
+
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -48,7 +50,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { orders, OrderStatus } from '@/lib/placeholder-data';
+import { orders, OrderStatus, OrderLog } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
 import {
     Select,
@@ -57,6 +59,7 @@ import {
     SelectTrigger,
     SelectValue,
   } from "@/components/ui/select";
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const statusColors: Record<OrderStatus, string> = {
@@ -94,6 +97,66 @@ const allStatuses: OrderStatus[] = [
     'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 
     'Partially Delivered', 'Partially Returned'
 ];
+
+
+function OrderHistory({ logs }: { logs: OrderLog[] }) {
+    const [isClient, setIsClient] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Order History</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="relative">
+                    <div className="absolute left-4 top-0 bottom-0 w-px bg-border -translate-x-1/2"></div>
+                    {isClient ? (
+                        <ul className="space-y-6">
+                            {logs.map((log, index) => {
+                                const Icon = statusIcons[log.status] || History;
+                                const isLast = index === 0;
+                                return (
+                                    <li key={log.timestamp} className="relative flex items-start gap-4">
+                                        <div className={cn(
+                                            "w-8 h-8 rounded-full flex items-center justify-center bg-background border",
+                                            isLast ? "border-primary" : "border-border"
+                                        )}>
+                                            <Icon className={cn("h-4 w-4", isLast ? "text-primary" : "text-muted-foreground")} />
+                                        </div>
+                                        <div className="flex-1 pt-1">
+                                            <p className={cn("font-medium", isLast ? "text-foreground" : "text-muted-foreground")}>{log.status}</p>
+                                            <p className="text-sm text-muted-foreground">{log.description}</p>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                {format(new Date(log.timestamp), "MMM d, yyyy, h:mm a")}
+                                            </p>
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    ) : (
+                        <div className="space-y-6">
+                            {logs.map((log) => (
+                                <div key={log.timestamp} className="flex items-start gap-4">
+                                    <Skeleton className="w-8 h-8 rounded-full" />
+                                    <div className="flex-1 space-y-2">
+                                        <Skeleton className="h-4 w-1/3" />
+                                        <Skeleton className="h-4 w-2/3" />
+                                        <Skeleton className="h-3 w-1/2" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
 
 export default function OrderDetailsPage() {
   const params = useParams();
@@ -320,43 +383,9 @@ export default function OrderDetailsPage() {
               </div>
             </CardContent>
           </Card>
-           <Card>
-            <CardHeader>
-                <CardTitle>Order History</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="relative">
-                    <div className="absolute left-4 top-0 bottom-0 w-px bg-border -translate-x-1/2"></div>
-                    <ul className="space-y-6">
-                        {order.logs.map((log, index) => {
-                            const Icon = statusIcons[log.status] || History;
-                            const isLast = index === 0;
-                            return (
-                                <li key={log.timestamp} className="relative flex items-start gap-4">
-                                    <div className={cn(
-                                        "w-8 h-8 rounded-full flex items-center justify-center bg-background border",
-                                        isLast ? "border-primary" : "border-border"
-                                    )}>
-                                        <Icon className={cn("h-4 w-4", isLast ? "text-primary" : "text-muted-foreground")} />
-                                    </div>
-                                    <div className="flex-1 pt-1">
-                                        <p className={cn("font-medium", isLast ? "text-foreground" : "text-muted-foreground")}>{log.status}</p>
-                                        <p className="text-sm text-muted-foreground">{log.description}</p>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            {format(new Date(log.timestamp), "MMM d, yyyy, h:mm a")}
-                                        </p>
-                                    </div>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </div>
-            </CardContent>
-          </Card>
+          <OrderHistory logs={order.logs} />
         </div>
       </div>
     </div>
   );
 }
-
-    
