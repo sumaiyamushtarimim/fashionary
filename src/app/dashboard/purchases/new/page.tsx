@@ -169,11 +169,6 @@ export default function NewPurchaseOrderPage() {
         if (item.id === id) {
             let updatedItem = { ...item, [field]: value };
 
-            if (field === 'productId') {
-                const product = products.find(p => p.id === value);
-                updatedItem.unitCost = product?.price || 0;
-            }
-
             const lineTotal = (Number(updatedItem.quantity) || 0) * (Number(updatedItem.unitCost) || 0);
             return { ...updatedItem, lineTotal };
         }
@@ -297,7 +292,7 @@ export default function NewPurchaseOrderPage() {
                                                 <TableCell>
                                                     <Input type="number" placeholder="Cost" className="w-24" value={item.selowarCost || ''} onChange={(e) => handleItemChange(item.id, 'selowarCost', parseFloat(e.target.value) || 0)}/>
                                                 </TableCell>
-                                                <TableCell className="font-medium text-right">৳{item.lineTotal.toFixed(2)}</TableCell>
+                                                <TableCell className="font-medium text-right font-mono">৳{item.lineTotal.toFixed(2)}</TableCell>
                                                 <TableCell>
                                                     {orderItems.length > 1 && (
                                                         <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item.id)}>
@@ -355,21 +350,21 @@ export default function NewPurchaseOrderPage() {
 
                                     <div>Orna</div>
                                     <div className="text-right">{fabricBillSummary.totalOrnaYards.toFixed(2)} yds</div>
-                                    <div className="text-right">৳{fabricBillSummary.totalOrnaCost.toFixed(2)}</div>
+                                    <div className="text-right font-mono">৳{fabricBillSummary.totalOrnaCost.toFixed(2)}</div>
 
                                     <div>Jama</div>
                                     <div className="text-right">{fabricBillSummary.totalJamaYards.toFixed(2)} yds</div>
-                                    <div className="text-right">৳{fabricBillSummary.totalJamaCost.toFixed(2)}</div>
+                                    <div className="text-right font-mono">৳{fabricBillSummary.totalJamaCost.toFixed(2)}</div>
                                     
                                     <div>Selowar</div>
                                     <div className="text-right">{fabricBillSummary.totalSelowarYards.toFixed(2)} yds</div>
-                                    <div className="text-right">৳{fabricBillSummary.totalSelowarCost.toFixed(2)}</div>
+                                    <div className="text-right font-mono">৳{fabricBillSummary.totalSelowarCost.toFixed(2)}</div>
 
                                     <div className="col-span-3"><Separator className="my-1"/></div>
                                     
                                     <div className="font-bold">Grand Total</div>
                                     <div className="font-bold text-right">{fabricBillSummary.grandTotalYards.toFixed(2)} yds</div>
-                                    <div className="font-bold text-right">৳{fabricBillSummary.grandTotalCost.toFixed(2)}</div>
+                                    <div className="font-bold text-right font-mono">৳{fabricBillSummary.grandTotalCost.toFixed(2)}</div>
                                 </div>
                             </div>
                             <Separator />
@@ -394,15 +389,15 @@ export default function NewPurchaseOrderPage() {
                             <div className="space-y-1 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Total Bill:</span>
-                                    <span className="font-medium">৳{fabricBillSummary.grandTotalCost.toFixed(2)}</span>
+                                    <span className="font-medium font-mono">৳{fabricBillSummary.grandTotalCost.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Paid:</span>
-                                    <span className="font-medium">৳{((Number(fabricPayment.cash) || 0) + (Number(fabricPayment.check) || 0)).toFixed(2)}</span>
+                                    <span className="font-medium font-mono">৳{((Number(fabricPayment.cash) || 0) + (Number(fabricPayment.check) || 0)).toFixed(2)}</span>
                                 </div>
                                  <div className="flex justify-between font-semibold">
                                     <span className={fabricDue > 0 ? "text-destructive" : ""}>Due Amount:</span>
-                                    <span className={fabricDue > 0 ? "text-destructive" : ""}>৳{fabricDue.toFixed(2)}</span>
+                                    <span className={fabricDue > 0 ? "text-destructive font-mono" : "font-mono"}>৳{fabricDue.toFixed(2)}</span>
                                 </div>
                             </div>
                         </CardContent>
@@ -525,7 +520,7 @@ export default function NewPurchaseOrderPage() {
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Paid:</span>
-                                    <span className="font-medium">৳{((Number(generalPayment.cash) || 0) + (Number(generalPayment.check) || 0)).toFixed(2)}</span>
+                                    <span className="font-medium font-mono">৳{((Number(generalPayment.cash) || 0) + (Number(generalPayment.check) || 0)).toFixed(2)}</span>
                                 </div>
                                  <div className="flex justify-between font-semibold">
                                     <span className={generalDue > 0 ? "text-destructive" : ""}>Due Amount:</span>
