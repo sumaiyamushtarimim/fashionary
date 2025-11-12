@@ -62,17 +62,18 @@ export default function PurchasesPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-      <div className="flex items-center">
-        <div className="flex-1">
+      <div className="flex items-center justify-between">
+        <div className="hidden sm:block">
             <h1 className="font-headline text-2xl font-bold">Purchases</h1>
-            <p className="text-muted-foreground hidden sm:block">Manage purchase orders and supplier payments.</p>
+            <p className="text-muted-foreground">Manage purchase orders and supplier payments.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center justify-between sm:w-auto sm:justify-start sm:gap-2">
             <DateRangePicker date={dateRange} onDateChange={setDateRange} />
           <Button size="sm" asChild>
             <Link href="/dashboard/purchases/new">
-                <PlusCircle className="h-4 w-4 mr-2" />
-                New Purchase Order
+                <PlusCircle className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">New Purchase Order</span>
+                <span className="sr-only sm:hidden">New Purchase Order</span>
             </Link>
           </Button>
         </div>
