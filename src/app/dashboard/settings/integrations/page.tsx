@@ -1,3 +1,4 @@
+
 'use client';
 
 import { MoreHorizontal, PlusCircle, Store } from 'lucide-react';
@@ -30,9 +31,10 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { wooCommerceIntegrations, WooCommerceIntegration } from '@/lib/placeholder-data';
+import { wooCommerceIntegrations, WooCommerceIntegration, businesses } from '@/lib/placeholder-data';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function WooCommerceIntegrationsPage() {
     const [integrations, setIntegrations] = React.useState(wooCommerceIntegrations);
@@ -70,6 +72,19 @@ export default function WooCommerceIntegrationsPage() {
                             </DialogHeader>
                             <div className="grid gap-4 py-4">
                                 <div className="space-y-2">
+                                    <Label htmlFor="business">Business</Label>
+                                    <Select>
+                                        <SelectTrigger id="business">
+                                            <SelectValue placeholder="Select a business" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {businesses.map(b => (
+                                                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
                                     <Label htmlFor="store-name">Store Name</Label>
                                     <Input id="store-name" placeholder="My Awesome Store" />
                                 </div>
@@ -98,6 +113,7 @@ export default function WooCommerceIntegrationsPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Store Name</TableHead>
+                                <TableHead>Business</TableHead>
                                 <TableHead>URL</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>
@@ -109,6 +125,7 @@ export default function WooCommerceIntegrationsPage() {
                             {integrations.map((integration) => (
                                 <TableRow key={integration.id}>
                                     <TableCell className="font-medium">{integration.storeName}</TableCell>
+                                    <TableCell>{integration.businessName}</TableCell>
                                     <TableCell className="text-muted-foreground">{integration.storeUrl}</TableCell>
                                     <TableCell>
                                         <Badge variant={integration.status === 'Active' ? 'default' : 'secondary'}>

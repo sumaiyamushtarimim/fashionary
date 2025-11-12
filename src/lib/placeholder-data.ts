@@ -245,7 +245,15 @@ export type WooCommerceIntegration = {
     consumerKey: string;
     consumerSecret: string;
     status: 'Active' | 'Inactive';
+    businessId: string;
+    businessName: string;
 };
+
+export const businesses: Business[] = [
+    { id: 'BIZ001', name: 'Fashionary Main' },
+    { id: 'BIZ002', name: 'Urban Threads' },
+    { id: 'BIZ003', name: 'Kids Fashion Co.' },
+];
 
 export const wooCommerceIntegrations: WooCommerceIntegration[] = [
     {
@@ -255,6 +263,8 @@ export const wooCommerceIntegrations: WooCommerceIntegration[] = [
         consumerKey: 'ck_xxxxxxxxxxxxxx_1234',
         consumerSecret: 'cs_xxxxxxxxxxxxxx_5678',
         status: 'Active',
+        businessId: 'BIZ001',
+        businessName: 'Fashionary Main',
     },
     {
         id: 'woo-2',
@@ -263,6 +273,8 @@ export const wooCommerceIntegrations: WooCommerceIntegration[] = [
         consumerKey: 'ck_xxxxxxxxxxxxxx_abcd',
         consumerSecret: 'cs_xxxxxxxxxxxxxx_efgh',
         status: 'Inactive',
+        businessId: 'BIZ002',
+        businessName: 'Urban Threads',
     }
 ];
 
@@ -368,12 +380,6 @@ export const products: Product[] = [
         { id: 'VAR012', name: 'Large', sku: 'LTP-L' },
     ]
   },
-];
-
-export const businesses: Business[] = [
-    { id: 'BIZ001', name: 'Fashionary Main' },
-    { id: 'BIZ002', name: 'Urban Threads' },
-    { id: 'BIZ003', name: 'Kids Fashion Co.' },
 ];
 
 export const orders: Order[] = [
@@ -764,6 +770,7 @@ export const bdDistricts: string[] = [
     
 
     
+
 
 
 

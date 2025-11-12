@@ -22,7 +22,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const CategoryRow = ({ category, level = 0 }: { category: Category; level?: number }) => {
   const subCategories = categories.filter((c) => c.parentId === category.id);
@@ -60,6 +71,8 @@ const CategoryRow = ({ category, level = 0 }: { category: Category; level?: numb
 
 export default function CategoriesSettingsPage() {
   const mainCategories = categories.filter((c) => !c.parentId);
+  const [isProductDialogOpen, setIsProductDialogOpen] = React.useState(false);
+  const [isExpenseDialogOpen, setIsExpenseDialogOpen] = React.useState(false);
 
   return (
     <div className="space-y-6">
@@ -84,10 +97,43 @@ export default function CategoriesSettingsPage() {
                       Manage your product category hierarchy.
                     </CardDescription>
                   </div>
-                  <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Product Category
-                  </Button>
+                  <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Product Category
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Add Product Category</DialogTitle>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="product-category-name">Category Name</Label>
+                          <Input id="product-category-name" placeholder="e.g., T-Shirts" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="parent-category">Parent Category</Label>
+                          <Select>
+                            <SelectTrigger id="parent-category">
+                              <SelectValue placeholder="Select a parent category (optional)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">No Parent</SelectItem>
+                              {categories.map(cat => (
+                                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsProductDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={() => setIsProductDialogOpen(false)}>Save Category</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -117,10 +163,29 @@ export default function CategoriesSettingsPage() {
                       Manage categories for tracking business expenses.
                     </CardDescription>
                   </div>
-                  <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Expense Category
-                  </Button>
+                  <Dialog open={isExpenseDialogOpen} onOpenChange={setIsExpenseDialogOpen}>
+                    <DialogTrigger asChild>
+                       <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Expense Category
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Add Expense Category</DialogTitle>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="expense-category-name">Category Name</Label>
+                          <Input id="expense-category-name" placeholder="e.g., Office Supplies" />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                         <Button variant="outline" onClick={() => setIsExpenseDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={() => setIsExpenseDialogOpen(false)}>Save Category</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </CardHeader>
                 <CardContent>
                   <Table>
