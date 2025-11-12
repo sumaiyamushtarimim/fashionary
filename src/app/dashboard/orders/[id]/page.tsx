@@ -15,6 +15,7 @@ import {
   XCircle,
   History,
 } from 'lucide-react';
+import { format } from 'date-fns';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -56,7 +57,6 @@ import {
     SelectTrigger,
     SelectValue,
   } from "@/components/ui/select";
-import { format } from 'date-fns';
 
 
 const statusColors: Record<OrderStatus, string> = {
@@ -358,3 +358,5 @@ export default function OrderDetailsPage() {
     </div>
   );
 }
+
+    
