@@ -39,6 +39,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from 'lucide-react';
+import { Bar, BarChart, CartesianGrid, XAxis, Tooltip, YAxis } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
+import { useIsMobile } from '@/hooks/use-mobile';
+
 
 type CheckPayment = {
   id: string;
@@ -58,8 +62,50 @@ const statusColors: Record<CheckStatus, string> = {
 };
 
 
+const chartConfig = {
+  total: {
+    label: "Total",
+    color: "hsl(var(--chart-1))",
+  },
+} satisfies ChartConfig;
+
+
+function CheckOverviewChart({ data }: { data: { label: string; date: Date; count: number; total: number }[] }) {
+    const chartData = data.map(d => ({...d, label: d.label.replace('In ', '').replace(' Days', 'D')}));
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Upcoming Check Totals</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+                    <BarChart accessibilityLayer data={chartData}>
+                        <CartesianGrid vertical={false} />
+                        <XAxis
+                            dataKey="label"
+                            tickLine={false}
+                            tickMargin={10}
+                            axisLine={false}
+                        />
+                         <YAxis
+                            tickFormatter={(value) => `$${Number(value) / 1000}k`}
+                            />
+                        <ChartTooltip
+                            cursor={false}
+                            content={<ChartTooltipContent indicator="dashed" />}
+                        />
+                        <Bar dataKey="total" fill="var(--color-total)" radius={4} />
+                    </BarChart>
+                </ChartContainer>
+            </CardContent>
+        </Card>
+    )
+}
+
+
 export default function CheckPassingPage() {
   const [isClient, setIsClient] = React.useState(false);
+  const isMobile = useIsMobile();
 
   React.useEffect(() => {
     setIsClient(true);
@@ -138,20 +184,24 @@ export default function CheckPassingPage() {
         </div>
       </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            {overviewData.map(day => (
-                <Card key={day.label}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{day.label}</CardTitle>
-                        <span className="text-xs text-muted-foreground">{format(day.date, 'MMM d')}</span>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">${day.total.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground">{day.count} pending {day.count === 1 ? 'check' : 'checks'}</p>
-                    </CardContent>
-                </Card>
-            ))}
-        </div>
+        {isClient && isMobile ? (
+            <CheckOverviewChart data={overviewData} />
+        ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+                {overviewData.map(day => (
+                    <Card key={day.label}>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">{day.label}</CardTitle>
+                            <span className="text-xs text-muted-foreground">{format(day.date, 'MMM d')}</span>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">${day.total.toLocaleString()}</div>
+                            <p className="text-xs text-muted-foreground">{day.count} pending {day.count === 1 ? 'check' : 'checks'}</p>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        )}
 
       <Card>
         <CardHeader>
