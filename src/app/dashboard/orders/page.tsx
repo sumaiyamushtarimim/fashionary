@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { MoreHorizontal, PlusCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -259,7 +260,9 @@ export default function OrdersPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem>Update Status</DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600">
                           Cancel Order

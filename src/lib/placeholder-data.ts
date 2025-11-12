@@ -1,3 +1,4 @@
+
 import type { ImagePlaceholder } from './placeholder-images';
 import { PlaceHolderImages } from './placeholder-images';
 
@@ -29,6 +30,7 @@ export type OrderProduct = {
   name: string;
   image: ImagePlaceholder;
   quantity: number;
+  price: number;
 };
 
 export type Order = {
@@ -115,8 +117,8 @@ export const orders: Order[] = [
     status: 'Delivered', 
     total: 104.99, 
     products: [
-        { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1 },
-        { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1 }
+        { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price },
+        { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: products[0].price }
     ] 
   },
   { 
@@ -127,7 +129,7 @@ export const orders: Order[] = [
     status: 'Packing', 
     total: 25.00, 
     products: [
-        { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1 }
+        { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: products[0].price }
     ] 
   },
   { 
@@ -138,8 +140,8 @@ export const orders: Order[] = [
     status: 'New', 
     total: 215.49, 
     products: [
-        { productId: 'PROD003', name: 'Cashmere V-Neck Sweater', image: products[2].image, quantity: 1 },
-        { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1 }
+        { productId: 'PROD003', name: 'Cashmere V-Neck Sweater', image: products[2].image, quantity: 1, price: products[2].price },
+        { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price }
     ]
   },
   { 
@@ -150,7 +152,7 @@ export const orders: Order[] = [
     status: 'Shipped', 
     total: 350.00, 
     products: [
-        { productId: 'PROD004', name: 'Leather Biker Jacket', image: products[3].image, quantity: 1 }
+        { productId: 'PROD004', name: 'Leather Biker Jacket', image: products[3].image, quantity: 1, price: products[3].price }
     ] 
   },
   { 
@@ -161,7 +163,7 @@ export const orders: Order[] = [
     status: 'Confirmed', 
     total: 120.50, 
     products: [
-        { productId: 'PROD003', name: 'Cashmere V-Neck Sweater', image: products[2].image, quantity: 1 }
+        { productId: 'PROD003', name: 'Cashmere V-Neck Sweater', image: products[2].image, quantity: 1, price: products[2].price }
     ]
   },
 ];
