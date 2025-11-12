@@ -155,7 +155,11 @@ export default function DashboardLayout({
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1">
-            {/* Can add a search bar here if needed */}
+             <div className="flex h-full items-center justify-center md:hidden">
+                <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
+                    <span className="font-headline text-xl">Fashionary</span>
+                </Link>
+             </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
