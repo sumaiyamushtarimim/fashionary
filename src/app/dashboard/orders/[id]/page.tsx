@@ -164,8 +164,8 @@ function OrderHistory({ logs }: { logs: OrderLog[] }) {
                         </ul>
                     ) : (
                         <div className="space-y-6">
-                            {logs.map((log) => (
-                                <div key={log.timestamp} className="flex items-start gap-4">
+                            {logs.map((log, i) => (
+                                <div key={`${log.timestamp}-${i}`} className="flex items-start gap-4">
                                     <Skeleton className="w-8 h-8 rounded-full" />
                                     <div className="flex-1 space-y-2">
                                         <Skeleton className="h-4 w-1/3" />
@@ -527,5 +527,3 @@ export default function OrderDetailsPage() {
     </div>
   );
 }
-
-    
