@@ -3,6 +3,12 @@
 import type { ImagePlaceholder } from './placeholder-images';
 import { PlaceHolderImages } from './placeholder-images';
 
+export type Category = {
+    id: string;
+    name: string;
+    parentId?: string;
+};
+
 export type Product = {
   id: string;
   name: string;
@@ -10,6 +16,10 @@ export type Product = {
   price: number;
   inventory: number;
   image: ImagePlaceholder;
+  categoryId?: string;
+  ornaFabric?: number;
+  jamaFabric?: number;
+  selowarFabric?: number;
 };
 
 export type OrderStatus = 
@@ -193,12 +203,22 @@ export type Vendor = {
     rate: string;
 };
 
+export const categories: Category[] = [
+    { id: 'cat-1', name: 'Three-Piece' },
+    { id: 'cat-1-1', name: 'Cotton', parentId: 'cat-1' },
+    { id: 'cat-1-2', name: 'Linen', parentId: 'cat-1' },
+    { id: 'cat-2', name: 'Apparel' },
+    { id: 'cat-2-1', name: 'Tops', parentId: 'cat-2' },
+    { id: 'cat-2-2', name: 'Bottoms', parentId: 'cat-2' },
+    { id: 'cat-3', name: 'Accessories' },
+];
+
 export const products: Product[] = [
-  { id: 'PROD001', name: 'Organic Cotton T-Shirt', description: 'Soft, breathable, and eco-friendly.', price: 25.00, inventory: 150, image: PlaceHolderImages[0] },
-  { id: 'PROD002', name: 'Slim Fit Denim Jeans', description: 'Classic five-pocket styling.', price: 79.99, inventory: 80, image: PlaceHolderImages[1] },
-  { id: 'PROD003', name: 'Cashmere V-Neck Sweater', description: 'Luxuriously soft and warm.', price: 120.50, inventory: 45, image: PlaceHolderImages[2] },
-  { id: 'PROD004', name: 'Leather Biker Jacket', description: 'Timeless style with a modern edge.', price: 350.00, inventory: 20, image: PlaceHolderImages[3] },
-  { id: 'PROD005', name: 'Linen Blend Blazer', description: 'Lightweight and perfect for summer.', price: 95.00, inventory: 60, image: PlaceHolderImages[4] },
+  { id: 'PROD001', name: 'Organic Cotton T-Shirt', description: 'Soft, breathable, and eco-friendly.', price: 25.00, inventory: 150, image: PlaceHolderImages[0], categoryId: 'cat-2-1' },
+  { id: 'PROD002', name: 'Slim Fit Denim Jeans', description: 'Classic five-pocket styling.', price: 79.99, inventory: 80, image: PlaceHolderImages[1], categoryId: 'cat-2-2' },
+  { id: 'PROD003', name: 'Cotton Three-Piece', description: 'Luxuriously soft and warm.', price: 120.50, inventory: 45, image: PlaceHolderImages[2], categoryId: 'cat-1-1', ornaFabric: 2.5, jamaFabric: 3, selowarFabric: 2 },
+  { id: 'PROD004', name: 'Leather Biker Jacket', description: 'Timeless style with a modern edge.', price: 350.00, inventory: 20, image: PlaceHolderImages[3], categoryId: 'cat-2-1' },
+  { id: 'PROD005', name: 'Linen Three-Piece', description: 'Lightweight and perfect for summer.', price: 95.00, inventory: 60, image: PlaceHolderImages[4], categoryId: 'cat-1-2', ornaFabric: 2.5, jamaFabric: 3, selowarFabric: 2 },
 ];
 
 export const businesses: Business[] = [
@@ -280,7 +300,7 @@ export const orders: Order[] = [
     status: 'New', 
     total: 215.49, 
     products: [
-        { productId: 'PROD003', name: 'Cashmere V-Neck Sweater', image: products[2].image, quantity: 1, price: products[2].price },
+        { productId: 'PROD003', name: 'Cotton Three-Piece', image: products[2].image, quantity: 1, price: products[2].price },
         { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price }
     ],
     logs: [
@@ -339,7 +359,7 @@ export const orders: Order[] = [
     status: 'Confirmed', 
     total: 120.50, 
     products: [
-        { productId: 'PROD003', name: 'Cashmere V-Neck Sweater', image: products[2].image, quantity: 1, price: products[2].price }
+        { productId: 'PROD003', name: 'Cotton Three-Piece', image: products[2].image, quantity: 1, price: products[2].price }
     ],
     logs: [
         { status: 'Confirmed', timestamp: '2024-05-23T11:00:00Z', description: 'Order has been confirmed.', user: 'System' },
@@ -373,9 +393,9 @@ export const inventory: InventoryItem[] = [
     { id: 'INV001', productId: 'PROD001', productName: 'Organic Cotton T-Shirt', sku: 'OCT-W-S', quantity: 50, location: 'A-1-1', lotNumber: 'LOT2024A', receivedDate: '2024-04-10'},
     { id: 'INV002', productId: 'PROD001', productName: 'Organic Cotton T-Shirt', sku: 'OCT-W-M', quantity: 5, location: 'A-1-2', lotNumber: 'LOT2024A', receivedDate: '2024-04-10'},
     { id: 'INV003', productId: 'PROD002', productName: 'Slim Fit Denim Jeans', sku: 'SFDJ-32', quantity: 30, location: 'B-2-5', lotNumber: 'LOT2024B', receivedDate: '2024-04-15'},
-    { id: 'INV004', productId: 'PROD003', productName: 'Cashmere V-Neck Sweater', sku: 'CVNS-B-L', quantity: 15, location: 'C-3-1', lotNumber: 'LOT2024C', receivedDate: '2024-04-20'},
+    { id: 'INV004', productId: 'PROD003', productName: 'Cotton Three-Piece', sku: 'CVNS-B-L', quantity: 15, location: 'C-3-1', lotNumber: 'LOT2024C', receivedDate: '2024-04-20'},
     { id: 'INV005', productId: 'PROD004', productName: 'Leather Biker Jacket', sku: 'LBJ-BLK-M', quantity: 8, location: 'D-1-1', lotNumber: 'LOT2024D', receivedDate: '2024-05-01'},
-    { id: 'INV006', productId: 'PROD005', productName: 'Linen Blend Blazer', sku: 'LBB-N-40R', quantity: 22, location: 'E-2-3', lotNumber: 'LOT2024E', receivedDate: '2024-05-05'},
+    { id: 'INV006', productId: 'PROD005', productName: 'Linen Three-Piece', sku: 'LBB-N-40R', quantity: 22, location: 'E-2-3', lotNumber: 'LOT2024E', receivedDate: '2024-05-05'},
 ];
 
 const today = new Date();

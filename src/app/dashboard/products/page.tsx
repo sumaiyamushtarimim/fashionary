@@ -1,9 +1,9 @@
 
 
-"use client";
+'use client';
 
 import Image from "next/image";
-import { MoreHorizontal, PlusCircle, UploadCloud, X, ChevronsUpDown } from "lucide-react";
+import { MoreHorizontal, PlusCircle, UploadCloud, X, ChevronsUpDown, Check } from "lucide-react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -57,7 +57,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { products } from "@/lib/placeholder-data";
+import { products, categories, Category } from "@/lib/placeholder-data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
@@ -100,7 +100,9 @@ const productSchema = z.object({
   length: z.coerce.number().optional(),
   width: z.coerce.number().optional(),
   height: z.coerce.number().optional(),
-  categories: z.string().optional(),
+  
+  // Category
+  categoryId: z.string().optional(),
   tags: z.string().optional(),
 
   // Fabric Consumption
@@ -120,6 +122,7 @@ type ProductFormValues = z.infer<typeof productSchema>;
 
 export default function ProductsPage() {
   const [popoverOpen, setPopoverOpen] = React.useState(false);
+  const [categoryFilter, setCategoryFilter] = React.useState("all");
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -143,6 +146,31 @@ export default function ProductsPage() {
   });
 
   const productType = form.watch("productType");
+  const selectedCategoryId = form.watch("categoryId");
+
+  const isThreePieceCategory = React.useMemo(() => {
+    if (!selectedCategoryId) return false;
+    let currentCategory = categories.find(c => c.id === selectedCategoryId);
+    while (currentCategory) {
+        if (currentCategory.name === 'Three-Piece') {
+            return true;
+        }
+        currentCategory = categories.find(c => c.id === currentCategory?.parentId);
+    }
+    return false;
+  }, [selectedCategoryId]);
+
+  const filteredProducts = React.useMemo(() => {
+    if (categoryFilter === 'all') return products;
+    return products.filter(p => {
+        let currentCategory = categories.find(c => c.id === p.categoryId);
+        while(currentCategory) {
+            if (currentCategory.id === categoryFilter) return true;
+            currentCategory = categories.find(c => c.id === currentCategory?.parentId);
+        }
+        return false;
+    });
+  }, [categoryFilter]);
 
   function generateVariations() {
     const attributes = form.getValues("attributes");
@@ -179,6 +207,9 @@ export default function ProductsPage() {
   const selectedComboProducts = form.watch('comboProducts') || [];
   const comboProductDetails = products.filter(p => selectedComboProducts.includes(p.id));
 
+  const mainCategories = categories.filter(c => !c.parentId);
+  const subCategories = (parentId: string) => categories.filter(c => c.parentId === parentId);
+
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -188,6 +219,24 @@ export default function ProductsPage() {
             <p className="text-muted-foreground">Manage your products and view their status.</p>
         </div>
         <div className="flex items-center gap-2">
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {mainCategories.map(cat => (
+                        <React.Fragment key={cat.id}>
+                            <SelectItem value={cat.id}>{cat.name}</SelectItem>
+                            {subCategories(cat.id).map(subCat => (
+                                <SelectItem key={subCat.id} value={subCat.id} className="pl-8">
+                                    {subCat.name}
+                                </SelectItem>
+                            ))}
+                        </React.Fragment>
+                    ))}
+                </SelectContent>
+            </Select>
           <Button size="sm" variant="outline">
             Export
           </Button>
@@ -430,7 +479,7 @@ export default function ProductsPage() {
                                                                     ? "bg-primary text-primary-foreground"
                                                                     : "opacity-50 [&_svg]:invisible"
                                                                 )}>
-                                                                    <PlusCircle className="h-4 w-4" />
+                                                                    <Check className="h-4 w-4" />
                                                                 </div>
                                                                 {product.name}
                                                             </CommandItem>
@@ -522,7 +571,7 @@ export default function ProductsPage() {
                                 <TabsList className="w-full">
                                     <TabsTrigger value="general">General</TabsTrigger>
                                     <TabsTrigger value="inventory">Inventory</TabsTrigger>
-                                    {productType === 'simple' && <TabsTrigger value="shipping">Shipping</TabsTrigger>}
+                                    {(productType === 'simple') && <TabsTrigger value="shipping">Shipping</TabsTrigger>}
                                 </TabsList>
                                 <TabsContent value="general" className="mt-6">
                                     <Card>
@@ -608,14 +657,16 @@ export default function ProductsPage() {
                                                         <FormField control={form.control} name="height" render={({ field }) => (<FormItem><FormControl><Input type="number" placeholder="H" {...field} /></FormControl></FormItem>)} />
                                                     </div>
                                                 </div>
-                                                <div className="pt-4">
-                                                    <Label>Fabric Consumption (yards)</Label>
-                                                    <div className="grid grid-cols-3 gap-2 mt-2">
-                                                        <FormField control={form.control} name="ornaFabric" render={({ field }) => (<FormItem><FormLabel className="text-xs font-light">Orna</FormLabel><FormControl><Input type="number" placeholder="2.5" {...field} /></FormControl></FormItem>)} />
-                                                        <FormField control={form.control} name="jamaFabric" render={({ field }) => (<FormItem><FormLabel className="text-xs font-light">Jama</FormLabel><FormControl><Input type="number" placeholder="3.0" {...field} /></FormControl></FormItem>)} />
-                                                        <FormField control={form.control} name="selowarFabric" render={({ field }) => (<FormItem><FormLabel className="text-xs font-light">Selowar</FormLabel><FormControl><Input type="number" placeholder="2.0" {...field} /></FormControl></FormItem>)} />
+                                                {isThreePieceCategory && (
+                                                    <div className="pt-4">
+                                                        <Label>Fabric Consumption (yards)</Label>
+                                                        <div className="grid grid-cols-3 gap-2 mt-2">
+                                                            <FormField control={form.control} name="ornaFabric" render={({ field }) => (<FormItem><FormLabel className="text-xs font-light">Orna</FormLabel><FormControl><Input type="number" placeholder="2.5" {...field} /></FormControl></FormItem>)} />
+                                                            <FormField control={form.control} name="jamaFabric" render={({ field }) => (<FormItem><FormLabel className="text-xs font-light">Jama</FormLabel><FormControl><Input type="number" placeholder="3.0" {...field} /></FormControl></FormItem>)} />
+                                                            <FormField control={form.control} name="selowarFabric" render={({ field }) => (<FormItem><FormLabel className="text-xs font-light">Selowar</FormLabel><FormControl><Input type="number" placeholder="2.0" {...field} /></FormControl></FormItem>)} />
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                )}
                                             </CardContent>
                                         </Card>
                                     </TabsContent>
@@ -631,14 +682,29 @@ export default function ProductsPage() {
                             <CardContent className="space-y-4">
                                <FormField
                                     control={form.control}
-                                    name="categories"
+                                    name="categoryId"
                                     render={({ field }) => (
                                         <FormItem>
-                                        <FormLabel>Categories</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="T-Shirts, Apparel" {...field} />
-                                        </FormControl>
-                                        <FormDescription>Comma-separated values.</FormDescription>
+                                        <FormLabel>Category</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select a category" />
+                                            </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {mainCategories.map(cat => (
+                                                    <React.Fragment key={cat.id}>
+                                                        <SelectItem value={cat.id}>{cat.name}</SelectItem>
+                                                        {subCategories(cat.id).map(subCat => (
+                                                            <SelectItem key={subCat.id} value={subCat.id} className="pl-8">
+                                                                {subCat.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </React.Fragment>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                         <FormMessage />
                                         </FormItem>
                                     )}
@@ -691,7 +757,7 @@ export default function ProductsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product) => (
+              {filteredProducts.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell className="hidden sm:table-cell">
                     <Image
@@ -734,12 +800,10 @@ export default function ProductsPage() {
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">
-            Showing <strong>1-5</strong> of <strong>{products.length}</strong> products
+            Showing <strong>1-{filteredProducts.length}</strong> of <strong>{products.length}</strong> products
           </div>
         </CardFooter>
       </Card>
     </div>
   );
 }
-
-    
