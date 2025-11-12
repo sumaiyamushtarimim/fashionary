@@ -28,10 +28,10 @@ const settingsItems = [
         description: "Connect and manage courier services."
     },
     {
-        href: "#",
+        href: "/dashboard/settings/business",
         icon: Building,
-        title: "Company",
-        description: "Manage your company details and branding."
+        title: "Business Management",
+        description: "Manage your company details and brands."
     },
     {
         href: "/dashboard/settings/integrations",
