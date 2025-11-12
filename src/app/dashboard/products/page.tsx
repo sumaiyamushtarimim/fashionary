@@ -240,8 +240,9 @@ export default function ProductsPage() {
           <Dialog>
             <DialogTrigger asChild>
               <Button size="sm">
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Add Product
+                <PlusCircle className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Add Product</span>
+                <span className="sm:hidden sr-only">Add Product</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
