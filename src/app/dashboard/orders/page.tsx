@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { MoreHorizontal, PlusCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,14 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,7 +45,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { orders, OrderStatus } from "@/lib/placeholder-data";
+import { orders, OrderStatus, OrderProduct } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 
 const statusColors: Record<OrderStatus, string> = {
@@ -59,6 +68,69 @@ const allStatuses: OrderStatus[] = [
     'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 
     'Partially Delivered', 'Partially Returned'
 ];
+
+function OrderImages({ products }: { products: OrderProduct[] }) {
+    const firstProduct = products[0];
+    if (!firstProduct) return null;
+
+    if (products.length > 1) {
+        return (
+            <Dialog>
+                <DialogTrigger asChild>
+                    <div className="relative cursor-pointer">
+                        <Image
+                            src={firstProduct.image.imageUrl}
+                            alt={firstProduct.name}
+                            width={64}
+                            height={64}
+                            className="rounded-md object-cover aspect-square"
+                        />
+                        <div className="absolute top-0 right-0 -mt-2 -mr-2">
+                            <Badge variant="default" className="h-5 w-5 p-0 flex items-center justify-center">
+                                +{products.length - 1}
+                            </Badge>
+                        </div>
+                    </div>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Products in this Order</DialogTitle>
+                        <DialogDescription>
+                            All products included in this customer order.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        {products.map(product => (
+                            <div key={product.productId} className="flex items-center gap-4">
+                                <Image
+                                    src={product.image.imageUrl}
+                                    alt={product.name}
+                                    width={64}
+                                    height={64}
+                                    className="rounded-md object-cover aspect-square"
+                                />
+                                <div className="flex-1">
+                                    <p className="font-medium">{product.name}</p>
+                                    <p className="text-sm text-muted-foreground">Quantity: {product.quantity}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </DialogContent>
+            </Dialog>
+        );
+    }
+    
+    return (
+        <Image
+            src={firstProduct.image.imageUrl}
+            alt={firstProduct.name}
+            width={64}
+            height={64}
+            className="rounded-md object-cover aspect-square"
+        />
+    );
+}
 
 export default function OrdersPage() {
   const [filter, setFilter] = useState("all");
@@ -104,13 +176,12 @@ export default function OrdersPage() {
         </CardHeader>
         <CardContent>
           <Table>
-            <TableHeader>
+            <TableHeader className="hidden sm:table-header-group">
               <TableRow>
-                <TableHead>Order ID</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead className="hidden md:table-cell">Date</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="hidden text-right sm:table-cell">
+                <TableHead className="text-right">
                   Total
                 </TableHead>
                 <TableHead>
@@ -120,13 +191,46 @@ export default function OrdersPage() {
             </TableHeader>
             <TableBody>
               {filteredOrders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id}</TableCell>
-                  <TableCell>{order.customerName}</TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {order.date}
+                <TableRow key={order.id} className="sm:table-row flex flex-col sm:flex-row p-4 sm:p-0 mb-4 sm:mb-0 border rounded-lg sm:border-b">
+                   <TableCell className="font-medium p-0 sm:p-4 border-b sm:border-none pb-4 sm:pb-4">
+                     <div className="flex items-center gap-4">
+                        <div className="hidden sm:block">
+                            <OrderImages products={order.products} />
+                        </div>
+                        <div>
+                            <p className="font-bold">{order.customerName}</p>
+                            <p className="text-sm text-muted-foreground">{order.id}</p>
+                        </div>
+                     </div>
+                   </TableCell>
+                   <TableCell className="p-0 sm:p-4 pt-4 sm:pt-4">
+                    <div className="flex items-start sm:items-center gap-4">
+                        <div className="sm:hidden">
+                            <OrderImages products={order.products} />
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full">
+                            <div className="md:hidden">
+                               <p className="text-sm text-muted-foreground">{order.date}</p>
+                            </div>
+                            <div className="hidden md:table-cell w-full">{order.date}</div>
+                            <div className="sm:w-full">
+                                <Badge
+                                variant={"outline"}
+                                className={cn("mt-2 sm:mt-0 w-full sm:w-auto justify-center",
+                                    statusColors[order.status] || "bg-gray-500/20 text-gray-700"
+                                )}
+                                >
+                                {order.status}
+                                </Badge>
+                            </div>
+                           <div className="text-right font-bold sm:hidden mt-2 sm:mt-0">
+                                ${order.total.toFixed(2)}
+                            </div>
+                        </div>
+                   </div>
                   </TableCell>
-                  <TableCell>
+                  <td className="hidden md:table-cell p-4">{order.date}</td>
+                  <td className="hidden sm:table-cell p-4">
                     <Badge
                       variant={"outline"}
                       className={cn(
@@ -136,17 +240,18 @@ export default function OrdersPage() {
                     >
                       {order.status}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="hidden text-right sm:table-cell">
+                  </td>
+                  <td className="hidden text-right sm:table-cell p-4">
                     ${order.total.toFixed(2)}
-                  </TableCell>
-                  <TableCell>
+                  </td>
+                  <TableCell className="p-0 sm:p-4">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           aria-haspopup="true"
                           size="icon"
                           variant="ghost"
+                          className="absolute sm:relative top-2 right-2"
                         >
                           <MoreHorizontal className="h-4 w-4" />
                           <span className="sr-only">Toggle menu</span>

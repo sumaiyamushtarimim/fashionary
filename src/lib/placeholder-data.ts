@@ -24,6 +24,13 @@ export type OrderStatus =
   | 'Partially Delivered'
   | 'Partially Returned';
 
+export type OrderProduct = {
+  productId: string;
+  name: string;
+  image: ImagePlaceholder;
+  quantity: number;
+};
+
 export type Order = {
   id: string;
   customerName: string;
@@ -31,7 +38,7 @@ export type Order = {
   date: string;
   status: OrderStatus;
   total: number;
-  items: number;
+  products: OrderProduct[];
 };
 
 export type Customer = {
@@ -100,11 +107,63 @@ export const products: Product[] = [
 ];
 
 export const orders: Order[] = [
-  { id: 'ORD-2024-001', customerName: 'Alice Johnson', customerEmail: 'alice@example.com', date: '2024-05-20', status: 'Delivered', total: 104.99, items: 2 },
-  { id: 'ORD-2024-002', customerName: 'Bob Williams', customerEmail: 'bob@example.com', date: '2024-05-21', status: 'Packing', total: 25.00, items: 1 },
-  { id: 'ORD-2024-003', customerName: 'Charlie Brown', customerEmail: 'charlie@example.com', date: '2024-05-22', status: 'New', total: 215.49, items: 2 },
-  { id: 'ORD-2024-004', customerName: 'Diana Prince', customerEmail: 'diana@example.com', date: '2024-05-22', status: 'Shipped', total: 350.00, items: 1 },
-  { id: 'ORD-2024-005', customerName: 'Ethan Hunt', customerEmail: 'ethan@example.com', date: '2024-05-23', status: 'Confirmed', total: 120.00, items: 5 },
+  { 
+    id: 'ORD-2024-001', 
+    customerName: 'Alice Johnson', 
+    customerEmail: 'alice@example.com', 
+    date: '2024-05-20', 
+    status: 'Delivered', 
+    total: 104.99, 
+    products: [
+        { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1 },
+        { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1 }
+    ] 
+  },
+  { 
+    id: 'ORD-2024-002', 
+    customerName: 'Bob Williams', 
+    customerEmail: 'bob@example.com', 
+    date: '2024-05-21', 
+    status: 'Packing', 
+    total: 25.00, 
+    products: [
+        { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1 }
+    ] 
+  },
+  { 
+    id: 'ORD-2024-003', 
+    customerName: 'Charlie Brown', 
+    customerEmail: 'charlie@example.com', 
+    date: '2024-05-22', 
+    status: 'New', 
+    total: 215.49, 
+    products: [
+        { productId: 'PROD003', name: 'Cashmere V-Neck Sweater', image: products[2].image, quantity: 1 },
+        { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1 }
+    ]
+  },
+  { 
+    id: 'ORD-2024-004', 
+    customerName: 'Diana Prince', 
+    customerEmail: 'diana@example.com', 
+    date: '2024-05-22', 
+    status: 'Shipped', 
+    total: 350.00, 
+    products: [
+        { productId: 'PROD004', name: 'Leather Biker Jacket', image: products[3].image, quantity: 1 }
+    ] 
+  },
+  { 
+    id: 'ORD-2024-005', 
+    customerName: 'Ethan Hunt', 
+    customerEmail: 'ethan@example.com', 
+    date: '2024-05-23', 
+    status: 'Confirmed', 
+    total: 120.50, 
+    products: [
+        { productId: 'PROD003', name: 'Cashmere V-Neck Sweater', image: products[2].image, quantity: 1 }
+    ]
+  },
 ];
 
 export const customers: Customer[] = [
