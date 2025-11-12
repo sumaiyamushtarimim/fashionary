@@ -20,11 +20,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Check, HardHat, Package, Truck, Minus, Plus } from "lucide-react";
-import { purchaseOrders, suppliers, vendors } from "@/lib/placeholder-data";
+import { Check, HardHat, Package, Truck, Minus, Plus, History, FileText } from "lucide-react";
+import { purchaseOrders, suppliers, vendors, PurchaseOrderLog, PurchaseOrderStatus } from "@/lib/placeholder-data";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Payment = {
     cash: number;
@@ -40,6 +42,16 @@ const productionSteps = [
     { id: 'cutting', name: 'Cutting', status: 'pending', icon: HardHat },
     { id: 'delivery', name: 'Delivery', status: 'pending', icon: Truck },
 ];
+
+const statusIcons: Record<string, React.ElementType> = {
+    'Fabric Ordered': Package,
+    'Printing': HardHat,
+    'Cutting': HardHat,
+    'Received': Check,
+    'Cancelled': FileText,
+    'Draft': FileText,
+};
+
 
 const calculateDue = (totalCost: number, payment: Payment) => {
     const paid = (Number(payment.cash) || 0) + (Number(payment.check) || 0);
@@ -84,6 +96,68 @@ const PaymentSection = ({ cost, payment, onPaymentChange, due, costDisabled = fa
     </>
 );
 
+function PurchaseOrderHistory({ logs }: { logs: PurchaseOrderLog[] }) {
+    const [isClient, setIsClient] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    const sortedLogs = React.useMemo(() => logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()), [logs]);
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Purchase Order History</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="relative">
+                    <div className="absolute left-4 top-0 bottom-0 w-px bg-border -translate-x-1/2"></div>
+                    {isClient ? (
+                        <ul className="space-y-6">
+                            {sortedLogs.map((log, index) => {
+                                const Icon = statusIcons[log.status] || History;
+                                const isLast = index === 0;
+                                return (
+                                    <li key={`${log.timestamp}-${index}`} className="relative flex items-start gap-4">
+                                        <div className={cn(
+                                            "w-8 h-8 rounded-full flex items-center justify-center bg-background border",
+                                            isLast ? "border-primary" : "border-border"
+                                        )}>
+                                            <Icon className={cn("h-4 w-4", isLast ? "text-primary" : "text-muted-foreground")} />
+                                        </div>
+                                        <div className="flex-1 pt-1">
+                                            <p className={cn("font-medium", isLast ? "text-foreground" : "text-muted-foreground")}>{log.status}</p>
+                                            <p className="text-sm text-muted-foreground">{log.description}</p>
+                                            <div className="text-xs text-muted-foreground mt-1">
+                                                <span>{format(new Date(log.timestamp), "MMM d, yyyy, h:mm a")}</span>
+                                                {log.user && <span className="font-medium"> by {log.user}</span>}
+                                            </div>
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    ) : (
+                        <div className="space-y-6">
+                            {logs.map((log, i) => (
+                                <div key={`${log.timestamp}-${i}`} className="flex items-start gap-4">
+                                    <Skeleton className="w-8 h-8 rounded-full" />
+                                    <div className="flex-1 space-y-2">
+                                        <Skeleton className="h-4 w-1/3" />
+                                        <Skeleton className="h-4 w-2/3" />
+                                        <Skeleton className="h-3 w-1/2" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
 
 export default function PurchaseOrderDetailsPage() {
     const params = useParams();
@@ -126,7 +200,7 @@ export default function PurchaseOrderDetailsPage() {
     }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+    <div className="flex flex-1 flex-col gap-8 p-4 lg:gap-6 lg:p-6">
         <div className="flex items-center justify-between">
             <div>
                 <h1 className="font-headline text-2xl font-bold">
@@ -180,7 +254,7 @@ export default function PurchaseOrderDetailsPage() {
             </CardContent>
         </Card>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1 space-y-8">
                 <Card>
                     <CardHeader>
@@ -304,6 +378,9 @@ export default function PurchaseOrderDetailsPage() {
                          <Button>Approve for Cutting</Button>
                     </CardFooter>
                 </Card>
+                <div className="lg:col-span-3">
+                  <PurchaseOrderHistory logs={purchaseOrder.logs} />
+                </div>
             </div>
         </div>
     </div>

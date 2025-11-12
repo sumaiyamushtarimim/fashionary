@@ -76,13 +76,23 @@ export type InventoryItem = {
   receivedDate: string;
 };
 
+export type PurchaseOrderStatus = 'Draft' | 'Fabric Ordered' | 'Printing' | 'Cutting' | 'Received' | 'Cancelled';
+
+export type PurchaseOrderLog = {
+    status: PurchaseOrderStatus;
+    timestamp: string;
+    description: string;
+    user: string;
+};
+
 export type PurchaseOrder = {
     id: string;
     supplier: string;
     date: string;
-    status: 'Draft' | 'Fabric Ordered' | 'Printing' | 'Cutting' | 'Received' | 'Cancelled';
+    status: PurchaseOrderStatus;
     total: number;
     items: number;
+    logs: PurchaseOrderLog[];
 };
 
 export type StaffMember = {
@@ -221,11 +231,11 @@ export const orders: Order[] = [
 ];
 
 export const customers: Customer[] = [
-    { id: 'CUST001', name: 'Alice Johnson', email: 'alice@example.com', phone: '01712345678', totalOrders: 5, totalSpent: 750.25, joinDate: '2023-01-15' },
-    { id: 'CUST002', name: 'Bob Williams', email: 'bob@example.com', phone: '01812345679', totalOrders: 2, totalSpent: 125.00, joinDate: '2023-03-22' },
-    { id: 'CUST003', name: 'Charlie Brown', email: 'charlie@example.com', phone: '01912345680', totalOrders: 8, totalSpent: 1200.50, joinDate: '2022-11-30' },
-    { id: 'CUST004', name: 'Diana Prince', email: 'diana@example.com', phone: '01612345681', totalOrders: 3, totalSpent: 450.00, joinDate: '2023-08-10' },
-    { id: 'CUST005', name: 'Ethan Hunt', email: 'ethan@example.com', phone: '01512345682', totalOrders: 1, totalSpent: 95.00, joinDate: '2024-02-28' },
+    { id: 'CUST001', name: 'Alice Johnson', email: 'alice@example.com', phone: '+8801712345678', totalOrders: 5, totalSpent: 750.25, joinDate: '2023-01-15' },
+    { id: 'CUST002', name: 'Bob Williams', email: 'bob@example.com', phone: '+8801812345679', totalOrders: 2, totalSpent: 125.00, joinDate: '2023-03-22' },
+    { id: 'CUST003', name: 'Charlie Brown', email: 'charlie@example.com', phone: '+8801912345680', totalOrders: 8, totalSpent: 1200.50, joinDate: '2022-11-30' },
+    { id: 'CUST004', name: 'Diana Prince', email: 'diana@example.com', phone: '+8801612345681', totalOrders: 3, totalSpent: 450.00, joinDate: '2023-08-10' },
+    { id: 'CUST005', name: 'Ethan Hunt', email: 'ethan@example.com', phone: '+8801512345682', totalOrders: 1, totalSpent: 95.00, joinDate: '2024-02-28' },
 ];
 
 export const inventory: InventoryItem[] = [
@@ -238,12 +248,78 @@ export const inventory: InventoryItem[] = [
 ];
 
 export const purchaseOrders: PurchaseOrder[] = [
-    { id: 'PO-2024-001', supplier: 'Global Textiles Inc.', date: '2024-06-05', status: 'Received', total: 5000.00, items: 200 },
-    { id: 'PO-2024-002', supplier: 'Denim Dreams Co.', date: '2024-06-02', status: 'Cutting', total: 12000.00, items: 150 },
-    { id: 'PO-2024-003', supplier: 'Luxury Fibers Ltd.', date: '2024-06-01', status: 'Printing', total: 8500.00, items: 100 },
-    { id: 'PO-2024-004', supplier: 'Leather Masters', date: '2024-05-28', status: 'Fabric Ordered', total: 25000.00, items: 50 },
-    { id: 'PO-2024-005', supplier: 'Global Textiles Inc.', date: '2024-05-25', status: 'Draft', total: 7500.00, items: 300 },
-    { id: 'PO-2024-006', supplier: 'Denim Dreams Co.', date: '2024-05-10', status: 'Cancelled', total: 9200.00, items: 120 },
+    { 
+        id: 'PO-2024-001', 
+        supplier: 'Global Textiles Inc.', 
+        date: '2024-06-05', 
+        status: 'Received', 
+        total: 5000.00, 
+        items: 200,
+        logs: [
+            { status: 'Received', timestamp: '2024-06-10T14:00:00Z', description: 'Goods received and stock updated.', user: 'Michael Brown' },
+            { status: 'Cutting', timestamp: '2024-06-08T11:00:00Z', description: 'Sent to Cutting Vendor.', user: 'Jane Doe' },
+            { status: 'Printing', timestamp: '2024-06-06T09:00:00Z', description: 'Sent to Printing Vendor.', user: 'Jane Doe' },
+            { status: 'Fabric Ordered', timestamp: '2024-06-05T17:00:00Z', description: 'Fabric order placed with supplier.', user: 'John Smith' },
+        ]
+    },
+    { 
+        id: 'PO-2024-002', 
+        supplier: 'Denim Dreams Co.', 
+        date: '2024-06-02', 
+        status: 'Cutting', 
+        total: 12000.00, 
+        items: 150,
+        logs: [
+            { status: 'Cutting', timestamp: '2024-06-08T11:00:00Z', description: 'Sent to Cutting Vendor.', user: 'Jane Doe' },
+            { status: 'Printing', timestamp: '2024-06-06T09:00:00Z', description: 'Sent to Printing Vendor.', user: 'Jane Doe' },
+            { status: 'Fabric Ordered', timestamp: '2024-06-05T17:00:00Z', description: 'Fabric order placed with supplier.', user: 'John Smith' },
+        ]
+    },
+    { 
+        id: 'PO-2024-003', 
+        supplier: 'Luxury Fibers Ltd.', 
+        date: '2024-06-01', 
+        status: 'Printing', 
+        total: 8500.00, 
+        items: 100,
+        logs: [
+            { status: 'Printing', timestamp: '2024-06-06T09:00:00Z', description: 'Sent to Printing Vendor.', user: 'Jane Doe' },
+            { status: 'Fabric Ordered', timestamp: '2024-06-05T17:00:00Z', description: 'Fabric order placed with supplier.', user: 'John Smith' },
+        ]
+    },
+    { 
+        id: 'PO-2024-004', 
+        supplier: 'Leather Masters', 
+        date: '2024-05-28', 
+        status: 'Fabric Ordered', 
+        total: 25000.00, 
+        items: 50,
+        logs: [
+            { status: 'Fabric Ordered', timestamp: '2024-06-05T17:00:00Z', description: 'Fabric order placed with supplier.', user: 'John Smith' },
+        ]
+    },
+    { 
+        id: 'PO-2024-005', 
+        supplier: 'Global Textiles Inc.', 
+        date: '2024-05-25', 
+        status: 'Draft', 
+        total: 7500.00, 
+        items: 300,
+        logs: [
+            { status: 'Draft', timestamp: '2024-05-25T10:00:00Z', description: 'Purchase order created as draft.', user: 'John Smith' },
+        ] 
+    },
+    { 
+        id: 'PO-2024-006', 
+        supplier: 'Denim Dreams Co.', 
+        date: '2024-05-10', 
+        status: 'Cancelled', 
+        total: 9200.00, 
+        items: 120,
+        logs: [
+             { status: 'Cancelled', timestamp: '2024-05-11T12:00:00Z', description: 'Order cancelled by management.', user: 'Jane Doe' },
+        ]
+    },
 ];
 
 export const staff: StaffMember[] = [
@@ -254,17 +330,17 @@ export const staff: StaffMember[] = [
 ];
 
 export const suppliers: Supplier[] = [
-    { id: 'SUP001', name: 'Global Textiles Inc.', contactPerson: 'Sarah Chen', email: 'sarah.chen@globaltextiles.com', phone: '01711223344', address: '123 Fabric Row, Textile City, 12345' },
-    { id: 'SUP002', name: 'Denim Dreams Co.', contactPerson: 'Mike Rivera', email: 'mike.r@denimdreams.com', phone: '01822334455', address: '456 Jean Ave, Indigo Town, 23456' },
-    { id: 'SUP003', name: 'Luxury Fibers Ltd.', contactPerson: 'Helen Troy', email: 'helen.t@luxuryfibers.com', phone: '01933445566', address: '789 Silk Blvd, Cashmere Ville, 34567' },
-    { id: 'SUP004', name: 'Leather Masters', contactPerson: 'Leo Adler', email: 'leo.a@leathermasters.com', phone: '01644556677', address: '101 Hide St, Tanner Creek, 45678' },
+    { id: 'SUP001', name: 'Global Textiles Inc.', contactPerson: 'Sarah Chen', email: 'sarah.chen@globaltextiles.com', phone: '+8801711223344', address: '123 Fabric Row, Textile City, 12345' },
+    { id: 'SUP002', name: 'Denim Dreams Co.', contactPerson: 'Mike Rivera', email: 'mike.r@denimdreams.com', phone: '+8801822334455', address: '456 Jean Ave, Indigo Town, 23456' },
+    { id: 'SUP003', name: 'Luxury Fibers Ltd.', contactPerson: 'Helen Troy', email: 'helen.t@luxuryfibers.com', phone: '+8801933445566', address: '789 Silk Blvd, Cashmere Ville, 34567' },
+    { id: 'SUP004', name: 'Leather Masters', contactPerson: 'Leo Adler', email: 'leo.a@leathermasters.com', phone: '+8801644556677', address: '101 Hide St, Tanner Creek, 45678' },
 ];
 
 export const vendors: Vendor[] = [
-    { id: 'VEN001', name: 'Precision Prints', type: 'Printing', contactPerson: 'Anna Garcia', email: 'anna.g@precisionprints.com', phone: '01555666777', rate: '$0.50 / print' },
-    { id: 'VEN002', name: 'Sharp Cuts', type: 'Cutting', contactPerson: 'David Lee', email: 'david.l@sharpcuts.com', phone: '01766777888', rate: '$0.20 / piece' },
-    { id: 'VEN003', name: 'Ink & Thread', type: 'Printing', contactPerson: 'Maria Rodriguez', email: 'maria.r@inkthread.com', phone: '01877888999', rate: '$0.45 / print' },
-    { id: 'VEN004', name: 'CutRight Solutions', type: 'Cutting', contactPerson: 'Tom Wilson', email: 'tom.w@cutright.com', phone: '01988999000', rate: '$0.18 / piece' },
+    { id: 'VEN001', name: 'Precision Prints', type: 'Printing', contactPerson: 'Anna Garcia', email: 'anna.g@precisionprints.com', phone: '+8801555666777', rate: '$0.50 / print' },
+    { id: 'VEN002', name: 'Sharp Cuts', type: 'Cutting', contactPerson: 'David Lee', email: 'david.l@sharpcuts.com', phone: '+8801766777888', rate: '$0.20 / piece' },
+    { id: 'VEN003', name: 'Ink & Thread', type: 'Printing', contactPerson: 'Maria Rodriguez', email: 'maria.r@inkthread.com', phone: '+8801877888999', rate: '$0.45 / print' },
+    { id: 'VEN004', name: 'CutRight Solutions', type: 'Cutting', contactPerson: 'Tom Wilson', email: 'tom.w@cutright.com', phone: '+8801988999000', rate: '$0.18 / piece' },
 ];
 
 
