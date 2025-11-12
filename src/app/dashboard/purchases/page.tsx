@@ -49,6 +49,11 @@ const statusColors = {
 export default function PurchasesPage() {
 
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+    const [isClient, setIsClient] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const filteredPurchaseOrders = useMemo(() => {
         return purchaseOrders.filter((po) => {
@@ -85,123 +90,126 @@ export default function PurchasesPage() {
             <CardTitle>Purchase Orders</CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          {/* Table for larger screens */}
-          <div className="hidden sm:block">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>PO Number</TableHead>
-                  <TableHead>Supplier</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead>
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+          {isClient ? (
+            <>
+              {/* Table for larger screens */}
+              <div className="hidden sm:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>PO Number</TableHead>
+                      <TableHead>Supplier</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                      <TableHead>
+                        <span className="sr-only">Actions</span>
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPurchaseOrders.map((po) => (
+                      <TableRow key={po.id}>
+                        <TableCell className="font-medium">
+                          <Link href={`/dashboard/purchases/${po.id}`} className="hover:underline">
+                            {po.id}
+                          </Link>
+                        </TableCell>
+                        <TableCell>{po.supplier}</TableCell>
+                        <TableCell>{format(new Date(po.date), "MMM d, yyyy")}</TableCell>
+                        <TableCell>
+                          <Badge variant={'outline'} className={cn(statusColors[po.status] || 'bg-gray-500/20 text-gray-700')}>
+                              {po.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">৳{po.total.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                aria-haspopup="true"
+                                size="icon"
+                                variant="ghost"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Toggle menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem asChild>
+                                 <Link href={`/dashboard/purchases/${po.id}`}>View Details</Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>Mark as Received</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Card list for smaller screens */}
+              <div className="sm:hidden space-y-4">
                 {filteredPurchaseOrders.map((po) => (
-                  <TableRow key={po.id}>
-                    <TableCell className="font-medium">
-                      <Link href={`/dashboard/purchases/${po.id}`} className="hover:underline">
-                        {po.id}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{po.supplier}</TableCell>
-                    <TableCell>{format(new Date(po.date), "MMM d, yyyy")}</TableCell>
-                    <TableCell>
-                      <Badge variant={'outline'} className={cn(statusColors[po.status] || 'bg-gray-500/20 text-gray-700')}>
-                          {po.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">৳{po.total.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            aria-haspopup="true"
-                            size="icon"
-                            variant="ghost"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem asChild>
-                             <Link href={`/dashboard/purchases/${po.id}`}>View Details</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>Mark as Received</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                    <Card key={po.id} className="overflow-hidden">
+                        <CardContent className="p-4 space-y-3">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <Link href={`/dashboard/purchases/${po.id}`} className="font-semibold hover:underline">
+                                      {po.id}
+                                    </Link>
+                                    <p className="text-sm text-muted-foreground">{po.supplier}</p>
+                                </div>
+                                 <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                    <Button
+                                        aria-haspopup="true"
+                                        size="icon"
+                                        variant="ghost"
+                                    >
+                                        <MoreHorizontal className="h-4 w-4" />
+                                        <span className="sr-only">Toggle menu</span>
+                                    </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                    <DropdownMenuItem asChild>
+                                        <Link href={`/dashboard/purchases/${po.id}`}>View Details</Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>Mark as Received</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                            
+                            <Separator />
+                            
+                            <div className="flex justify-between items-end">
+                                <div>
+                                    <p className="text-xs text-muted-foreground mb-1">{format(new Date(po.date), "MMM d, yyyy")}</p>
+                                    <Badge variant={'outline'} className={cn('text-xs', statusColors[po.status] || 'bg-gray-500/20 text-gray-700')}>
+                                        {po.status}
+                                    </Badge>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-sm text-muted-foreground">Total</p>
+                                    <p className="font-semibold font-mono">৳{po.total.toFixed(2)}</p>
+                                </div>
+                            </div>
+
+                        </CardContent>
+                    </Card>
                 ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Card list for smaller screens */}
-          <div className="sm:hidden space-y-4">
-            {filteredPurchaseOrders.map((po) => (
-                <Card key={po.id} className="overflow-hidden">
-                    <CardContent className="p-4 space-y-3">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <Link href={`/dashboard/purchases/${po.id}`} className="font-semibold hover:underline">
-                                  {po.id}
-                                </Link>
-                                <p className="text-sm text-muted-foreground">{po.supplier}</p>
-                            </div>
-                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                <Button
-                                    aria-haspopup="true"
-                                    size="icon"
-                                    variant="ghost"
-                                >
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Toggle menu</span>
-                                </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem asChild>
-                                    <Link href={`/dashboard/purchases/${po.id}`}>View Details</Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>Mark as Received</DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                        
-                        <Separator />
-                        
-                        <div className="flex justify-between items-end">
-                            <div>
-                                <p className="text-xs text-muted-foreground mb-1">{format(new Date(po.date), "MMM d, yyyy")}</p>
-                                <Badge variant={'outline'} className={cn('text-xs', statusColors[po.status] || 'bg-gray-500/20 text-gray-700')}>
-                                    {po.status}
-                                </Badge>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-sm text-muted-foreground">Total</p>
-                                <p className="font-semibold font-mono">৳{po.total.toFixed(2)}</p>
-                            </div>
-                        </div>
-
-                    </CardContent>
-                </Card>
-            ))}
-          </div>
+              </div>
+            </>
+          ) : (
+            <div className="h-48 flex items-center justify-center text-muted-foreground">
+              Loading purchase orders...
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
   );
 }
-
-    
-
-    
-
