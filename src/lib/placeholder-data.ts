@@ -85,6 +85,12 @@ export type PurchaseOrderLog = {
     user: string;
 };
 
+export type Payment = {
+    cash: number;
+    check: number;
+    checkDate: string;
+};
+
 export type PurchaseOrder = {
     id: string;
     supplier: string;
@@ -93,7 +99,13 @@ export type PurchaseOrder = {
     total: number;
     items: number;
     logs: PurchaseOrderLog[];
+    fabricPayment?: Payment;
+    printingPayment?: Payment;
+    printingVendor?: string;
+    cuttingPayment?: Payment;
+    cuttingVendor?: string;
 };
+
 
 export type StaffMember = {
     id: string;
@@ -247,6 +259,10 @@ export const inventory: InventoryItem[] = [
     { id: 'INV006', productId: 'PROD005', productName: 'Linen Blend Blazer', sku: 'LBB-N-40R', quantity: 22, location: 'E-2-3', lotNumber: 'LOT2024E', receivedDate: '2024-05-05'},
 ];
 
+const today = new Date();
+const formatDate = (date: Date) => date.toISOString().split('T')[0];
+
+
 export const purchaseOrders: PurchaseOrder[] = [
     { 
         id: 'PO-2024-001', 
@@ -260,7 +276,8 @@ export const purchaseOrders: PurchaseOrder[] = [
             { status: 'Cutting', timestamp: '2024-06-08T11:00:00Z', description: 'Sent to Cutting Vendor.', user: 'Jane Doe' },
             { status: 'Printing', timestamp: '2024-06-06T09:00:00Z', description: 'Sent to Printing Vendor.', user: 'Jane Doe' },
             { status: 'Fabric Ordered', timestamp: '2024-06-05T17:00:00Z', description: 'Fabric order placed with supplier.', user: 'John Smith' },
-        ]
+        ],
+        fabricPayment: { cash: 2000, check: 3000, checkDate: formatDate(new Date()) }
     },
     { 
         id: 'PO-2024-002', 
@@ -273,7 +290,9 @@ export const purchaseOrders: PurchaseOrder[] = [
             { status: 'Cutting', timestamp: '2024-06-08T11:00:00Z', description: 'Sent to Cutting Vendor.', user: 'Jane Doe' },
             { status: 'Printing', timestamp: '2024-06-06T09:00:00Z', description: 'Sent to Printing Vendor.', user: 'Jane Doe' },
             { status: 'Fabric Ordered', timestamp: '2024-06-05T17:00:00Z', description: 'Fabric order placed with supplier.', user: 'John Smith' },
-        ]
+        ],
+        printingVendor: 'Precision Prints',
+        printingPayment: { cash: 500, check: 1000, checkDate: formatDate(new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000)) }
     },
     { 
         id: 'PO-2024-003', 
@@ -285,7 +304,9 @@ export const purchaseOrders: PurchaseOrder[] = [
         logs: [
             { status: 'Printing', timestamp: '2024-06-06T09:00:00Z', description: 'Sent to Printing Vendor.', user: 'Jane Doe' },
             { status: 'Fabric Ordered', timestamp: '2024-06-05T17:00:00Z', description: 'Fabric order placed with supplier.', user: 'John Smith' },
-        ]
+        ],
+        cuttingVendor: 'Sharp Cuts',
+        cuttingPayment: { cash: 0, check: 800, checkDate: formatDate(new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)) }
     },
     { 
         id: 'PO-2024-004', 
@@ -296,7 +317,8 @@ export const purchaseOrders: PurchaseOrder[] = [
         items: 50,
         logs: [
             { status: 'Fabric Ordered', timestamp: '2024-06-05T17:00:00Z', description: 'Fabric order placed with supplier.', user: 'John Smith' },
-        ]
+        ],
+        fabricPayment: { cash: 25000, check: 0, checkDate: '' }
     },
     { 
         id: 'PO-2024-005', 
@@ -307,7 +329,9 @@ export const purchaseOrders: PurchaseOrder[] = [
         items: 300,
         logs: [
             { status: 'Draft', timestamp: '2024-05-25T10:00:00Z', description: 'Purchase order created as draft.', user: 'John Smith' },
-        ] 
+        ],
+        printingVendor: 'Ink & Thread',
+        printingPayment: { cash: 0, check: 2500, checkDate: formatDate(new Date(today.getTime() + 1 * 24 * 60 * 60 * 1000)) }
     },
     { 
         id: 'PO-2024-006', 
@@ -318,7 +342,9 @@ export const purchaseOrders: PurchaseOrder[] = [
         items: 120,
         logs: [
              { status: 'Cancelled', timestamp: '2024-05-11T12:00:00Z', description: 'Order cancelled by management.', user: 'Jane Doe' },
-        ]
+        ],
+        cuttingVendor: 'CutRight Solutions',
+        cuttingPayment: { cash: 0, check: 1200, checkDate: formatDate(new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000)) }
     },
 ];
 
