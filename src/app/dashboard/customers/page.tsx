@@ -83,7 +83,9 @@ export default function CustomersPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuItem>View Details</DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/dashboard/customers/${customer.id}`}>View Details</Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem>Edit</DropdownMenuItem>
                   <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                 </DropdownMenuContent>
@@ -114,7 +116,9 @@ export default function CustomersPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuItem>View Details</DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/dashboard/customers/${customer.id}`}>View Details</Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem>Edit</DropdownMenuItem>
                   <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                 </DropdownMenuContent>
