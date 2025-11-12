@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
     User,
@@ -30,11 +30,6 @@ const sidebarNavItems = [
         title: "Profile & Staff",
         href: "/dashboard/staff",
         icon: User
-    },
-    {
-        title: "Billing",
-        href: "/dashboard/settings/billing",
-        icon: CreditCard
     },
     {
         title: "Businesses",
@@ -77,6 +72,14 @@ interface SettingsLayoutProps {
   children: React.ReactNode
 }
 
+function buttonVariants({ variant }: { variant: "ghost" }): string {
+    if (variant === "ghost") {
+        return "hover:bg-accent hover:text-accent-foreground";
+    }
+    return "";
+}
+
+
 export default function SettingsLayout({ children }: SettingsLayoutProps) {
   const pathname = usePathname()
 
@@ -100,6 +103,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
                         href={item.href}
                         className={cn(
                         buttonVariants({ variant: "ghost" }),
+                        "w-full text-left justify-start px-4 py-2",
                         pathname === item.href
                             ? "bg-muted hover:bg-muted"
                             : "hover:bg-transparent hover:underline",

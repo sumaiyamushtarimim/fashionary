@@ -22,12 +22,6 @@ const settingsItems = [
         description: "Manage your personal profile and staff members."
     },
     {
-        href: "/dashboard/settings/billing",
-        icon: CreditCard,
-        title: "Billing",
-        description: "Manage your subscription and payment methods."
-    },
-    {
         href: "/dashboard/settings/business",
         icon: Building,
         title: "Business Management",
