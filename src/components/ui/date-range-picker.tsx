@@ -27,6 +27,7 @@ interface DateRangePickerProps {
     date: DateRange | undefined;
     onDateChange: (date: DateRange | undefined) => void;
     className?: string;
+    placeholder?: string;
 }
 
 type Preset = "today" | "yesterday" | "last7" | "last30" | "last365" | "custom" | "";
@@ -45,6 +46,7 @@ export function DateRangePicker({
   date,
   onDateChange,
   className,
+  placeholder = "Select a preset",
 }: DateRangePickerProps) {
 
   const [preset, setPreset] = React.useState<Preset>("");
@@ -114,7 +116,7 @@ export function DateRangePicker({
     <div className={cn("grid grid-cols-2 gap-2", className)}>
         <Select value={preset} onValueChange={(value: Preset) => handlePresetChange(value)}>
             <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Select a preset" />
+                <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
                 <SelectItem value="today">Today</SelectItem>

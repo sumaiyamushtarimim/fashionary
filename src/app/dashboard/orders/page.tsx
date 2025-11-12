@@ -182,7 +182,7 @@ export default function OrdersPage() {
                   ))}
               </SelectContent>
           </Select>
-          <DateRangePicker date={dateRange} onDateChange={setDateRange} />
+          <DateRangePicker date={dateRange} onDateChange={setDateRange} placeholder="Filter by date" />
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline" className="hidden sm:inline-flex">
