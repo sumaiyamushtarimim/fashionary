@@ -209,7 +209,7 @@ export default function CheckPassingPage() {
             Overview and list of upcoming check payments.
           </p>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
             <DateRangePicker date={dateRange} onDateChange={setDateRange} />
         </div>
       </div>
