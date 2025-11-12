@@ -95,12 +95,6 @@ export default function Dashboard() {
         }, {} as Record<OrderStatus, number>);
     }, [filteredOrders]);
 
-    const recentOrders = React.useMemo(() => {
-        return [...filteredOrders]
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-            .slice(0, 5);
-    }, [filteredOrders]);
-
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -176,66 +170,14 @@ export default function Dashboard() {
         </Card>
       </div>
 
-       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="lg:col-span-4">
-          <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Customer</TableHead>
-                  <TableHead className="hidden sm:table-cell">
-                    Status
-                  </TableHead>
-                  <TableHead className="hidden sm:table-cell">
-                    Date
-                  </TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentOrders.map((order) => (
-                    <TableRow key={order.id}>
-                        <TableCell>
-                            <div className="font-medium">{order.customerName}</div>
-                            <div className="hidden text-sm text-muted-foreground md:inline">
-                                {order.customerEmail}
-                            </div>
-                        </TableCell>
-                        <TableCell className="hidden sm:table-cell">
-                             <Badge
-                                variant={"outline"}
-                                className={cn('text-xs', 
-                                    statusColors[order.status] || "bg-gray-500/20 text-gray-700"
-                                )}
-                                >
-                                {order.status}
-                            </Badge>
-                        </TableCell>
-                        <TableCell className="hidden sm:table-cell">
-                            {format(new Date(order.date), "MMM d, yyyy")}
-                        </TableCell>
-                         <TableCell className="text-right font-mono">৳{order.total.toFixed(2)}</TableCell>
-                    </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-             {recentOrders.length === 0 && (
-                <div className="text-center p-8 text-muted-foreground">
-                    No orders found for the selected date range.
-                </div>
-             )}
-          </CardContent>
-        </Card>
-         <Card className="lg:col-span-3">
+       <div className="grid gap-4">
+         <Card>
               <CardHeader>
                   <CardTitle className="font-headline">Quick Access</CardTitle>
               </CardHeader>
               <CardContent>
                 <TooltipProvider>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
                         {quickAccessItems.map((item) => (
                             <Tooltip key={item.href}>
                                 <TooltipTrigger asChild>
@@ -259,5 +201,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
-  
