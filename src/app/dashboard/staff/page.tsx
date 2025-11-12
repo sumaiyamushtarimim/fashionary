@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { MoreHorizontal, PlusCircle, DollarSign, TrendingUp } from "lucide-react";
@@ -34,6 +35,11 @@ import { Separator } from "@/components/ui/separator";
 import React from "react";
 
 export default function StaffPage() {
+    const [isClient, setIsClient] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const totals = React.useMemo(() => {
         return staff.reduce((acc, member) => {
@@ -113,7 +119,7 @@ export default function StaffPage() {
                       <Badge variant="outline">{member.role}</Badge>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      {formatDistanceToNow(new Date(member.lastLogin), { addSuffix: true })}
+                      {isClient ? formatDistanceToNow(new Date(member.lastLogin), { addSuffix: true }) : '...'}
                     </TableCell>
                     <TableCell className={cn("text-right font-mono", member.financials.dueAmount > 0 ? "text-destructive" : "")}>
                         ৳{member.financials.dueAmount.toFixed(2)}

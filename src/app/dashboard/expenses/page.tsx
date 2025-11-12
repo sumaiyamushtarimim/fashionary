@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { MoreHorizontal, PlusCircle } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { format, isWithinInterval } from "date-fns";
@@ -64,6 +64,11 @@ export default function ExpensesPage() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAdExpense, setIsAdExpense] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const filteredExpenses = useMemo(() => {
     return expenses.filter((expense) => {
@@ -205,7 +210,7 @@ export default function ExpensesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredExpenses.map((expense) => (
+              {isClient && filteredExpenses.map((expense) => (
                 <TableRow key={expense.id} className="relative sm:table-row flex flex-col sm:flex-row p-4 sm:p-0 mb-4 sm:mb-0 border rounded-lg sm:border-b">
                    <TableCell className="font-medium p-0 sm:p-4 border-b sm:border-none pb-4 sm:pb-4">
                      <div className="font-bold">{format(new Date(expense.date), "MMM d, yyyy")}</div>

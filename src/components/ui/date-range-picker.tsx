@@ -48,10 +48,14 @@ export function DateRangePicker({
   className,
   placeholder = "Select a preset",
 }: DateRangePickerProps) {
-
+  const [isClient, setIsClient] = React.useState(false);
   const [preset, setPreset] = React.useState<Preset>("");
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
   const isMobile = useIsMobile();
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handlePresetChange = (selectedPreset: Preset) => {
     setPreset(selectedPreset);
@@ -112,13 +116,14 @@ export function DateRangePicker({
   };
   
 
-  if (isMobile) {
+  if (isClient && isMobile) {
     return (
         <Select value={preset} onValueChange={(value: Preset) => handlePresetChange(value)}>
             <SelectTrigger className="w-full">
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
+                <SelectItem value="">All time</SelectItem>
                 <SelectItem value="today">Today</SelectItem>
                 <SelectItem value="yesterday">Yesterday</SelectItem>
                 <SelectItem value="last7">Last 7 days</SelectItem>
@@ -136,6 +141,7 @@ export function DateRangePicker({
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
+                 <SelectItem value="">All time</SelectItem>
                 <SelectItem value="today">Today</SelectItem>
                 <SelectItem value="yesterday">Yesterday</SelectItem>
                 <SelectItem value="last7">Last 7 days</SelectItem>

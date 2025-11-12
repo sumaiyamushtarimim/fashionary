@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { MoreHorizontal, PlusCircle } from "lucide-react";
@@ -52,10 +53,11 @@ export default function PurchasesPage() {
     const filteredPurchaseOrders = useMemo(() => {
         return purchaseOrders.filter((po) => {
             const poDate = new Date(po.date);
-            if (dateRange?.from && dateRange?.to) {
-                return isWithinInterval(poDate, { start: dateRange.from, end: dateRange.to });
-            }
-            return true;
+            const dateMatch = !dateRange?.from || (dateRange?.from && dateRange?.to 
+                ? isWithinInterval(poDate, { start: dateRange.from, end: dateRange.to })
+                : true);
+
+            return dateMatch;
         });
     }, [dateRange]);
 
@@ -68,7 +70,7 @@ export default function PurchasesPage() {
             <p className="text-muted-foreground">Manage purchase orders and supplier payments.</p>
         </div>
         <div className="flex w-full items-center justify-between sm:w-auto sm:justify-start sm:gap-2">
-            <DateRangePicker date={dateRange} onDateChange={setDateRange} />
+            <DateRangePicker date={dateRange} onDateChange={setDateRange} placeholder="Filter by date" />
           <Button size="sm" asChild>
             <Link href="/dashboard/purchases/new">
                 <PlusCircle className="h-4 w-4 sm:mr-2" />
@@ -202,3 +204,4 @@ export default function PurchasesPage() {
     
 
     
+

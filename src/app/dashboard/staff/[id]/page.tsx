@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -54,8 +55,10 @@ export default function StaffDetailsPage() {
     const params = useParams();
     const staffId = params.id as string;
     const [staffMember, setStaffMember] = React.useState<StaffMember | undefined>(undefined);
+    const [isClient, setIsClient] = React.useState(false);
 
     React.useEffect(() => {
+        setIsClient(true);
         const member = staff.find((s) => s.id === staffId);
         if (member) {
             // In a real app, this data would come from an API.
@@ -145,7 +148,7 @@ export default function StaffDetailsPage() {
                         </div>
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">Last Login</span>
-                            <span>{new Date(staffMember.lastLogin).toLocaleString()}</span>
+                            <span>{isClient ? new Date(staffMember.lastLogin).toLocaleString() : '...'}</span>
                         </div>
                     </CardContent>
                 </Card>
