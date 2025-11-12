@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { suppliers, vendors } from "@/lib/placeholder-data";
+import Link from "next/link";
 
 export default function PartnersPage() {
   return (
@@ -73,7 +74,9 @@ export default function PartnersPage() {
                   {suppliers.map((supplier) => (
                     <TableRow key={supplier.id}>
                       <TableCell className="font-medium">
-                        {supplier.name}
+                        <Link href={`/dashboard/partners/${supplier.id}`} className="hover:underline">
+                            {supplier.name}
+                        </Link>
                       </TableCell>
                       <TableCell>{supplier.contactPerson}</TableCell>
                       <TableCell className="hidden sm:table-cell">
@@ -96,7 +99,9 @@ export default function PartnersPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>View Details</DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href={`/dashboard/partners/${supplier.id}`}>View Details</Link>
+                            </DropdownMenuItem>
                             <DropdownMenuItem>Edit</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -136,7 +141,9 @@ export default function PartnersPage() {
                   {vendors.map((vendor) => (
                     <TableRow key={vendor.id}>
                       <TableCell className="font-medium">
-                        {vendor.name}
+                        <Link href={`/dashboard/partners/${vendor.id}`} className="hover:underline">
+                            {vendor.name}
+                        </Link>
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -170,7 +177,9 @@ export default function PartnersPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>View Details</DropdownMenuItem>
+                             <DropdownMenuItem asChild>
+                                <Link href={`/dashboard/partners/${vendor.id}`}>View Details</Link>
+                            </DropdownMenuItem>
                             <DropdownMenuItem>Edit</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
