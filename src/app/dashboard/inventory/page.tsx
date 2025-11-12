@@ -1,4 +1,8 @@
-import { MoreHorizontal } from "lucide-react";
+
+'use client';
+
+import { MoreHorizontal, PlusCircle } from "lucide-react";
+import * as React from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,12 +14,31 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -24,9 +47,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { inventory } from "@/lib/placeholder-data";
+import { Textarea } from "@/components/ui/textarea";
+import { inventory, products } from "@/lib/placeholder-data";
+
 
 export default function InventoryPage() {
+    const [selectedProduct, setSelectedProduct] = React.useState<string | undefined>(undefined);
+    const currentStock = React.useMemo(() => {
+        if (!selectedProduct) return 0;
+        return inventory.find(item => item.productId === selectedProduct)?.quantity || 0;
+    }, [selectedProduct]);
+
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex items-center">
@@ -38,9 +70,67 @@ export default function InventoryPage() {
           <Button size="sm" variant="outline">
             Export
           </Button>
-          <Button size="sm">
-            Adjust Stock
-          </Button>
+           <Dialog>
+            <DialogTrigger asChild>
+                <Button size="sm">
+                    Adjust Stock
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                <DialogTitle>Adjust Stock</DialogTitle>
+                <DialogDescription>
+                    Make changes to your inventory quantities.
+                </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-6 py-4">
+                    <div className="grid gap-3">
+                        <Label htmlFor="product">Product</Label>
+                        <Select onValueChange={setSelectedProduct}>
+                            <SelectTrigger id="product">
+                                <SelectValue placeholder="Select a product" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {products.map(product => (
+                                    <SelectItem key={product.id} value={product.id}>
+                                        {product.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {selectedProduct && <p className="text-sm text-muted-foreground">Current stock: {currentStock} units</p>}
+                    </div>
+                    <div className="grid gap-3">
+                        <Label>Adjustment Type</Label>
+                        <RadioGroup defaultValue="add" className="flex gap-4">
+                            <Label htmlFor="add" className="flex items-center gap-2 cursor-pointer text-sm font-normal">
+                                <RadioGroupItem value="add" id="add" />
+                                Add
+                            </Label>
+                             <Label htmlFor="remove" className="flex items-center gap-2 cursor-pointer text-sm font-normal">
+                                <RadioGroupItem value="remove" id="remove" />
+                                Remove
+                            </Label>
+                             <Label htmlFor="set" className="flex items-center gap-2 cursor-pointer text-sm font-normal">
+                                <RadioGroupItem value="set" id="set" />
+                                Set New Quantity
+                            </Label>
+                        </RadioGroup>
+                    </div>
+                     <div className="grid gap-3">
+                        <Label htmlFor="quantity">Quantity</Label>
+                        <Input id="quantity" type="number" placeholder="e.g., 10" />
+                    </div>
+                    <div className="grid gap-3">
+                        <Label htmlFor="notes">Reason / Note</Label>
+                        <Textarea id="notes" placeholder="e.g., Damaged goods, stock count correction" />
+                    </div>
+                </div>
+                <DialogFooter>
+                <Button type="submit">Save Adjustment</Button>
+                </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       <Card>
@@ -109,5 +199,3 @@ export default function InventoryPage() {
     </div>
   );
 }
-
-    
