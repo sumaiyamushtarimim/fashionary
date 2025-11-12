@@ -239,6 +239,34 @@ export type Expense = {
     platform?: OrderPlatform;
 };
 
+export type WooCommerceIntegration = {
+    id: string;
+    storeName: string;
+    storeUrl: string;
+    consumerKey: string;
+    consumerSecret: string;
+    status: 'Active' | 'Inactive';
+};
+
+export const wooCommerceIntegrations: WooCommerceIntegration[] = [
+    {
+        id: 'woo-1',
+        storeName: 'My Main Store',
+        storeUrl: 'https://mainstore.com',
+        consumerKey: 'ck_xxxxxxxxxxxxxx_1234',
+        consumerSecret: 'cs_xxxxxxxxxxxxxx_5678',
+        status: 'Active',
+    },
+    {
+        id: 'woo-2',
+        storeName: 'Fashionary Wholesale',
+        storeUrl: 'https://wholesale.fashionary.com',
+        consumerKey: 'ck_xxxxxxxxxxxxxx_abcd',
+        consumerSecret: 'cs_xxxxxxxxxxxxxx_efgh',
+        status: 'Inactive',
+    }
+];
+
 export const expenseCategories: ExpenseCategory[] = [
     { id: 'exp-cat-1', name: 'Office Rent' },
     { id: 'exp-cat-2', name: 'Utilities (Electricity, Water)' },
@@ -737,6 +765,7 @@ export const bdDistricts: string[] = [
     
 
     
+
 
 
 
