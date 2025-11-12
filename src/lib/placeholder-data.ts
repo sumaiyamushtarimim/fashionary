@@ -1,4 +1,5 @@
 
+
 import type { ImagePlaceholder } from './placeholder-images';
 import { PlaceHolderImages } from './placeholder-images';
 
@@ -26,6 +27,7 @@ export type OrderStatus =
   | 'Partially Returned';
 
 export type OrderPlatform = 'TikTok' | 'Messenger' | 'Facebook' | 'Instagram' | 'Website';
+export type PaymentMethod = 'Cash on Delivery' | 'bKash' | 'Nagad';
 
 export type Business = {
     id: string;
@@ -63,6 +65,13 @@ export type Order = {
   confirmedBy?: string;
   businessId?: string;
   platform?: OrderPlatform;
+  shippingAddress: {
+    address: string;
+    district: string;
+    country: string;
+  };
+  paymentMethod: PaymentMethod;
+  paidAmount: number;
 };
 
 export type Customer = {
@@ -72,8 +81,10 @@ export type Customer = {
   phone: string;
   totalOrders: number;
   totalSpent: number;
-
   joinDate: string;
+  address: string;
+  district: string;
+  country: string;
 };
 
 export type InventoryItem = {
@@ -222,6 +233,13 @@ export const orders: Order[] = [
     confirmedBy: 'Jane Doe',
     businessId: 'BIZ001',
     platform: 'Website',
+    shippingAddress: {
+        address: '123 Main Street',
+        district: 'Dhaka',
+        country: 'Bangladesh',
+    },
+    paymentMethod: 'Cash on Delivery',
+    paidAmount: 0,
   },
   { 
     id: 'ORD-2024-002', 
@@ -245,6 +263,13 @@ export const orders: Order[] = [
     confirmedBy: 'Emily White',
     businessId: 'BIZ002',
     platform: 'TikTok',
+    shippingAddress: {
+        address: '456 Oak Avenue',
+        district: 'Chittagong',
+        country: 'Bangladesh',
+    },
+    paymentMethod: 'bKash',
+    paidAmount: 25.00,
   },
   { 
     id: 'ORD-2024-003', 
@@ -266,6 +291,13 @@ export const orders: Order[] = [
     createdBy: 'Emily White',
     businessId: 'BIZ001',
     platform: 'Facebook',
+    shippingAddress: {
+        address: '789 Pine Lane',
+        district: 'Sylhet',
+        country: 'Bangladesh',
+    },
+    paymentMethod: 'Nagad',
+    paidAmount: 50.00,
   },
   { 
     id: 'ORD-2024-004', 
@@ -290,6 +322,13 @@ export const orders: Order[] = [
     confirmedBy: 'Jane Doe',
     businessId: 'BIZ003',
     platform: 'Instagram',
+    shippingAddress: {
+        address: '101 Maple Drive',
+        district: 'Khulna',
+        country: 'Bangladesh',
+    },
+    paymentMethod: 'Cash on Delivery',
+    paidAmount: 0,
   },
   { 
     id: 'ORD-2024-005', 
@@ -312,15 +351,22 @@ export const orders: Order[] = [
     confirmedBy: 'Jane Doe',
     businessId: 'BIZ002',
     platform: 'Messenger',
+    shippingAddress: {
+        address: '212 Birch Street',
+        district: 'Rajshahi',
+        country: 'Bangladesh',
+    },
+    paymentMethod: 'bKash',
+    paidAmount: 120.50,
   },
 ];
 
 export const customers: Customer[] = [
-    { id: 'CUST001', name: 'Alice Johnson', email: 'alice@example.com', phone: '+8801712345678', totalOrders: 5, totalSpent: 750.25, joinDate: '2023-01-15' },
-    { id: 'CUST002', name: 'Bob Williams', email: 'bob@example.com', phone: '+8801812345679', totalOrders: 2, totalSpent: 125.00, joinDate: '2023-03-22' },
-    { id: 'CUST003', name: 'Charlie Brown', email: 'charlie@example.com', phone: '+8801912345680', totalOrders: 8, totalSpent: 1200.50, joinDate: '2022-11-30' },
-    { id: 'CUST004', name: 'Diana Prince', email: 'diana@example.com', phone: '+8801612345681', totalOrders: 3, totalSpent: 450.00, joinDate: '2023-08-10' },
-    { id: 'CUST005', name: 'Ethan Hunt', email: 'ethan@example.com', phone: '+8801512345682', totalOrders: 1, totalSpent: 95.00, joinDate: '2024-02-28' },
+    { id: 'CUST001', name: 'Alice Johnson', email: 'alice@example.com', phone: '+8801712345678', totalOrders: 5, totalSpent: 750.25, joinDate: '2023-01-15', address: '123 Main Street', district: 'Dhaka', country: 'Bangladesh' },
+    { id: 'CUST002', name: 'Bob Williams', email: 'bob@example.com', phone: '+8801812345679', totalOrders: 2, totalSpent: 125.00, joinDate: '2023-03-22', address: '456 Oak Avenue', district: 'Chittagong', country: 'Bangladesh' },
+    { id: 'CUST003', name: 'Charlie Brown', email: 'charlie@example.com', phone: '+8801912345680', totalOrders: 8, totalSpent: 1200.50, joinDate: '2022-11-30', address: '789 Pine Lane', district: 'Sylhet', country: 'Bangladesh' },
+    { id: 'CUST004', name: 'Diana Prince', email: 'diana@example.com', phone: '+8801612345681', totalOrders: 3, totalSpent: 450.00, joinDate: '2023-08-10', address: '101 Maple Drive', district: 'Khulna', country: 'Bangladesh' },
+    { id: 'CUST005', name: 'Ethan Hunt', email: 'ethan@example.com', phone: '+8801512345682', totalOrders: 1, totalSpent: 95.00, joinDate: '2024-02-28', address: '212 Birch Street', district: 'Rajshahi', country: 'Bangladesh' },
 ];
 
 export const inventory: InventoryItem[] = [
@@ -521,6 +567,20 @@ export const ordersByStatusData = [
     { status: 'New', value: 2, fill: 'var(--color-new)' },
     { status: 'Processing', value: 1, fill: 'var(--color-processing)' },
     { status: 'Completed', value: 2, fill: 'var(--color-completed)' },
+];
+
+export const bdDistricts: string[] = [
+    "Bagerhat", "Bandarban", "Barguna", "Barisal", "Bhola", "Bogra", "Brahmanbaria",
+    "Chandpur", "Chapainawabganj", "Chittagong", "Chuadanga", "Comilla", "Cox's Bazar",
+    "Dhaka", "Dinajpur", "Faridpur", "Feni", "Gaibandha", "Gazipur", "Gopalganj",
+    "Habiganj", "Jamalpur", "Jessore", "Jhalokati", "Jhenaidah", "Joypurhat",
+    "Khagrachhari", "Khulna", "Kishoreganj", "Kurigram", "Kushtia", "Lakshmipur",
+    "Lalmonirhat", "Madaripur", "Magura", "Manikganj", "Meherpur", "Moulvibazar",
+    "Munshiganj", "Mymensingh", "Naogaon", "Narail", "Narayanganj", "Narsingdi",
+    "Natore", "Netrokona", "Nilphamari", "Noakhali", "Pabna", "Panchagarh",
+    "Patuakhali", "Pirojpur", "Rajbari", "Rajshahi", "Rangamati", "Rangpur",
+    "Satkhira", "Shariatpur", "Sherpur", "Sirajganj", "Sunamganj", "Sylhet",
+    "Tangail", "Thakurgaon"
 ];
 
     

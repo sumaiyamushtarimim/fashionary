@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from "react";
@@ -31,7 +32,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { PlusCircle, Trash2, Store, Globe, Save } from "lucide-react";
-import { customers, products, businesses, OrderPlatform, OrderProduct } from "@/lib/placeholder-data";
+import { products, businesses, OrderPlatform, OrderProduct, PaymentMethod, bdDistricts } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 
 type OrderItem = {
@@ -43,18 +44,21 @@ type OrderItem = {
     image: OrderProduct['image'];
 };
 
-type Payment = {
-    cash: number;
-    check: number;
-};
-
 const allPlatforms: OrderPlatform[] = ['TikTok', 'Messenger', 'Facebook', 'Instagram', 'Website'];
+const allPaymentMethods: PaymentMethod[] = ['Cash on Delivery', 'bKash', 'Nagad'];
 
 export default function NewOrderPage() {
-    const [customerId, setCustomerId] = useState<string>('');
+    const [customerName, setCustomerName] = useState('');
+    const [customerPhone, setCustomerPhone] = useState('');
+    const [customerAddress, setCustomerAddress] = useState('');
+    const [customerDistrict, setCustomerDistrict] = useState('');
+
     const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
     const [shippingCost, setShippingCost] = useState<number>(0);
-    const [payment, setPayment] = useState<Payment>({ cash: 0, check: 0 });
+    
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Cash on Delivery');
+    const [paidAmount, setPaidAmount] = useState<number>(0);
+
     const [customerNote, setCustomerNote] = useState('');
     const [officeNote, setOfficeNote] = useState('');
     const [businessId, setBusinessId] = useState<string>('');
@@ -66,7 +70,7 @@ export default function NewOrderPage() {
 
     const tax = useMemo(() => subtotal * 0.08, [subtotal]);
     const total = useMemo(() => subtotal + shippingCost + tax, [subtotal, shippingCost, tax]);
-    const dueAmount = useMemo(() => total - (payment.cash + payment.check), [total, payment]);
+    const dueAmount = useMemo(() => total - paidAmount, [total, paidAmount]);
 
     const handleAddItem = () => {
         const defaultProduct = products[0];
@@ -102,10 +106,6 @@ export default function NewOrderPage() {
     
     const handleRemoveItem = (itemId: string) => {
         setOrderItems(prev => prev.filter(item => item.id !== itemId));
-    };
-
-    const handlePaymentChange = (field: keyof Payment, value: number) => {
-        setPayment(prev => ({...prev, [field]: value}));
     };
 
     return (
@@ -190,17 +190,38 @@ export default function NewOrderPage() {
                 <div className="space-y-8">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Customer</CardTitle>
+                            <CardTitle>Customer Information</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <Select value={customerId} onValueChange={setCustomerId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a customer" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
+                        <CardContent className="space-y-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="customer-name">Name</Label>
+                                <Input id="customer-name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Enter customer's name" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="customer-phone">Phone Number</Label>
+                                <Input id="customer-phone" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="Phone number (used to find existing customer)" />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="customer-address">Address</Label>
+                                <Textarea id="customer-address" value={customerAddress} onChange={(e) => setCustomerAddress(e.target.value)} placeholder="Enter full delivery address" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="customer-district">District</Label>
+                                     <Select value={customerDistrict} onValueChange={setCustomerDistrict}>
+                                        <SelectTrigger id="customer-district">
+                                            <SelectValue placeholder="Select District" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {bdDistricts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="customer-country">Country</Label>
+                                    <Input id="customer-country" value="Bangladesh" disabled />
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -253,7 +274,7 @@ export default function NewOrderPage() {
                             <CardTitle>Payment & Shipping</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="space-y-1 text-sm">
+                             <div className="space-y-1 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Subtotal</span>
                                     <span className="font-mono">${subtotal.toFixed(2)}</span>
@@ -273,18 +294,23 @@ export default function NewOrderPage() {
                                 </div>
                             </div>
                             <Separator />
-                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="cash-payment">Cash</Label>
-                                    <Input id="cash-payment" type="number" value={payment.cash || ''} onChange={(e) => handlePaymentChange('cash', Number(e.target.value))} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="check-payment">Check</Label>
-                                    <Input id="check-payment" type="number" value={payment.check || ''} onChange={(e) => handlePaymentChange('check', Number(e.target.value))} />
-                                </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="payment-method">Payment Method</Label>
+                                <Select value={paymentMethod} onValueChange={(v: PaymentMethod) => setPaymentMethod(v)}>
+                                    <SelectTrigger id="payment-method">
+                                        <SelectValue placeholder="Select payment method" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {allPaymentMethods.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
                             </div>
-                             <div className="flex justify-between font-semibold text-base">
-                                <span className={cn(dueAmount > 0 && "text-destructive")}>Due</span>
+                             <div className="space-y-2">
+                                <Label htmlFor="paid-amount">Paid Amount (Advance)</Label>
+                                <Input id="paid-amount" type="number" value={paidAmount || ''} onChange={(e) => setPaidAmount(Number(e.target.value))} placeholder="0.00"/>
+                            </div>
+                             <div className="flex justify-between font-semibold text-base mt-4">
+                                <span className={cn(dueAmount > 0 && "text-destructive")}>Due Amount</span>
                                 <span className={cn("font-mono", dueAmount > 0 && "text-destructive")}>${dueAmount.toFixed(2)}</span>
                             </div>
                         </CardContent>
