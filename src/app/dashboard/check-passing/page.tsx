@@ -120,10 +120,7 @@ type OverviewData = {
 
 export default function CheckPassingPage() {
   const [isClient, setIsClient] = React.useState(false);
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
-    from: startOfToday(),
-    to: addDays(new Date(), 30),
-  });
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
   const isMobile = useIsMobile();
 
   React.useEffect(() => {
@@ -190,11 +187,14 @@ export default function CheckPassingPage() {
   });
 
   const upcomingChecks = React.useMemo(() => {
+    if (!dateRange || !dateRange.from) {
+        return allChecks.filter(c => new Date(c.date) >= startOfToday());
+    }
     return allChecks.filter(check => {
         const checkDate = new Date(check.date);
         const dateMatch = dateRange?.from && dateRange?.to 
             ? isWithinInterval(checkDate, { start: dateRange.from, end: dateRange.to })
-            : true;
+            : isSameDay(checkDate, dateRange.from);
         return dateMatch;
     });
   }, [allChecks, dateRange]);
@@ -239,8 +239,8 @@ export default function CheckPassingPage() {
         <CardHeader>
             <CardTitle>Upcoming Checks</CardTitle>
             <CardDescription>
-                {dateRange?.from && dateRange?.to 
-                    ? `Showing checks from ${format(dateRange.from, "LLL dd, y")} to ${format(dateRange.to, "LLL dd, y")}`
+                {dateRange?.from 
+                    ? `Showing checks from ${format(dateRange.from, "LLL dd, y")}${dateRange.to ? ` to ${format(dateRange.to, "LLL dd, y")}`: ''}`
                     : "All scheduled check payments from today onwards."
                 }
             </CardDescription>
@@ -408,5 +408,3 @@ export default function CheckPassingPage() {
     </div>
   );
 }
-
-    

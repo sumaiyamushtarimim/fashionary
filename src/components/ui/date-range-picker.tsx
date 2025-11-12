@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { Calendar as CalendarIcon } from "lucide-react"
-import { addDays, format, subDays, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns"
+import { addDays, format, subDays, startOfDay, endOfDay } from "date-fns"
 import { DateRange } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
@@ -29,15 +29,15 @@ interface DateRangePickerProps {
     className?: string;
 }
 
-type Preset = "today" | "yesterday" | "last7" | "last30" | "last365" | "custom";
+type Preset = "today" | "yesterday" | "last7" | "last30" | "last365" | "custom" | "";
 
-const presetDisplay: Record<Preset, string> = {
+
+const presetDisplay: Record<Exclude<Preset, "" | "custom">, string> = {
     today: "Today",
     yesterday: "Yesterday",
     last7: "Last 7 days",
     last30: "Last 30 days",
     last365: "Last 365 days",
-    custom: "Custom Range",
 };
 
 
@@ -47,7 +47,7 @@ export function DateRangePicker({
   className,
 }: DateRangePickerProps) {
 
-  const [preset, setPreset] = React.useState<Preset>("custom");
+  const [preset, setPreset] = React.useState<Preset>("");
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
   const isMobile = useIsMobile();
 
@@ -55,6 +55,10 @@ export function DateRangePicker({
     setPreset(selectedPreset);
     if (selectedPreset === 'custom') {
         setIsPopoverOpen(true);
+        return;
+    }
+    if (selectedPreset === "") {
+        onDateChange(undefined);
         return;
     }
 
@@ -83,18 +87,17 @@ export function DateRangePicker({
   };
   
   React.useEffect(() => {
-    // If a date range is programmatically set that doesn't match a preset,
-    // default to showing "Custom Range".
-    // This handles the initial state. A more complex logic might be needed
-    // to match incoming date ranges to presets.
-    if (date) {
+    if (!date) {
+        setPreset("");
+    } else {
+        // A more complex logic can be added here to match a date range to a preset
         setPreset("custom");
     }
   }, [date]);
 
 
   const displayValue = () => {
-    if (preset !== 'custom' && preset) {
+    if (preset && preset !== 'custom') {
         return presetDisplay[preset];
     }
     if (date?.from) {
@@ -103,7 +106,7 @@ export function DateRangePicker({
       }
       return format(date.from, "LLL dd, y");
     }
-    return "Select a date range";
+    return "Select a date...";
   };
   
 
@@ -139,7 +142,7 @@ export function DateRangePicker({
             {displayValue()}
           </Button>
         </PopoverTrigger>
-         <div className={cn("pl-1 text-sm font-medium text-muted-foreground self-center", preset === 'custom' && "hidden")}>
+         <div className={cn("pl-1 text-sm font-medium text-muted-foreground self-center", preset === 'custom' || !preset ? "hidden" : "")}>
            {displayValue()}
         </div>
         <PopoverContent className="w-auto p-0" align="start">
