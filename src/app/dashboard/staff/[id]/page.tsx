@@ -251,33 +251,59 @@ export default function StaffDetailsPage() {
                         <CardDescription>A record of all commission earned from orders.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Order ID</TableHead>
-                                    <TableHead>Action</TableHead>
-                                    <TableHead className="text-right">Amount</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {staffMember.incomeHistory.map((income, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell>{income.date}</TableCell>
-                                        <TableCell>
-                                            <Button variant="link" asChild className="p-0 h-auto">
-                                                <Link href={`/dashboard/orders/${income.orderId}`}>{income.orderId}</Link>
-                                            </Button>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant={income.action === 'Created' ? 'secondary' : 'outline'}>{income.action}</Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right font-mono">+${income.amount.toLocaleString()}</TableCell>
+                        {/* Table for larger screens */}
+                        <div className="hidden sm:block">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Order ID</TableHead>
+                                        <TableHead>Action</TableHead>
+                                        <TableHead className="text-right">Amount</TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                        {staffMember.incomeHistory.length === 0 && (
+                                </TableHeader>
+                                <TableBody>
+                                    {staffMember.incomeHistory.map((income, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell>{income.date}</TableCell>
+                                            <TableCell>
+                                                <Button variant="link" asChild className="p-0 h-auto">
+                                                    <Link href={`/dashboard/orders/${income.orderId}`}>{income.orderId}</Link>
+                                                </Button>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant={income.action === 'Created' ? 'secondary' : 'outline'}>{income.action}</Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right font-mono">+${income.amount.toLocaleString()}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                        {/* Card list for smaller screens */}
+                        <div className="sm:hidden space-y-4">
+                            {staffMember.incomeHistory.map((income, index) => (
+                                <Card key={index}>
+                                    <CardContent className="p-4">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <p className="font-semibold">
+                                                     <Link href={`/dashboard/orders/${income.orderId}`} className="hover:underline">{income.orderId}</Link>
+                                                </p>
+                                                <p className="text-sm text-muted-foreground">{income.date}</p>
+                                            </div>
+                                            <Badge variant={income.action === 'Created' ? 'secondary' : 'outline'}>{income.action}</Badge>
+                                        </div>
+                                        <Separator className="my-3" />
+                                        <div className="flex justify-end items-center">
+                                            <p className="font-semibold font-mono text-lg">+${income.amount.toLocaleString()}</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+
+                        {(staffMember.incomeHistory.length === 0) && (
                             <div className="text-center text-muted-foreground py-8">No income history found.</div>
                         )}
                     </CardContent>
