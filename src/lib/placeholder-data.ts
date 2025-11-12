@@ -33,6 +33,12 @@ export type OrderProduct = {
   price: number;
 };
 
+export type OrderLog = {
+    status: OrderStatus;
+    timestamp: string;
+    description: string;
+};
+
 export type Order = {
   id: string;
   customerName: string;
@@ -41,6 +47,7 @@ export type Order = {
   status: OrderStatus;
   total: number;
   products: OrderProduct[];
+  logs: OrderLog[];
 };
 
 export type Customer = {
@@ -50,6 +57,7 @@ export type Customer = {
   phone: string;
   totalOrders: number;
   totalSpent: number;
+
   joinDate: string;
 };
 
@@ -119,7 +127,14 @@ export const orders: Order[] = [
     products: [
         { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price },
         { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: products[0].price }
-    ] 
+    ],
+    logs: [
+        { status: 'Delivered', timestamp: '2024-05-23T14:30:00Z', description: 'Package delivered to customer.' },
+        { status: 'Shipped', timestamp: '2024-05-21T10:00:00Z', description: 'Package has been shipped.' },
+        { status: 'Packing', timestamp: '2024-05-20T16:00:00Z', description: 'Items are being packed.' },
+        { status: 'Confirmed', timestamp: '2024-05-20T11:00:00Z', description: 'Order has been confirmed.' },
+        { status: 'New', timestamp: '2024-05-20T09:05:00Z', description: 'Order was placed.' },
+    ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
   },
   { 
     id: 'ORD-2024-002', 
@@ -130,7 +145,12 @@ export const orders: Order[] = [
     total: 25.00, 
     products: [
         { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: products[0].price }
-    ] 
+    ],
+    logs: [
+        { status: 'Packing', timestamp: '2024-05-22T11:00:00Z', description: 'Items are being packed.' },
+        { status: 'Confirmed', timestamp: '2024-05-21T18:00:00Z', description: 'Order has been confirmed.' },
+        { status: 'New', timestamp: '2024-05-21T14:20:00Z', description: 'Order was placed.' },
+    ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
   },
   { 
     id: 'ORD-2024-003', 
@@ -142,7 +162,10 @@ export const orders: Order[] = [
     products: [
         { productId: 'PROD003', name: 'Cashmere V-Neck Sweater', image: products[2].image, quantity: 1, price: products[2].price },
         { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price }
-    ]
+    ],
+    logs: [
+        { status: 'New', timestamp: '2024-05-22T08:00:00Z', description: 'Order was placed.' },
+    ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
   },
   { 
     id: 'ORD-2024-004', 
@@ -153,7 +176,13 @@ export const orders: Order[] = [
     total: 350.00, 
     products: [
         { productId: 'PROD004', name: 'Leather Biker Jacket', image: products[3].image, quantity: 1, price: products[3].price }
-    ] 
+    ],
+    logs: [
+        { status: 'Shipped', timestamp: '2024-05-24T09:00:00Z', description: 'Package has been shipped.' },
+        { status: 'Packing', timestamp: '2024-05-23T12:00:00Z', description: 'Items are being packed.' },
+        { status: 'Confirmed', timestamp: '2024-05-22T16:30:00Z', description: 'Order has been confirmed.' },
+        { status: 'New', timestamp: '2024-05-22T13:45:00Z', description: 'Order was placed.' },
+    ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
   },
   { 
     id: 'ORD-2024-005', 
@@ -164,7 +193,11 @@ export const orders: Order[] = [
     total: 120.50, 
     products: [
         { productId: 'PROD003', name: 'Cashmere V-Neck Sweater', image: products[2].image, quantity: 1, price: products[2].price }
-    ]
+    ],
+    logs: [
+        { status: 'Confirmed', timestamp: '2024-05-23T11:00:00Z', description: 'Order has been confirmed.' },
+        { status: 'New', timestamp: '2024-05-23T10:10:00Z', description: 'Order was placed.' },
+    ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
   },
 ];
 
@@ -186,12 +219,12 @@ export const inventory: InventoryItem[] = [
 ];
 
 export const purchaseOrders: PurchaseOrder[] = [
-    { id: 'PO-2024-001', supplier: 'Global Textiles Inc.', date: '2024-05-15', status: 'Received', total: 5000.00, items: 200 },
-    { id: 'PO-2024-002', supplier: 'Denim Dreams Co.', date: '2024-05-20', status: 'Cutting', total: 12000.00, items: 150 },
-    { id: 'PO-2024-003', supplier: 'Luxury Fibers Ltd.', date: '2024-05-25', status: 'Printing', total: 8500.00, items: 100 },
-    { id: 'PO-2024-004', supplier: 'Leather Masters', date: '2024-06-01', status: 'Fabric Ordered', total: 25000.00, items: 50 },
-    { id: 'PO-2024-005', supplier: 'Global Textiles Inc.', date: '2024-06-05', status: 'Draft', total: 7500.00, items: 300 },
-    { id: 'PO-2024-006', supplier: 'Denim Dreams Co.', date: '2024-04-10', status: 'Cancelled', total: 9200.00, items: 120 },
+    { id: 'PO-2024-001', supplier: 'Global Textiles Inc.', date: '2024-06-05', status: 'Received', total: 5000.00, items: 200 },
+    { id: 'PO-2024-002', supplier: 'Denim Dreams Co.', date: '2024-06-02', status: 'Cutting', total: 12000.00, items: 150 },
+    { id: 'PO-2024-003', supplier: 'Luxury Fibers Ltd.', date: '2024-06-01', status: 'Printing', total: 8500.00, items: 100 },
+    { id: 'PO-2024-004', supplier: 'Leather Masters', date: '2024-05-28', status: 'Fabric Ordered', total: 25000.00, items: 50 },
+    { id: 'PO-2024-005', supplier: 'Global Textiles Inc.', date: '2024-05-25', status: 'Draft', total: 7500.00, items: 300 },
+    { id: 'PO-2024-006', supplier: 'Denim Dreams Co.', date: '2024-05-10', status: 'Cancelled', total: 9200.00, items: 120 },
 ];
 
 export const staff: StaffMember[] = [

@@ -10,6 +10,10 @@ import {
   CreditCard,
   MoreVertical,
   Truck,
+  Package,
+  CheckCircle,
+  XCircle,
+  History,
 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -52,6 +56,8 @@ import {
     SelectTrigger,
     SelectValue,
   } from "@/components/ui/select";
+import { format } from 'date-fns';
+
 
 const statusColors: Record<OrderStatus, string> = {
     'New': 'bg-blue-500/20 text-blue-700',
@@ -66,6 +72,21 @@ const statusColors: Record<OrderStatus, string> = {
     'Returned': 'bg-gray-500/20 text-gray-700',
     'Partially Delivered': 'bg-teal-500/20 text-teal-700',
     'Partially Returned': 'bg-amber-500/20 text-amber-700',
+};
+
+const statusIcons: Record<OrderStatus, React.ElementType> = {
+    'New': Package,
+    'Confirmed': CheckCircle,
+    'Canceled': XCircle,
+    'Hold': History,
+    'Packing': Package,
+    'Packing Hold': History,
+    'RTS (Ready to Ship)': Package,
+    'Shipped': Truck,
+    'Delivered': CheckCircle,
+    'Returned': History,
+    'Partially Delivered': Truck,
+    'Partially Returned': History,
 };
 
 const allStatuses: OrderStatus[] = [
@@ -297,6 +318,39 @@ export default function OrderDetailsPage() {
                   <p>+1 234 567 890</p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+           <Card>
+            <CardHeader>
+                <CardTitle>Order History</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="relative">
+                    <div className="absolute left-4 top-0 bottom-0 w-px bg-border -translate-x-1/2"></div>
+                    <ul className="space-y-6">
+                        {order.logs.map((log, index) => {
+                            const Icon = statusIcons[log.status] || History;
+                            const isLast = index === 0;
+                            return (
+                                <li key={log.timestamp} className="relative flex items-start gap-4">
+                                    <div className={cn(
+                                        "w-8 h-8 rounded-full flex items-center justify-center bg-background border",
+                                        isLast ? "border-primary" : "border-border"
+                                    )}>
+                                        <Icon className={cn("h-4 w-4", isLast ? "text-primary" : "text-muted-foreground")} />
+                                    </div>
+                                    <div className="flex-1 pt-1">
+                                        <p className={cn("font-medium", isLast ? "text-foreground" : "text-muted-foreground")}>{log.status}</p>
+                                        <p className="text-sm text-muted-foreground">{log.description}</p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            {format(new Date(log.timestamp), "MMM d, yyyy, h:mm a")}
+                                        </p>
+                                    </div>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
             </CardContent>
           </Card>
         </div>
