@@ -1,5 +1,8 @@
-import { MoreHorizontal, PlusCircle } from "lucide-react";
 
+'use client';
+
+import { MoreHorizontal, PlusCircle } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,8 +34,16 @@ import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 
 export default function PartnersPage() {
+  const [isClient, setIsClient] = useState(false);
 
-  const calculatePartnerDues = () => {
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const partnerDues = useMemo(() => {
+    if (!isClient) {
+      return {};
+    }
     const partnerFinancials: Record<string, { totalBusiness: number, totalPaid: number }> = {};
 
     const initializePartner = (name: string) => {
@@ -69,10 +80,203 @@ export default function PartnersPage() {
     }
 
     return finalDues;
-  }
+  }, [isClient]);
 
-  const partnerDues = calculatePartnerDues();
+  const renderSupplierTable = () => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Supplier Name</TableHead>
+          <TableHead>Contact Person</TableHead>
+          <TableHead className="hidden sm:table-cell">Email</TableHead>
+          <TableHead className="text-right">Total Due</TableHead>
+          <TableHead><span className="sr-only">Actions</span></TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {suppliers.map((supplier) => {
+          const due = partnerDues[supplier.name] || 0;
+          return (
+            <TableRow key={supplier.id}>
+              <TableCell className="font-medium">
+                <Link href={`/dashboard/partners/${supplier.id}`} className="hover:underline">
+                  {supplier.name}
+                </Link>
+              </TableCell>
+              <TableCell>{supplier.contactPerson}</TableCell>
+              <TableCell className="hidden sm:table-cell">{supplier.email}</TableCell>
+              <TableCell className={cn("text-right font-mono", due > 0 ? "text-destructive" : "")}>
+                ৳{due.toFixed(2)}
+              </TableCell>
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Toggle menu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/dashboard/partners/${supplier.id}`}>View Details</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
+  );
 
+  const renderSupplierCards = () => (
+    <div className="space-y-4">
+      {suppliers.map((supplier) => {
+        const due = partnerDues[supplier.name] || 0;
+        return (
+          <Card key={supplier.id} className="overflow-hidden">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <Link href={`/dashboard/partners/${supplier.id}`} className="font-semibold hover:underline">
+                    {supplier.name}
+                  </Link>
+                  <p className="text-sm text-muted-foreground">{supplier.contactPerson}</p>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Toggle menu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/dashboard/partners/${supplier.id}`}>View Details</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              <Separator />
+              <div className="flex justify-between items-end">
+                <p className="text-xs text-muted-foreground">{supplier.email}</p>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Total Due</p>
+                  <p className={cn("font-semibold font-mono", due > 0 ? "text-destructive" : "")}>৳{due.toFixed(2)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+
+  const renderVendorTable = () => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Vendor Name</TableHead>
+          <TableHead>Type</TableHead>
+          <TableHead>Contact Person</TableHead>
+          <TableHead className="text-right">Total Due</TableHead>
+          <TableHead><span className="sr-only">Actions</span></TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {vendors.map((vendor) => {
+          const due = partnerDues[vendor.name] || 0;
+          return (
+            <TableRow key={vendor.id}>
+              <TableCell className="font-medium">
+                <Link href={`/dashboard/partners/${vendor.id}`} className="hover:underline">
+                  {vendor.name}
+                </Link>
+              </TableCell>
+              <TableCell>
+                <Badge variant={vendor.type === "Printing" ? "secondary" : "outline"}>
+                  {vendor.type}
+                </Badge>
+              </TableCell>
+              <TableCell>{vendor.contactPerson}</TableCell>
+              <TableCell className={cn("text-right font-mono", due > 0 ? "text-destructive" : "")}>
+                ৳{due.toFixed(2)}
+              </TableCell>
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Toggle menu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/dashboard/partners/${vendor.id}`}>View Details</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
+  );
+
+  const renderVendorCards = () => (
+    <div className="sm:hidden space-y-4">
+      {vendors.map((vendor) => {
+        const due = partnerDues[vendor.name] || 0;
+        return (
+          <Card key={vendor.id} className="overflow-hidden">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <Link href={`/dashboard/partners/${vendor.id}`} className="font-semibold hover:underline">
+                    {vendor.name}
+                  </Link>
+                  <p className="text-sm text-muted-foreground">{vendor.contactPerson}</p>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Toggle menu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/dashboard/partners/${vendor.id}`}>View Details</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              <Separator />
+              <div className="flex justify-between items-end">
+                <Badge variant={vendor.type === "Printing" ? "secondary" : "outline"}>
+                  {vendor.type}
+                </Badge>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Total Due</p>
+                  <p className={cn("font-semibold font-mono", due > 0 ? "text-destructive" : "")}>৳{due.toFixed(2)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -99,114 +303,14 @@ export default function PartnersPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-                {/* Table for larger screens */}
-                <div className="hidden sm:block">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Supplier Name</TableHead>
-                        <TableHead>Contact Person</TableHead>
-                        <TableHead className="hidden sm:table-cell">
-                          Email
-                        </TableHead>
-                        <TableHead className="text-right">Total Due</TableHead>
-                        <TableHead>
-                          <span className="sr-only">Actions</span>
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {suppliers.map((supplier) => {
-                        const due = partnerDues[supplier.name] || 0;
-                        return (
-                            <TableRow key={supplier.id}>
-                            <TableCell className="font-medium">
-                                <Link href={`/dashboard/partners/${supplier.id}`} className="hover:underline">
-                                    {supplier.name}
-                                </Link>
-                            </TableCell>
-                            <TableCell>{supplier.contactPerson}</TableCell>
-                            <TableCell className="hidden sm:table-cell">
-                                {supplier.email}
-                            </TableCell>
-                            <TableCell className={cn("text-right font-mono", due > 0 ? "text-destructive" : "")}>
-                                ৳{due.toFixed(2)}
-                            </TableCell>
-                            <TableCell>
-                                <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button
-                                    aria-haspopup="true"
-                                    size="icon"
-                                    variant="ghost"
-                                    >
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Toggle menu</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                    <DropdownMenuItem asChild>
-                                        <Link href={`/dashboard/partners/${supplier.id}`}>View Details</Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                                </DropdownMenuContent>
-                                </DropdownMenu>
-                            </TableCell>
-                            </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                {/* Card list for smaller screens */}
-                <div className="sm:hidden space-y-4">
-                     {suppliers.map((supplier) => {
-                        const due = partnerDues[supplier.name] || 0;
-                        return (
-                             <Card key={supplier.id} className="overflow-hidden">
-                                <CardContent className="p-4 space-y-3">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <Link href={`/dashboard/partners/${supplier.id}`} className="font-semibold hover:underline">
-                                                {supplier.name}
-                                            </Link>
-                                            <p className="text-sm text-muted-foreground">{supplier.contactPerson}</p>
-                                        </div>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                            <Button
-                                                aria-haspopup="true"
-                                                size="icon"
-                                                variant="ghost"
-                                            >
-                                                <MoreHorizontal className="h-4 w-4" />
-                                                <span className="sr-only">Toggle menu</span>
-                                            </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                            <DropdownMenuItem asChild>
-                                                <Link href={`/dashboard/partners/${supplier.id}`}>View Details</Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </div>
-                                    <Separator />
-                                    <div className="flex justify-between items-end">
-                                        <p className="text-xs text-muted-foreground">{supplier.email}</p>
-                                        <div className="text-right">
-                                            <p className="text-sm text-muted-foreground">Total Due</p>
-                                            <p className={cn("font-semibold font-mono", due > 0 ? "text-destructive" : "")}>৳{due.toFixed(2)}</p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )
-                     })}
-                </div>
+              {!isClient ? (
+                <div className="h-24 text-center flex items-center justify-center text-muted-foreground">Loading...</div>
+              ) : (
+                <>
+                  <div className="hidden sm:block">{renderSupplierTable()}</div>
+                  <div className="sm:hidden">{renderSupplierCards()}</div>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -219,126 +323,14 @@ export default function PartnersPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-                {/* Table for larger screens */}
-                <div className="hidden sm:block">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Vendor Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Contact Person</TableHead>
-                        <TableHead className="text-right">Total Due</TableHead>
-                        <TableHead>
-                          <span className="sr-only">Actions</span>
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {vendors.map((vendor) => {
-                        const due = partnerDues[vendor.name] || 0;
-                        return (
-                        <TableRow key={vendor.id}>
-                          <TableCell className="font-medium">
-                            <Link href={`/dashboard/partners/${vendor.id}`} className="hover:underline">
-                                {vendor.name}
-                            </Link>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={
-                                vendor.type === "Printing"
-                                  ? "secondary"
-                                  : "outline"
-                              }
-                            >
-                              {vendor.type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{vendor.contactPerson}</TableCell>
-                          <TableCell className={cn("text-right font-mono", due > 0 ? "text-destructive" : "")}>
-                            ৳{due.toFixed(2)}
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  aria-haspopup="true"
-                                  size="icon"
-                                  variant="ghost"
-                                >
-                                  <MoreHorizontal className="h-4 w-4" />
-                                  <span className="sr-only">Toggle menu</span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                 <DropdownMenuItem asChild>
-                                    <Link href={`/dashboard/partners/${vendor.id}`}>View Details</Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>Edit</DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      )})}
-                    </TableBody>
-                  </Table>
-                </div>
-                 {/* Card list for smaller screens */}
-                <div className="sm:hidden space-y-4">
-                     {vendors.map((vendor) => {
-                        const due = partnerDues[vendor.name] || 0;
-                        return (
-                             <Card key={vendor.id} className="overflow-hidden">
-                                <CardContent className="p-4 space-y-3">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <Link href={`/dashboard/partners/${vendor.id}`} className="font-semibold hover:underline">
-                                                {vendor.name}
-                                            </Link>
-                                            <p className="text-sm text-muted-foreground">{vendor.contactPerson}</p>
-                                        </div>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                            <Button
-                                                aria-haspopup="true"
-                                                size="icon"
-                                                variant="ghost"
-                                            >
-                                                <MoreHorizontal className="h-4 w-4" />
-                                                <span className="sr-only">Toggle menu</span>
-                                            </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                            <DropdownMenuItem asChild>
-                                                <Link href={`/dashboard/partners/${vendor.id}`}>View Details</Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </div>
-                                    <Separator />
-                                    <div className="flex justify-between items-end">
-                                        <Badge
-                                            variant={
-                                                vendor.type === "Printing"
-                                                ? "secondary"
-                                                : "outline"
-                                            }
-                                            >
-                                            {vendor.type}
-                                            </Badge>
-                                        <div className="text-right">
-                                            <p className="text-sm text-muted-foreground">Total Due</p>
-                                            <p className={cn("font-semibold font-mono", due > 0 ? "text-destructive" : "")}>৳{due.toFixed(2)}</p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )
-                     })}
-                </div>
+              {!isClient ? (
+                <div className="h-24 text-center flex items-center justify-center text-muted-foreground">Loading...</div>
+              ) : (
+                <>
+                  <div className="hidden sm:block">{renderVendorTable()}</div>
+                  <div className="sm:hidden">{renderVendorCards()}</div>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -346,7 +338,3 @@ export default function PartnersPage() {
     </div>
   );
 }
-
-    
-
-    

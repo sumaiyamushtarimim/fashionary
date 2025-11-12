@@ -27,6 +27,7 @@ import {
     DropdownMenuTrigger,
   } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const poStatusColors = {
@@ -49,6 +50,11 @@ type PaymentWithPO = Payment & {
 export default function PartnerDetailsPage() {
   const params = useParams();
   const partnerId = params.id as string;
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const partner: Partner | undefined = React.useMemo(() => 
     [...suppliers, ...vendors].find((p) => p.id === partnerId),
@@ -170,20 +176,30 @@ export default function PartnerDetailsPage() {
                 <CardTitle>Financial Overview</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-y-4 sm:grid-cols-3 sm:gap-x-4">
-                <div className="rounded-lg border bg-card p-4">
-                    <p className="text-xs text-muted-foreground">Total Business</p>
-                    <p className="text-2xl font-bold">৳{financials.totalBusiness.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-                </div>
-                <div className="rounded-lg border bg-card p-4">
-                    <p className="text-xs text-muted-foreground">Total Paid</p>
-                    <p className="text-2xl font-bold text-green-600">৳{financials.totalPaid.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-                </div>
-                <div className="rounded-lg border bg-card p-4">
-                    <p className="text-xs text-muted-foreground">Total Due</p>
-                    <p className={cn("text-2xl font-bold", financials.totalDue > 0 ? "text-destructive" : "")}>
-                        ৳{financials.totalDue.toLocaleString(undefined, {minimumFractionDigits: 2})}
-                    </p>
-                </div>
+                {isClient ? (
+                    <>
+                        <div className="rounded-lg border bg-card p-4">
+                            <p className="text-xs text-muted-foreground">Total Business</p>
+                            <p className="text-2xl font-bold">৳{financials.totalBusiness.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+                        </div>
+                        <div className="rounded-lg border bg-card p-4">
+                            <p className="text-xs text-muted-foreground">Total Paid</p>
+                            <p className="text-2xl font-bold text-green-600">৳{financials.totalPaid.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+                        </div>
+                        <div className="rounded-lg border bg-card p-4">
+                            <p className="text-xs text-muted-foreground">Total Due</p>
+                            <p className={cn("text-2xl font-bold", financials.totalDue > 0 ? "text-destructive" : "")}>
+                                ৳{financials.totalDue.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                            </p>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <Skeleton className="h-[98px]" />
+                        <Skeleton className="h-[98px]" />
+                        <Skeleton className="h-[98px]" />
+                    </>
+                )}
             </CardContent>
         </Card>
       </div>
@@ -274,7 +290,7 @@ export default function PartnerDetailsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {paymentHistory.map((payment, index) => {
+                            {isClient ? paymentHistory.map((payment, index) => {
                                 const totalPayment = (payment.cash || 0) + (payment.check || 0);
                                 if (totalPayment === 0) return null;
                                 const paymentDate = payment.checkDate ? payment.checkDate : payment.date;
@@ -294,10 +310,16 @@ export default function PartnerDetailsPage() {
                                     </TableCell>
                                     <TableCell className="text-right font-mono">৳{totalPayment.toFixed(2)}</TableCell>
                                 </TableRow>
-                            )})}
+                            )}) : (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="h-24 text-center">
+                                        Loading payment history...
+                                    </TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
-                    {paymentHistory.length === 0 && (
+                    {isClient && paymentHistory.length === 0 && (
                         <div className="flex items-center justify-center text-muted-foreground h-24">
                             No payment history found.
                         </div>
@@ -309,7 +331,3 @@ export default function PartnerDetailsPage() {
     </div>
   );
 }
-
-    
-
-    

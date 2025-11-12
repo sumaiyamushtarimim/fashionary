@@ -187,6 +187,7 @@ export default function CheckPassingPage() {
   });
 
   const upcomingChecks = React.useMemo(() => {
+    if (!isClient) return [];
     if (!dateRange || !dateRange.from) {
         return allChecks.filter(c => new Date(c.date) >= startOfToday());
     }
@@ -197,7 +198,7 @@ export default function CheckPassingPage() {
             : isSameDay(checkDate, dateRange.from);
         return dateMatch;
     });
-  }, [allChecks, dateRange]);
+  }, [allChecks, dateRange, isClient]);
 
 
   return (
@@ -408,7 +409,3 @@ export default function CheckPassingPage() {
     </div>
   );
 }
-
-    
-
-    
