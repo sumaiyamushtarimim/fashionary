@@ -54,10 +54,10 @@ import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 
 const mainQuickAccessItems = [
-    { href: "/dashboard/orders", icon: ShoppingCart, label: "Orders" },
-    { href: "/dashboard/products", icon: Package, label: "Products" },
-    { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
-    { href: "/dashboard/customers", icon: Users, label: "Customers" },
+    { href: "/dashboard/orders", icon: ShoppingCart, label: "Orders", color: "text-sky-500", bgColor: "bg-sky-500/10" },
+    { href: "/dashboard/products", icon: Package, label: "Products", color: "text-amber-500", bgColor: "bg-amber-500/10" },
+    { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory", color: "text-lime-500", bgColor: "bg-lime-500/10" },
+    { href: "/dashboard/customers", icon: Users, label: "Customers", color: "text-violet-500", bgColor: "bg-violet-500/10" },
 ];
 
 const secondaryQuickAccessItems = [
@@ -119,22 +119,26 @@ export default function Dashboard() {
             <DateRangePicker date={dateRange} onDateChange={setDateRange} />
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col-reverse sm:flex-col gap-6">
             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline">Quick Access</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <TooltipProvider>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                           {mainQuickAccessItems.map((item) => (
                               <Tooltip key={item.href}>
                                   <TooltipTrigger asChild>
                                   <Link href={item.href}>
-                                      <Button variant="outline" className="flex flex-col h-24 w-full p-2 justify-center items-center gap-2">
-                                          <item.icon className="h-8 w-8 text-muted-foreground" />
-                                          <span className="text-sm font-normal mt-1 text-center">{item.label}</span>
-                                      </Button>
+                                      <Card className="hover:bg-muted/50 transition-colors h-full">
+                                          <CardContent className="p-4 flex flex-col items-center justify-center gap-2">
+                                              <div className={cn("p-3 rounded-full", item.bgColor)}>
+                                                  <item.icon className={cn("h-6 w-6", item.color)} />
+                                              </div>
+                                              <span className="text-sm font-medium mt-1 text-center">{item.label}</span>
+                                          </CardContent>
+                                      </Card>
                                   </Link>
                                   </TooltipTrigger>
                                   <TooltipContent className="sm:hidden">
