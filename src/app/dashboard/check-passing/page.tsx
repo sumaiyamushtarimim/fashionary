@@ -39,9 +39,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from 'lucide-react';
-import { Bar, BarChart, CartesianGrid, XAxis, Tooltip, YAxis } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+import { Skeleton } from '@/components/ui/skeleton';
+import dynamic from 'next/dynamic';
 
 
 type CheckPayment = {
@@ -62,45 +69,50 @@ const statusColors: Record<CheckStatus, string> = {
 };
 
 
-const chartConfig = {
-  total: {
-    label: "Total",
-    color: "hsl(var(--chart-1))",
-  },
-} satisfies ChartConfig;
+const CheckOverviewCarousel = dynamic(
+    () => Promise.resolve(({ data }: { data: OverviewData[] }) => (
+        <Carousel
+            opts={{
+                align: "start",
+                loop: true,
+            }}
+            className="w-full max-w-xs mx-auto"
+        >
+            <CarouselContent>
+                {data.map((day, index) => (
+                    <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                        <div className="p-1">
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">{day.label}</CardTitle>
+                                    <span className="text-xs text-muted-foreground">{format(day.date, 'MMM d')}</span>
+                                </CardHeader>
+                                <CardContent className="flex flex-col items-center justify-center p-6 pt-2">
+                                    <div className="text-3xl font-bold">${day.total.toLocaleString()}</div>
+                                    <p className="text-xs text-muted-foreground mt-1">{day.count} pending {day.count === 1 ? 'check' : 'checks'}</p>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </CarouselItem>
+                ))}
+            </CarouselContent>
+            <CarouselPrevious className="hidden sm:flex" />
+            <CarouselNext className="hidden sm:flex" />
+        </Carousel>
+    )),
+    { 
+        ssr: false,
+        loading: () => <Skeleton className="h-[138px] w-full max-w-xs mx-auto" />
+    }
+);
 
 
-function CheckOverviewChart({ data }: { data: { label: string; date: Date; count: number; total: number }[] }) {
-    const chartData = data.map(d => ({...d, label: d.label.replace('In ', '').replace(' Days', 'D')}));
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Upcoming Check Totals</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-                    <BarChart accessibilityLayer data={chartData}>
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                            dataKey="label"
-                            tickLine={false}
-                            tickMargin={10}
-                            axisLine={false}
-                        />
-                         <YAxis
-                            tickFormatter={(value) => `$${Number(value) / 1000}k`}
-                            />
-                        <ChartTooltip
-                            cursor={false}
-                            content={<ChartTooltipContent indicator="dashed" />}
-                        />
-                        <Bar dataKey="total" fill="var(--color-total)" radius={4} />
-                    </BarChart>
-                </ChartContainer>
-            </CardContent>
-        </Card>
-    )
-}
+type OverviewData = {
+    label: string;
+    date: Date;
+    count: number;
+    total: number;
+};
 
 
 export default function CheckPassingPage() {
@@ -185,7 +197,9 @@ export default function CheckPassingPage() {
       </div>
 
         {isClient && isMobile ? (
-            <CheckOverviewChart data={overviewData} />
+            <div className='py-4'>
+                <CheckOverviewCarousel data={overviewData} />
+            </div>
         ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                 {overviewData.map(day => (
@@ -371,3 +385,5 @@ export default function CheckPassingPage() {
     </div>
   );
 }
+
+    
