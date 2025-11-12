@@ -9,7 +9,7 @@ import {
   TrendingDown,
   TrendingUp,
 } from 'lucide-react';
-import { Bar, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, ComposedChart, Line } from 'recharts';
+import { Bar, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, ComposedChart, Line, Legend } from 'recharts';
 
 
 import { Badge } from '@/components/ui/badge';
@@ -38,8 +38,9 @@ import {
     TableHeader,
     TableRow,
   } from '@/components/ui/table';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 
 const analyticsData = {
@@ -85,7 +86,7 @@ export default function AnalyticsPage() {
                     <h1 className="font-headline text-2xl font-bold">Business Analytics</h1>
                     <p className="text-muted-foreground hidden sm:block">An overview of your business&apos;s financial performance.</p>
                 </div>
-                 <div className="flex items-center gap-2">
+                 <div className="flex flex-col sm:flex-row items-center gap-2">
                     <Select defaultValue="all">
                         <SelectTrigger className="w-full sm:w-[180px]">
                             <SelectValue placeholder="Filter by business" />
@@ -101,7 +102,7 @@ export default function AnalyticsPage() {
                 </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -142,7 +143,7 @@ export default function AnalyticsPage() {
                         <p className="text-xs text-muted-foreground">Operational costs</p>
                     </CardContent>
                 </Card>
-                <Card className="bg-primary/10 border-primary">
+                <Card className="bg-primary/10 border-primary md:col-span-3 lg:col-span-1">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
                         <BarChart className="h-4 w-4 text-muted-foreground" />
@@ -167,6 +168,7 @@ export default function AnalyticsPage() {
                                 <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} />
                                 <YAxis tickFormatter={(value) => `৳${Number(value) / 1000}k`} />
                                 <ChartTooltip content={<ChartTooltipContent />} />
+                                <ChartLegend />
                                 <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
                                 <Line type="monotone" dataKey="profit" stroke="var(--color-profit)" strokeWidth={2} dot={false} />
                                 <Line type="monotone" dataKey="expenses" stroke="var(--color-expenses)" strokeWidth={2} dot={false} />
@@ -183,11 +185,8 @@ export default function AnalyticsPage() {
                          <ChartContainer config={expenseChartConfig} className="mx-auto aspect-square max-h-[300px]">
                             <PieChart>
                                 <ChartTooltip content={<ChartTooltipContent nameKey="amount" hideLabel />} />
-                                <Pie data={analyticsData.expenseBreakdown} dataKey="amount" nameKey="category" innerRadius={60}>
-                                    {analyticsData.expenseBreakdown.map((entry) => (
-                                        <PieChart.Cell key={entry.category} fill={entry.fill} />
-                                    ))}
-                                </Pie>
+                                <Pie data={analyticsData.expenseBreakdown} dataKey="amount" nameKey="category" innerRadius={60} />
+                                <ChartLegend content={<ChartLegendContent nameKey="category" />} className="-translate-y-2 flex-wrap gap-2" />
                             </PieChart>
                         </ChartContainer>
                     </CardContent>
@@ -200,35 +199,74 @@ export default function AnalyticsPage() {
                     <CardDescription>Detailed monthly financial breakdown.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Month</TableHead>
-                                <TableHead className="text-right">Revenue</TableHead>
-                                <TableHead className="text-right">COGS</TableHead>
-                                <TableHead className="text-right">Gross Profit</TableHead>
-                                <TableHead className="text-right">Expenses</TableHead>
-                                <TableHead className="text-right">Net Profit</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {analyticsData.monthlyBreakdown.map((row) => (
-                                <TableRow key={row.month}>
-                                    <TableCell className="font-medium">{row.month}</TableCell>
-                                    <TableCell className="text-right font-mono">৳{row.revenue.toLocaleString()}</TableCell>
-                                    <TableCell className="text-right font-mono text-red-500">৳{row.cogs.toLocaleString()}</TableCell>
-                                    <TableCell className="text-right font-mono">৳{(row.revenue - row.cogs).toLocaleString()}</TableCell>
-                                    <TableCell className="text-right font-mono text-red-500">৳{row.expenses.toLocaleString()}</TableCell>
-                                    <TableCell className={cn("text-right font-mono font-bold", row.profit >= 0 ? 'text-green-600' : 'text-red-600')}>
-                                        ৳{row.profit.toLocaleString()}
-                                    </TableCell>
+                    {/* For larger screens */}
+                    <div className="hidden sm:block">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Month</TableHead>
+                                    <TableHead className="text-right">Revenue</TableHead>
+                                    <TableHead className="text-right">COGS</TableHead>
+                                    <TableHead className="text-right">Gross Profit</TableHead>
+                                    <TableHead className="text-right">Expenses</TableHead>
+                                    <TableHead className="text-right">Net Profit</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {analyticsData.monthlyBreakdown.map((row) => (
+                                    <TableRow key={row.month}>
+                                        <TableCell className="font-medium">{row.month}</TableCell>
+                                        <TableCell className="text-right font-mono">৳{row.revenue.toLocaleString()}</TableCell>
+                                        <TableCell className="text-right font-mono text-red-500">৳{row.cogs.toLocaleString()}</TableCell>
+                                        <TableCell className="text-right font-mono">৳{(row.revenue - row.cogs).toLocaleString()}</TableCell>
+                                        <TableCell className="text-right font-mono text-red-500">৳{row.expenses.toLocaleString()}</TableCell>
+                                        <TableCell className={cn("text-right font-mono font-bold", row.profit >= 0 ? 'text-green-600' : 'text-red-600')}>
+                                            ৳{row.profit.toLocaleString()}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    {/* For smaller screens */}
+                    <div className="sm:hidden space-y-4">
+                        {analyticsData.monthlyBreakdown.map((row) => (
+                            <Card key={row.month}>
+                                <CardHeader>
+                                    <CardTitle>{row.month}</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-3 text-sm">
+                                    <div className='flex justify-between items-center'>
+                                        <span className='text-muted-foreground'>Revenue</span>
+                                        <span className='font-mono'>৳{row.revenue.toLocaleString()}</span>
+                                    </div>
+                                    <div className='flex justify-between items-center text-red-500'>
+                                        <span className='text-muted-foreground'>COGS</span>
+                                        <span className='font-mono'>৳{row.cogs.toLocaleString()}</span>
+                                    </div>
+                                     <div className='flex justify-between items-center'>
+                                        <span className='text-muted-foreground'>Gross Profit</span>
+                                        <span className='font-mono'>৳{(row.revenue - row.cogs).toLocaleString()}</span>
+                                    </div>
+                                     <div className='flex justify-between items-center text-red-500'>
+                                        <span className='text-muted-foreground'>Expenses</span>
+                                        <span className='font-mono'>৳{row.expenses.toLocaleString()}</span>
+                                    </div>
+                                    <Separator />
+                                     <div className={cn("flex justify-between items-center font-bold", row.profit >= 0 ? 'text-green-600' : 'text-red-600')}>
+                                        <span>Net Profit</span>
+                                        <span className='font-mono'>৳{row.profit.toLocaleString()}</span>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
                 </CardContent>
             </Card>
 
         </div>
     );
 }
+
+    
