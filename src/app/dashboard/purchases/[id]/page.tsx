@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Check, HardHat, Package, Truck, Minus, Plus, History, FileText } from "lucide-react";
+import { Check, HardHat, Package, Truck, Minus, Plus, History, FileText, Printer } from "lucide-react";
 import { purchaseOrders, suppliers, vendors, PurchaseOrderLog, PurchaseOrderStatus } from "@/lib/placeholder-data";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -206,7 +206,7 @@ export default function PurchaseOrderDetailsPage() {
                 <h1 className="font-headline text-2xl font-bold">
                     Purchase Order: {purchaseOrder.id}
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground hidden sm:block">
                     Manage and track production for this order.
                 </p>
             </div>
@@ -257,8 +257,12 @@ export default function PurchaseOrderDetailsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1 space-y-8">
                 <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Order Summary</CardTitle>
+                        <Button variant="outline" size="sm">
+                            <Printer className="mr-2 h-4 w-4" />
+                            Print Invoice
+                        </Button>
                     </CardHeader>
                     <CardContent className="space-y-2 text-sm">
                         <div className="flex justify-between">
@@ -301,9 +305,15 @@ export default function PurchaseOrderDetailsPage() {
             </div>
             <div className="lg:col-span-2 space-y-8">
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Step 2: Printing</CardTitle>
-                        <CardDescription>Manage printing vendor and costs.</CardDescription>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <CardTitle>Step 2: Printing</CardTitle>
+                            <CardDescription>Manage printing vendor and costs.</CardDescription>
+                        </div>
+                        <Button variant="outline" size="sm">
+                            <Printer className="mr-2 h-4 w-4" />
+                            Print Invoice
+                        </Button>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="grid grid-cols-2 gap-x-6 gap-y-4">
@@ -340,9 +350,15 @@ export default function PurchaseOrderDetailsPage() {
                     </CardFooter>
                 </Card>
                  <Card>
-                    <CardHeader>
-                        <CardTitle>Step 3: Cutting</CardTitle>
-                        <CardDescription>Manage cutting vendor and costs.</CardDescription>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <CardTitle>Step 3: Cutting</CardTitle>
+                            <CardDescription>Manage cutting vendor and costs.</CardDescription>
+                        </div>
+                        <Button variant="outline" size="sm">
+                            <Printer className="mr-2 h-4 w-4" />
+                            Print Invoice
+                        </Button>
                     </CardHeader>
                     <CardContent className="space-y-6">
                          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
@@ -386,5 +402,3 @@ export default function PurchaseOrderDetailsPage() {
     </div>
   );
 }
-
-    
