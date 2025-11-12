@@ -156,9 +156,9 @@ export default function OrdersPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex-1 flex flex-col sm:flex-row gap-4">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="col-span-2 sm:col-span-1 flex flex-col sm:flex-row gap-2">
+           <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full sm:w-[200px]">
                   <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
@@ -171,13 +171,13 @@ export default function OrdersPage() {
           </Select>
           <DateRangePicker date={dateRange} onDateChange={setDateRange} />
         </div>
-        <div className="flex flex-row-reverse sm:flex-row gap-2">
+        <div className="col-span-2 sm:col-span-1 flex justify-end gap-2">
+          <Button size="sm" variant="outline">
+            Export
+          </Button>
           <Button size="sm">
             <PlusCircle className="h-4 w-4 mr-2" />
             Add Order
-          </Button>
-           <Button size="sm" variant="outline">
-            Export
           </Button>
         </div>
       </div>
