@@ -114,10 +114,6 @@ export default function DashboardLayout({
               <Logo />
               <span className="font-headline text-xl">Fashionary</span>
             </Link>
-            <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
-              <Bell className="h-4 w-4" />
-              <span className="sr-only">Toggle notifications</span>
-            </Button>
           </div>
           <div className="flex-1">
             <NavLinks />
@@ -161,6 +157,20 @@ export default function DashboardLayout({
           <div className="w-full flex-1">
             {/* Can add a search bar here if needed */}
           </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="h-8 w-8">
+                    <Bell className="h-4 w-4" />
+                    <span className="sr-only">Toggle notifications</span>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>New order #ORD-2024-005 received.</DropdownMenuItem>
+                <DropdownMenuItem>Stock running low for "Organic Cotton T-Shirt".</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
