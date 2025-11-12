@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import {
   Card,
@@ -5,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { User, Building, Settings, Handshake, Bell, CreditCard, FolderKanban } from "lucide-react";
+import { User, Building, Settings, Handshake, Bell, CreditCard, FolderKanban, Truck } from "lucide-react";
 
 const settingsItems = [
     {
@@ -19,6 +20,12 @@ const settingsItems = [
         icon: FolderKanban,
         title: "Categories",
         description: "Manage product and expense categories."
+    },
+    {
+        href: "/dashboard/settings/courier",
+        icon: Truck,
+        title: "Courier Integrations",
+        description: "Connect and manage courier services."
     },
     {
         href: "#",

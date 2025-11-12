@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -101,6 +102,9 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isSettingsPage = pathname.startsWith('/dashboard/settings');
+
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
@@ -121,7 +125,7 @@ export default function DashboardLayout({
           <div className="mt-auto p-4">
             <Link
               href="/dashboard/settings"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              className={cn("flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary", isSettingsPage && "bg-muted text-primary")}
             >
               <Settings className="h-4 w-4" />
               Settings
@@ -146,7 +150,7 @@ export default function DashboardLayout({
               <div className="mt-auto">
                  <Link
                     href="/dashboard/settings"
-                    className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+                    className={cn("mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground", isSettingsPage && "bg-muted text-foreground")}
                   >
                     <Settings className="h-5 w-5" />
                     Settings
@@ -167,7 +171,9 @@ export default function DashboardLayout({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/settings">Settings</Link>
+              </DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
