@@ -192,7 +192,7 @@ export default function OrdersPage() {
             </TableHeader>
             <TableBody>
               {filteredOrders.map((order) => (
-                <TableRow key={order.id} className="sm:table-row flex flex-col sm:flex-row p-4 sm:p-0 mb-4 sm:mb-0 border rounded-lg sm:border-b">
+                <TableRow key={order.id} className="relative sm:table-row flex flex-col sm:flex-row p-4 sm:p-0 mb-4 sm:mb-0 border rounded-lg sm:border-b">
                    <TableCell className="font-medium p-0 sm:p-4 border-b sm:border-none pb-4 sm:pb-4">
                      <div className="flex items-center gap-4">
                         <div className="hidden sm:block">
@@ -246,29 +246,30 @@ export default function OrdersPage() {
                     ${order.total.toFixed(2)}
                   </td>
                   <TableCell className="p-0 sm:p-4">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                          className="absolute sm:relative top-2 right-2"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>Update Status</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">
-                          Cancel Order
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                     <div className="absolute sm:relative top-2 right-2">
+                        <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                            aria-haspopup="true"
+                            size="icon"
+                            variant="ghost"
+                            >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>Update Status</DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">
+                            Cancel Order
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                        </DropdownMenu>
+                     </div>
                   </TableCell>
                 </TableRow>
               ))}
