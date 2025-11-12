@@ -6,38 +6,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { User, Building, Settings, Handshake, Bell, CreditCard, FolderKanban, Truck } from "lucide-react";
+import { User, Building, Settings, Handshake, Bell, CreditCard, FolderKanban, Truck, MessageSquare, Mail } from "lucide-react";
 
 const settingsItems = [
+    {
+        href: "/dashboard/settings/general",
+        icon: Settings,
+        title: "General",
+        description: "Manage general application settings."
+    },
     {
         href: "/dashboard/staff",
         icon: User,
         title: "Profile & Staff",
         description: "Manage your personal profile and staff members."
-    },
-    {
-        href: "/dashboard/settings/categories",
-        icon: FolderKanban,
-        title: "Categories",
-        description: "Manage product and expense categories."
-    },
-    {
-        href: "/dashboard/settings/courier",
-        icon: Truck,
-        title: "Courier Integrations",
-        description: "Connect and manage courier services."
-    },
-    {
-        href: "/dashboard/settings/business",
-        icon: Building,
-        title: "Business Management",
-        description: "Manage your company details and brands."
-    },
-    {
-        href: "/dashboard/settings/integrations",
-        icon: Handshake,
-        title: "Integrations",
-        description: "Connect your other services to Fashionary."
     },
     {
         href: "/dashboard/settings/billing",
@@ -46,10 +28,40 @@ const settingsItems = [
         description: "Manage your subscription and payment methods."
     },
     {
-        href: "/dashboard/settings/general",
-        icon: Settings,
-        title: "General",
-        description: "Manage general application settings."
+        href: "/dashboard/settings/business",
+        icon: Building,
+        title: "Business Management",
+        description: "Manage your company details and brands."
+    },
+    {
+        href: "/dashboard/settings/categories",
+        icon: FolderKanban,
+        title: "Categories",
+        description: "Manage product and expense categories."
+    },
+    {
+        href: "/dashboard/settings/integrations",
+        icon: Handshake,
+        title: "Integrations",
+        description: "Connect your other services to Fashionary."
+    },
+    {
+        href: "/dashboard/settings/courier",
+        icon: Truck,
+        title: "Courier Integrations",
+        description: "Connect and manage courier services."
+    },
+    {
+        href: "/dashboard/settings/sms",
+        icon: MessageSquare,
+        title: "SMS Gateway",
+        description: "Configure your SMS provider for notifications."
+    },
+    {
+        href: "/dashboard/settings/smtp",
+        icon: Mail,
+        title: "SMTP",
+        description: "Set up your email sending service."
     },
     {
         href: "#",

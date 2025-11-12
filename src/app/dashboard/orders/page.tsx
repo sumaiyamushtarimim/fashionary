@@ -32,6 +32,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   Select,
@@ -52,6 +53,7 @@ import {
 import { orders, businesses, OrderStatus, OrderProduct } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const statusColors: Record<OrderStatus, string> = {
     'New': 'bg-blue-500/20 text-blue-700',
@@ -142,6 +144,7 @@ export default function OrdersPage() {
   const [businessFilter, setBusinessFilter] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -170,11 +173,41 @@ export default function OrdersPage() {
     });
   }, [statusFilter, businessFilter, dateRange, searchTerm]);
 
+  useEffect(() => {
+    setSelectedOrders([]);
+  }, [statusFilter, businessFilter, dateRange, searchTerm]);
+
+  const handleSelectAll = (checked: boolean | 'indeterminate') => {
+    if (checked === true) {
+      setSelectedOrders(filteredOrders.map(o => o.id));
+    } else {
+      setSelectedOrders([]);
+    }
+  };
+
+  const handleSelectOrder = (orderId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedOrders(prev => [...prev, orderId]);
+    } else {
+      setSelectedOrders(prev => prev.filter(id => id !== orderId));
+    }
+  };
+
+  const isAllSelected = selectedOrders.length > 0 && selectedOrders.length === filteredOrders.length;
+  const isSomeSelected = selectedOrders.length > 0 && selectedOrders.length < filteredOrders.length;
+
 
   const renderTable = () => (
      <Table>
             <TableHeader>
               <TableRow>
+                <TableHead padding="checkbox">
+                  <Checkbox
+                    checked={isAllSelected || (isSomeSelected && 'indeterminate')}
+                    onCheckedChange={handleSelectAll}
+                    aria-label="Select all"
+                  />
+                </TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Status</TableHead>
@@ -188,7 +221,14 @@ export default function OrdersPage() {
             </TableHeader>
             <TableBody>
               {filteredOrders.map((order) => (
-                <TableRow key={order.id}>
+                <TableRow key={order.id} data-state={selectedOrders.includes(order.id) && "selected"}>
+                   <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={selectedOrders.includes(order.id)}
+                        onCheckedChange={(checked) => handleSelectOrder(order.id, !!checked)}
+                        aria-label={`Select order ${order.id}`}
+                      />
+                    </TableCell>
                    <TableCell className="font-medium">
                      <div className="flex items-center gap-4">
                         <div>
@@ -250,8 +290,15 @@ export default function OrdersPage() {
   const renderCardList = () => (
       <div className="space-y-4">
         {filteredOrders.map((order) => (
-            <Card key={order.id}>
-                <CardContent className="p-4">
+            <Card key={order.id} className={cn("relative", selectedOrders.includes(order.id) && "border-primary")}>
+                <div className="absolute top-2 left-2">
+                    <Checkbox
+                        checked={selectedOrders.includes(order.id)}
+                        onCheckedChange={(checked) => handleSelectOrder(order.id, !!checked)}
+                        aria-label={`Select order ${order.id}`}
+                    />
+                </div>
+                <CardContent className="p-4 pl-10">
                     <div className="flex items-start gap-4">
                         <OrderImages products={order.products} />
                         <div className="flex-1">
@@ -355,13 +402,32 @@ export default function OrdersPage() {
           <CardDescription>
             Manage and track all customer orders.
           </CardDescription>
-          <div className="pt-4">
+          <div className="pt-4 flex flex-col sm:flex-row gap-4">
               <Input
                 placeholder="Search by Order ID, Customer..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="max-w-sm"
               />
+              {selectedOrders.length > 0 && (
+                <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">{selectedOrders.length} selected</span>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">Bulk Actions</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                             <DropdownMenuLabel>Update Status for {selectedOrders.length} orders</DropdownMenuLabel>
+                             <DropdownMenuSeparator />
+                             {allStatuses.map(status => (
+                                <DropdownMenuItem key={status}>Mark as {status}</DropdownMenuItem>
+                             ))}
+                             <DropdownMenuSeparator />
+                             <DropdownMenuItem className="text-destructive">Delete Selected</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+              )}
             </div>
         </CardHeader>
         <CardContent>
@@ -383,5 +449,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
