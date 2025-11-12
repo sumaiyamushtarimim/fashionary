@@ -46,6 +46,7 @@ const navItems = [
   { href: "/dashboard/partners", icon: Handshake, label: "Partners" },
   { href: "/dashboard/analytics", icon: BarChartHorizontal, label: "Analytics" },
   { href: "/dashboard/staff", icon: User, label: "Staff" },
+  { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
 function NavLinks() {
