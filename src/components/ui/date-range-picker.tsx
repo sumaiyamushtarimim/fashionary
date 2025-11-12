@@ -30,10 +30,10 @@ interface DateRangePickerProps {
     placeholder?: string;
 }
 
-type Preset = "today" | "yesterday" | "last7" | "last30" | "last365" | "custom" | "";
+type Preset = "today" | "yesterday" | "last7" | "last30" | "last365" | "custom" | "all-time";
 
 
-const presetDisplay: Record<Exclude<Preset, "" | "custom">, string> = {
+const presetDisplay: Record<Exclude<Preset, "all-time" | "custom">, string> = {
     today: "Today",
     yesterday: "Yesterday",
     last7: "Last 7 days",
@@ -49,7 +49,7 @@ export function DateRangePicker({
   placeholder = "Select a preset",
 }: DateRangePickerProps) {
   const [isClient, setIsClient] = React.useState(false);
-  const [preset, setPreset] = React.useState<Preset>("");
+  const [preset, setPreset] = React.useState<Preset>("all-time");
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
   const isMobile = useIsMobile();
 
@@ -63,7 +63,7 @@ export function DateRangePicker({
         setIsPopoverOpen(true);
         return;
     }
-    if (selectedPreset === "") {
+    if (selectedPreset === "all-time") {
         onDateChange(undefined);
         return;
     }
@@ -94,7 +94,7 @@ export function DateRangePicker({
   
   React.useEffect(() => {
     if (!date) {
-        setPreset("");
+        setPreset("all-time");
     } else {
         // A more complex logic can be added here to match a date range to a preset
         setPreset("custom");
@@ -103,7 +103,7 @@ export function DateRangePicker({
 
 
   const displayValue = () => {
-    if (preset && preset !== 'custom') {
+    if (preset && preset !== 'custom' && preset !== 'all-time') {
         return presetDisplay[preset];
     }
     if (date?.from) {
@@ -123,7 +123,7 @@ export function DateRangePicker({
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value="">All time</SelectItem>
+                <SelectItem value="all-time">All time</SelectItem>
                 <SelectItem value="today">Today</SelectItem>
                 <SelectItem value="yesterday">Yesterday</SelectItem>
                 <SelectItem value="last7">Last 7 days</SelectItem>
@@ -141,7 +141,7 @@ export function DateRangePicker({
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
-                 <SelectItem value="">All time</SelectItem>
+                 <SelectItem value="all-time">All time</SelectItem>
                 <SelectItem value="today">Today</SelectItem>
                 <SelectItem value="yesterday">Yesterday</SelectItem>
                 <SelectItem value="last7">Last 7 days</SelectItem>
@@ -167,7 +167,7 @@ export function DateRangePicker({
             {displayValue()}
           </Button>
         </PopoverTrigger>
-         <div className={cn("pl-1 text-sm font-medium text-muted-foreground self-center", preset === 'custom' || !preset ? "hidden" : "")}>
+         <div className={cn("pl-1 text-sm font-medium text-muted-foreground self-center", preset === 'custom' || preset === 'all-time' ? "hidden" : "")}>
            {displayValue()}
         </div>
         <PopoverContent className="w-auto p-0" align="start">
