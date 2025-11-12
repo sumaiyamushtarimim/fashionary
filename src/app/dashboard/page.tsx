@@ -14,6 +14,10 @@ import {
   PackagePlus,
   Ship,
   ClipboardList,
+  Wallet,
+  Landmark,
+  BarChartHorizontal,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 import * as React from 'react';
@@ -47,15 +51,24 @@ import {
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { orders, OrderStatus, Order } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
 
-const quickAccessItems = [
+const mainQuickAccessItems = [
     { href: "/dashboard/orders", icon: ShoppingCart, label: "Orders" },
     { href: "/dashboard/products", icon: Package, label: "Products" },
     { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
     { href: "/dashboard/customers", icon: Users, label: "Customers" },
-    { href: "/dashboard/purchases", icon: Truck, label: "Purchases" },
-    { href: "/dashboard/partners", icon: Handshake, label: "Partners" },
-]
+];
+
+const secondaryQuickAccessItems = [
+  { href: "/dashboard/purchases", icon: Truck, label: "Purchases" },
+  { href: "/dashboard/expenses", icon: Wallet, label: "Expenses" },
+  { href: "/dashboard/check-passing", icon: Landmark, label: "Check Passing"},
+  { href: "/dashboard/partners", icon: Handshake, label: "Partners" },
+  { href: "/dashboard/analytics", icon: BarChartHorizontal, label: "Analytics" },
+  { href: "/dashboard/staff", icon: User, label: "Staff" },
+];
+
 
 const statusColors: Record<OrderStatus, string> = {
     'New': 'bg-blue-500/20 text-blue-700',
@@ -106,98 +119,120 @@ export default function Dashboard() {
             <DateRangePicker date={dateRange} onDateChange={setDateRange} />
         </div>
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-5 md:gap-8">
-         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <ClipboardList className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{filteredOrders.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {dateRange?.from ? format(dateRange.from, "MMM d") : ''}
-              {dateRange?.to ? ` - ${format(dateRange.to, "MMM d")}` : ''}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New Orders</CardTitle>
-            <PackagePlus className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+{orderStats['New'] || 0}</div>
-             <p className="text-xs text-muted-foreground">
-              Awaiting confirmation
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Packing</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{orderStats['Packing'] || 0}</div>
-             <p className="text-xs text-muted-foreground">
-              Items being prepared
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Shipped</CardTitle>
-            <Ship className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{orderStats['Shipped'] || 0}</div>
-             <p className="text-xs text-muted-foreground">
-              On the way to customers
-            </p>
-          </CardContent>
-        </Card>
-         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Delivered</CardTitle>
-            <PackageCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{orderStats['Delivered'] || 0}</div>
-             <p className="text-xs text-muted-foreground">
-              Successfully delivered
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+        <div className="flex flex-col-reverse lg:flex-col gap-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">Quick Access</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <TooltipProvider>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {mainQuickAccessItems.map((item) => (
+                              <Tooltip key={item.href}>
+                                  <TooltipTrigger asChild>
+                                  <Link href={item.href}>
+                                      <Button variant="outline" className="flex flex-col h-24 w-full p-2 justify-center items-center gap-2">
+                                          <item.icon className="h-8 w-8 text-muted-foreground" />
+                                          <span className="text-sm font-normal mt-1 text-center">{item.label}</span>
+                                      </Button>
+                                  </Link>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="sm:hidden">
+                                  <p>{item.label}</p>
+                                  </TooltipContent>
+                              </Tooltip>
+                          ))}
+                      </div>
+                  </TooltipProvider>
 
-       <div className="grid gap-4">
-         <Card>
-              <CardHeader>
-                  <CardTitle className="font-headline">Quick Access</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <TooltipProvider>
-                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-                        {quickAccessItems.map((item) => (
-                            <Tooltip key={item.href}>
-                                <TooltipTrigger asChild>
-                                <Link href={item.href}>
-                                    <Button variant="outline" className="flex flex-col h-20 w-full p-2 justify-center items-center gap-1">
-                                        <item.icon className="h-6 w-6 text-muted-foreground" />
-                                        <span className="text-xs font-normal mt-1 text-center">{item.label}</span>
-                                    </Button>
-                                </Link>
-                                </TooltipTrigger>
-                                <TooltipContent className="sm:hidden">
-                                <p>{item.label}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        ))}
-                    </div>
-                </TooltipProvider>
-              </CardContent>
-          </Card>
-      </div>
+                  <Separator />
+
+                  <TooltipProvider>
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                          {secondaryQuickAccessItems.map((item) => (
+                              <Tooltip key={item.href}>
+                                  <TooltipTrigger asChild>
+                                  <Link href={item.href}>
+                                      <Button variant="outline" className="flex flex-col h-20 w-full p-2 justify-center items-center gap-1">
+                                          <item.icon className="h-6 w-6 text-muted-foreground" />
+                                          <span className="text-xs font-normal mt-1 text-center">{item.label}</span>
+                                      </Button>
+                                  </Link>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="sm:hidden">
+                                  <p>{item.label}</p>
+                                  </TooltipContent>
+                              </Tooltip>
+                          ))}
+                      </div>
+                  </TooltipProvider>
+                </CardContent>
+            </Card>
+
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-5 md:gap-8">
+                <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                    <ClipboardList className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{filteredOrders.length}</div>
+                    <p className="text-xs text-muted-foreground">
+                    {dateRange?.from ? format(dateRange.from, "MMM d") : ''}
+                    {dateRange?.to ? ` - ${format(dateRange.to, "MMM d")}` : ''}
+                    </p>
+                </CardContent>
+                </Card>
+                <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">New Orders</CardTitle>
+                    <PackagePlus className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">+{orderStats['New'] || 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                    Awaiting confirmation
+                    </p>
+                </CardContent>
+                </Card>
+                <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Packing</CardTitle>
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{orderStats['Packing'] || 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                    Items being prepared
+                    </p>
+                </CardContent>
+                </Card>
+                <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Shipped</CardTitle>
+                    <Ship className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{orderStats['Shipped'] || 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                    On the way to customers
+                    </p>
+                </CardContent>
+                </Card>
+                <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Delivered</CardTitle>
+                    <PackageCheck className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{orderStats['Delivered'] || 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                    Successfully delivered
+                    </p>
+                </CardContent>
+                </Card>
+            </div>
+        </div>
     </div>
   );
 }
