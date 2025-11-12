@@ -172,7 +172,7 @@ export default function OrdersPage() {
           <DateRangePicker date={dateRange} onDateChange={setDateRange} />
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" className="hidden sm:inline-flex">
             Export
           </Button>
           <Button size="sm" asChild>
@@ -304,5 +304,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
