@@ -1,5 +1,10 @@
 import { MoreHorizontal, PlusCircle } from "lucide-react";
 import Link from "next/link";
+import { DateRange } from "react-day-picker";
+import { addDays, format, isWithinInterval } from "date-fns";
+import React, { useState, useMemo } from "react";
+import { Calendar as CalendarIcon } from "lucide-react";
+
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +34,13 @@ import {
 import { purchaseOrders } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+
 
 const statusColors = {
     'Received': 'bg-green-500/20 text-green-700',
@@ -40,6 +52,23 @@ const statusColors = {
 };
 
 export default function PurchasesPage() {
+
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+        from: addDays(new Date(), -30),
+        to: new Date(),
+    });
+
+    const filteredPurchaseOrders = useMemo(() => {
+        return purchaseOrders.filter((po) => {
+            const poDate = new Date(po.date);
+            if (dateRange?.from && dateRange?.to) {
+                return isWithinInterval(poDate, { start: dateRange.from, end: dateRange.to });
+            }
+            return true;
+        });
+    }, [dateRange]);
+
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex items-center">
@@ -48,6 +77,42 @@ export default function PurchasesPage() {
             <p className="text-muted-foreground">Manage purchase orders and supplier payments.</p>
         </div>
         <div className="flex items-center gap-2">
+            <Popover>
+                <PopoverTrigger asChild>
+                <Button
+                    id="date"
+                    variant={"outline"}
+                    className={cn(
+                    "w-[260px] justify-start text-left font-normal",
+                    !dateRange && "text-muted-foreground"
+                    )}
+                >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateRange?.from ? (
+                    dateRange.to ? (
+                        <>
+                        {format(dateRange.from, "LLL dd, y")} -{" "}
+                        {format(dateRange.to, "LLL dd, y")}
+                        </>
+                    ) : (
+                        format(dateRange.from, "LLL dd, y")
+                    )
+                    ) : (
+                    <span>Pick a date</span>
+                    )}
+                </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={dateRange?.from}
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    numberOfMonths={2}
+                />
+                </PopoverContent>
+            </Popover>
           <Button size="sm" asChild>
             <Link href="/dashboard/purchases/new">
                 <PlusCircle className="h-4 w-4 mr-2" />
@@ -74,7 +139,7 @@ export default function PurchasesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {purchaseOrders.map((po) => (
+                {filteredPurchaseOrders.map((po) => (
                   <TableRow key={po.id}>
                     <TableCell className="font-medium">
                       <Link href={`/dashboard/purchases/${po.id}`} className="hover:underline">
@@ -82,7 +147,7 @@ export default function PurchasesPage() {
                       </Link>
                     </TableCell>
                     <TableCell>{po.supplier}</TableCell>
-                    <TableCell>{po.date}</TableCell>
+                    <TableCell>{format(new Date(po.date), "MMM d, yyyy")}</TableCell>
                     <TableCell>
                       <Badge variant={'outline'} className={cn(statusColors[po.status] || 'bg-gray-500/20 text-gray-700')}>
                           {po.status}
@@ -118,7 +183,7 @@ export default function PurchasesPage() {
 
           {/* Card list for smaller screens */}
           <div className="sm:hidden space-y-4">
-            {purchaseOrders.map((po) => (
+            {filteredPurchaseOrders.map((po) => (
                 <Card key={po.id} className="overflow-hidden">
                     <CardContent className="p-4 space-y-3">
                         <div className="flex justify-between items-start">
@@ -153,7 +218,7 @@ export default function PurchasesPage() {
                         
                         <div className="flex justify-between items-end">
                             <div>
-                                <p className="text-xs text-muted-foreground mb-1">{po.date}</p>
+                                <p className="text-xs text-muted-foreground mb-1">{format(new Date(po.date), "MMM d, yyyy")}</p>
                                 <Badge variant={'outline'} className={cn('text-xs', statusColors[po.status] || 'bg-gray-500/20 text-gray-700')}>
                                     {po.status}
                                 </Badge>
@@ -173,3 +238,5 @@ export default function PurchasesPage() {
     </div>
   );
 }
+
+    

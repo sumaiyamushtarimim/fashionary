@@ -1,10 +1,12 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MoreHorizontal, PlusCircle } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Calendar as CalendarIcon } from "lucide-react";
+import { DateRange } from "react-day-picker";
+import { addDays, format, isWithinInterval } from "date-fns";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,6 +40,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Table,
   TableBody,
@@ -134,18 +142,31 @@ function OrderImages({ products }: { products: OrderProduct[] }) {
 }
 
 export default function OrdersPage() {
-  const [filter, setFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: addDays(new Date(), -30),
+    to: new Date(),
+  });
 
-  const filteredOrders =
-    filter === "all"
-      ? orders
-      : orders.filter((order) => order.status === filter);
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
+      const statusMatch = statusFilter === "all" || order.status === statusFilter;
+      
+      const orderDate = new Date(order.date);
+      const dateMatch = dateRange?.from && dateRange?.to 
+        ? isWithinInterval(orderDate, { start: dateRange.from, end: dateRange.to })
+        : true;
+
+      return statusMatch && dateMatch;
+    });
+  }, [statusFilter, dateRange]);
+
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex-1">
-          <Select value={filter} onValueChange={setFilter}>
+        <div className="flex-1 flex flex-col sm:flex-row gap-4">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full sm:w-[200px]">
                   <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
@@ -156,6 +177,42 @@ export default function OrdersPage() {
                   ))}
               </SelectContent>
           </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id="date"
+                variant={"outline"}
+                className={cn(
+                  "w-full sm:w-[300px] justify-start text-left font-normal",
+                  !dateRange && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateRange?.from ? (
+                  dateRange.to ? (
+                    <>
+                      {format(dateRange.from, "LLL dd, y")} -{" "}
+                      {format(dateRange.to, "LLL dd, y")}
+                    </>
+                  ) : (
+                    format(dateRange.from, "LLL dd, y")
+                  )
+                ) : (
+                  <span>Pick a date</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={setDateRange}
+                numberOfMonths={2}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
         <div className="flex flex-row-reverse sm:flex-row gap-2">
           <Button size="sm">
@@ -172,7 +229,7 @@ export default function OrdersPage() {
         <CardHeader>
           <CardTitle className="font-headline">Orders</CardTitle>
           <CardDescription>
-            {filter === "all" ? "Manage and track all customer orders." : `Showing orders with status: ${filter}`}
+            {statusFilter === "all" ? "Manage and track all customer orders." : `Showing orders with status: ${statusFilter}`}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -213,7 +270,7 @@ export default function OrdersPage() {
                             <div className="md:hidden">
                                <p className="text-sm text-muted-foreground">{order.date}</p>
                             </div>
-                            <div className="hidden md:table-cell w-full">{order.date}</div>
+                            <div className="hidden md:table-cell w-full">{format(new Date(order.date), "MMM d, yyyy")}</div>
                             <div className="sm:w-full">
                                 <Badge
                                 variant={"outline"}
@@ -230,7 +287,7 @@ export default function OrdersPage() {
                         </div>
                    </div>
                   </TableCell>
-                  <td className="hidden md:table-cell p-4">{order.date}</td>
+                  <td className="hidden md:table-cell p-4">{format(new Date(order.date), "MMM d, yyyy")}</td>
                   <td className="hidden sm:table-cell p-4">
                     <Badge
                       variant={"outline"}
@@ -285,3 +342,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    

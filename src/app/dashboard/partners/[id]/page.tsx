@@ -160,7 +160,7 @@ export default function PartnerDetailsPage() {
                 {'address' in partner && (
                      <div className="flex items-start gap-2">
                         <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                        <p className="text-muted-foreground">{partner.address}</p>
+                        <div className="text-muted-foreground">{partner.address}</div>
                     </div>
                 )}
             </CardContent>
@@ -205,7 +205,7 @@ export default function PartnerDetailsPage() {
                                         <Link href={`/dashboard/purchases/${po.id}`} className="font-semibold hover:underline">
                                             {po.id}
                                         </Link>
-                                        <p className="text-sm text-muted-foreground">{po.date}</p>
+                                        <p className="text-sm text-muted-foreground">{format(new Date(po.date), "MMM d, yyyy")}</p>
                                     </div>
                                     <Badge variant={'outline'} className={cn('text-xs', poStatusColors[po.status] || 'bg-gray-500/20 text-gray-700')}>
                                         {po.status}
@@ -238,7 +238,7 @@ export default function PartnerDetailsPage() {
                                             {po.id}
                                         </Link>
                                     </TableCell>
-                                    <TableCell>{po.date}</TableCell>
+                                    <TableCell>{format(new Date(po.date), "MMM d, yyyy")}</TableCell>
                                     <TableCell>
                                         <Badge variant={'outline'} className={cn(poStatusColors[po.status] || 'bg-gray-500/20 text-gray-700')}>
                                             {po.status}
@@ -309,3 +309,5 @@ export default function PartnerDetailsPage() {
     </div>
   );
 }
+
+    
