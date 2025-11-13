@@ -52,6 +52,7 @@ export default function CustomersPage() {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isClient, setIsClient] = React.useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
   const [selectedCustomer, setSelectedCustomer] = React.useState<Customer | null>(null);
 
   React.useEffect(() => {
@@ -182,10 +183,41 @@ export default function CustomersPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm">
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Add Customer
-          </Button>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button size="sm">
+                        <PlusCircle className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Add Customer</span>
+                        <span className="sm:hidden sr-only">Add Customer</span>
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add New Customer</DialogTitle>
+                        <DialogDescription>
+                        Fill in the details to create a new customer profile.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="space-y-2">
+                        <Label htmlFor="add-name">Name</Label>
+                        <Input id="add-name" placeholder="Enter customer's name" />
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="add-phone">Phone</Label>
+                        <Input id="add-phone" placeholder="Enter phone number" />
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="add-address">Address</Label>
+                        <Textarea id="add-address" placeholder="Enter full address" />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={() => setIsAddDialogOpen(false)}>Save Customer</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
       </div>
       <Card>
