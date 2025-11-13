@@ -367,52 +367,91 @@ export default function InventoryPage() {
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
-                   <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Type</TableHead>
-                                <TableHead>Qty</TableHead>
-                                <TableHead>Balance</TableHead>
-                                <TableHead>User</TableHead>
-                                <TableHead>Notes/Ref</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {movements.length > 0 ? movements.map(mov => (
-                                <TableRow key={mov.id}>
-                                    <TableCell>{mov.date}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={mov.type === 'Sold' || mov.type === 'Adjusted' && mov.quantityChange < 0 ? 'destructive' : mov.type === 'Received' ? 'default' : 'secondary'}>{mov.type}</Badge>
-                                    </TableCell>
-                                    <TableCell className={cn("font-medium", mov.quantityChange < 0 ? "text-destructive" : "text-green-600")}>
-                                        {mov.quantityChange > 0 ? `+${mov.quantityChange}` : mov.quantityChange}
-                                    </TableCell>
-                                    <TableCell>{mov.balance}</TableCell>
-                                    <TableCell>{mov.user}</TableCell>
-                                    <TableCell>
-                                        {mov.reference.startsWith('ORD') ? (
-                                            <Button variant="link" asChild className="p-0 h-auto">
-                                                <Link href={`/dashboard/orders/${mov.reference}`}>{mov.reference}</Link>
-                                            </Button>
-                                        ) : mov.reference.startsWith('PO') ? (
-                                             <Button variant="link" asChild className="p-0 h-auto">
-                                                <Link href={`/dashboard/purchases/${mov.reference}`}>{mov.reference}</Link>
-                                            </Button>
-                                        ) : (
-                                            mov.notes
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            )) : (
+                    {/* For larger screens */}
+                   <div className="hidden sm:block">
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell colSpan={6} className="h-24 text-center">
-                                        No movement history found for this item.
-                                    </TableCell>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Type</TableHead>
+                                    <TableHead>Qty</TableHead>
+                                    <TableHead>Balance</TableHead>
+                                    <TableHead>User</TableHead>
+                                    <TableHead>Notes/Ref</TableHead>
                                 </TableRow>
-                            )}
-                        </TableBody>
-                   </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {movements.length > 0 ? movements.map(mov => (
+                                    <TableRow key={mov.id}>
+                                        <TableCell>{mov.date}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={mov.type === 'Sold' || (mov.type === 'Adjusted' && mov.quantityChange < 0) ? 'destructive' : mov.type === 'Received' ? 'default' : 'secondary'}>{mov.type}</Badge>
+                                        </TableCell>
+                                        <TableCell className={cn("font-medium", mov.quantityChange < 0 ? "text-destructive" : "text-green-600")}>
+                                            {mov.quantityChange > 0 ? `+${mov.quantityChange}` : mov.quantityChange}
+                                        </TableCell>
+                                        <TableCell>{mov.balance}</TableCell>
+                                        <TableCell>{mov.user}</TableCell>
+                                        <TableCell>
+                                            {mov.reference.startsWith('ORD') ? (
+                                                <Button variant="link" asChild className="p-0 h-auto">
+                                                    <Link href={`/dashboard/orders/${mov.reference}`}>{mov.reference}</Link>
+                                                </Button>
+                                            ) : mov.reference.startsWith('PO') ? (
+                                                 <Button variant="link" asChild className="p-0 h-auto">
+                                                    <Link href={`/dashboard/purchases/${mov.reference}`}>{mov.reference}</Link>
+                                                </Button>
+                                            ) : (
+                                                mov.notes
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                )) : (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="h-24 text-center">
+                                            No movement history found for this item.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                   </div>
+                   {/* For smaller screens */}
+                   <div className="sm:hidden space-y-4">
+                         {movements.length > 0 ? movements.map(mov => (
+                            <Card key={mov.id}>
+                                <CardContent className="p-4 space-y-3">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <p className="font-semibold">{mov.type}</p>
+                                            <p className="text-sm text-muted-foreground">{mov.date}</p>
+                                        </div>
+                                         <Badge variant={mov.type === 'Sold' || (mov.type === 'Adjusted' && mov.quantityChange < 0) ? 'destructive' : mov.type === 'Received' ? 'default' : 'secondary'}>{mov.type}</Badge>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <div className="flex flex-col">
+                                            <span className={cn("font-medium text-lg", mov.quantityChange < 0 ? "text-destructive" : "text-green-600")}>
+                                                {mov.quantityChange > 0 ? `+${mov.quantityChange}` : mov.quantityChange} units
+                                            </span>
+                                             <span className="text-muted-foreground">Balance: {mov.balance}</span>
+                                        </div>
+                                         <div className="text-right">
+                                            <p className="text-muted-foreground">Ref: {mov.reference.startsWith('ORD') || mov.reference.startsWith('PO') ? (
+                                                 <Button variant="link" asChild className="p-0 h-auto">
+                                                    <Link href={`/dashboard/${mov.reference.startsWith('ORD') ? 'orders' : 'purchases'}/${mov.reference}`}>{mov.reference}</Link>
+                                                </Button>
+                                            ) : mov.notes}</p>
+                                            <p className="text-xs text-muted-foreground">by {mov.user}</p>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                         )) : (
+                            <div className="h-24 text-center flex items-center justify-center text-muted-foreground">
+                                No movement history found.
+                            </div>
+                         )}
+                   </div>
                 </div>
                 <DialogFooter>
                     <Button onClick={closeDialog}>Close</Button>
@@ -424,6 +463,7 @@ export default function InventoryPage() {
     </div>
   );
 }
+
 
 
 
