@@ -16,7 +16,7 @@ import {
   Save
 } from 'lucide-react';
 
-import { products, categories, Product } from '@/lib/placeholder-data';
+import { products, categories, Product, ImagePlaceholder } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -46,6 +46,7 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 
 const attributeSchema = z.object({
@@ -113,18 +114,18 @@ export default function EditProductPage() {
       description: '',
       shortDescription: '',
       productType: 'simple',
-      regularPrice: 0,
-      salePrice: 0,
+      regularPrice: undefined,
+      salePrice: undefined,
       sku: '',
-      weight: 0,
-      length: 0,
-      width: 0,
-      height: 0,
+      weight: undefined,
+      length: undefined,
+      width: undefined,
+      height: undefined,
       categoryId: '',
       tags: '',
-      ornaFabric: 0,
-      jamaFabric: 0,
-      selowarFabric: 0,
+      ornaFabric: undefined,
+      jamaFabric: undefined,
+      selowarFabric: undefined,
       attributes: [],
       variations: [],
       comboProducts: [],
@@ -137,18 +138,19 @@ export default function EditProductPage() {
         name: product.name || '',
         description: product.description || '',
         productType: product.variants && product.variants.length > 0 ? 'variable' : 'simple',
-        regularPrice: product.price || 0,
-        sku: product.variants?.[0]?.sku || '',
+        regularPrice: product.price || undefined,
+        salePrice: undefined,
+        sku: (product.variants?.[0]?.sku || '') || '',
         categoryId: product.categoryId || '',
-        ornaFabric: product.ornaFabric || 0,
-        jamaFabric: product.jamaFabric || 0,
-        selowarFabric: product.selowarFabric || 0,
+        ornaFabric: product.ornaFabric || undefined,
+        jamaFabric: product.jamaFabric || undefined,
+        selowarFabric: product.selowarFabric || undefined,
         attributes: product.variants ? [{ name: 'Size', options: 'Small, Medium, Large'}] : [],
         variations: product.variants?.map(v => ({
             id: v.id,
             attributes: { Size: v.name.split(',')[0] },
             sku: v.sku || '',
-            regularPrice: product.price || 0,
+            regularPrice: product.price || undefined,
             salePrice: undefined,
             image: ''
         })) || []
@@ -219,6 +221,12 @@ export default function EditProductPage() {
   const mainCategories = categories.filter(c => !c.parentId);
   const subCategories = (parentId: string) => categories.filter(c => c.parentId === parentId);
 
+  const existingImages = React.useMemo(() => {
+    if (!product) return [];
+    // For demo, we'll use placeholder images.
+    return [product.image, ...PlaceHolderImages.slice(1, 4)];
+  }, [product]);
+
   if (!product) {
     return <div className="p-6">Loading product...</div>
   }
@@ -256,10 +264,31 @@ export default function EditProductPage() {
                             <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea rows={8} {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                          <Card>
-                            <CardHeader><CardTitle>Product Images</CardTitle><CardDescription>Upload images for your product.</CardDescription></CardHeader>
-                            <CardContent>
-                                <div className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 flex flex-col items-center justify-center text-center">
-                                    <UploadCloud className="w-12 h-12 text-muted-foreground" /><p className="mt-4 text-sm text-muted-foreground">Drag and drop files here, or click to browse.</p><Button variant="outline" className="mt-4">Browse Files</Button>
+                            <CardHeader><CardTitle>Product Images</CardTitle><CardDescription>Manage images for your product.</CardDescription></CardHeader>
+                            <CardContent className="grid grid-cols-3 lg:grid-cols-5 gap-4">
+                               {existingImages.map((image) => (
+                                    <div key={image.id} className="relative group">
+                                        <Image
+                                            src={image.imageUrl}
+                                            alt={image.description}
+                                            width={150}
+                                            height={150}
+                                            className="aspect-square object-cover border w-full rounded-lg overflow-hidden"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <X className="h-4 w-4" />
+                                            <span className="sr-only">Remove image</span>
+                                        </Button>
+                                    </div>
+                                ))}
+                                <div className="border-2 border-dashed border-muted-foreground/50 rounded-lg flex flex-col items-center justify-center text-center aspect-square p-2">
+                                    <UploadCloud className="w-8 h-8 text-muted-foreground" />
+                                    <p className="mt-2 text-xs text-muted-foreground">Add new image</p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -370,8 +399,7 @@ export default function EditProductPage() {
                          <Card><CardHeader><CardTitle>Organization</CardTitle></CardHeader>
                             <CardContent className="space-y-4">
                                <FormField control={form.control} name="categoryId" render={({ field }) => (
-                                        <FormItem><FormLabel>Category</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl>
+                                        <FormItem><FormLabel>Category</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl>
                                             <SelectContent>
                                                 {mainCategories.map(cat => (<React.Fragment key={cat.id}><SelectItem value={cat.id}>{cat.name}</SelectItem>
                                                         {subCategories(cat.id).map(subCat => (<SelectItem key={subCat.id} value={subCat.id} className="pl-8">{subCat.name}</SelectItem>))}
