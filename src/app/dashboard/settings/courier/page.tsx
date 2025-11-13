@@ -2,6 +2,7 @@
 'use client';
 
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +15,15 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -22,14 +32,60 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
-const courierServices = [
+type Courier = {
+    id: string;
+    name: string;
+    configured: boolean;
+};
+
+const initialCourierServices: Courier[] = [
     { id: 'pathao', name: 'Pathao', configured: true },
     { id: 'redx', name: 'RedX', configured: true },
     { id: 'steadfast', name: 'Steadfast', configured: false },
 ];
 
+const courierFields: Record<string, { label: string; placeholder: string; type?: string }[]> = {
+    pathao: [
+        { label: 'Client ID', placeholder: 'Enter your Pathao Client ID' },
+        { label: 'Client Secret', placeholder: 'Enter your Pathao Client Secret', type: 'password' },
+    ],
+    redx: [
+        { label: 'API Access Token', placeholder: 'Enter your RedX API Access Token', type: 'password' },
+    ],
+    steadfast: [
+        { label: 'API Key', placeholder: 'Enter your Steadfast API Key' },
+        { label: 'Secret Key', placeholder: 'Enter your Steadfast Secret Key', type: 'password' },
+    ],
+};
+
+
 export default function CourierSettingsPage() {
+    const [couriers, setCouriers] = React.useState(initialCourierServices);
+    const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+    const [selectedCourier, setSelectedCourier] = React.useState<Courier | null>(null);
+
+    const handleEditClick = (courier: Courier) => {
+        setSelectedCourier(courier);
+        setIsDialogOpen(true);
+    };
+    
+    const handleSaveChanges = () => {
+        if(selectedCourier){
+             setCouriers(prevCouriers => 
+                prevCouriers.map(c => 
+                    c.id === selectedCourier.id ? { ...c, configured: true } : c
+                )
+            );
+        }
+        setIsDialogOpen(false);
+        setSelectedCourier(null);
+    }
+
+    const fields = selectedCourier ? courierFields[selectedCourier.id] : [];
+
     return (
         <div className="space-y-6">
             <div>
@@ -39,17 +95,13 @@ export default function CourierSettingsPage() {
                 </p>
             </div>
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader>
                     <div>
                         <CardTitle>Courier Services</CardTitle>
                         <CardDescription>
                             Connect and manage your courier service providers.
                         </CardDescription>
                     </div>
-                    <Button>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add Courier
-                    </Button>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -64,7 +116,7 @@ export default function CourierSettingsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {courierServices.map((courier) => (
+                            {couriers.map((courier) => (
                                 <TableRow key={courier.id}>
                                     <TableCell className="font-medium">{courier.name}</TableCell>
                                     <TableCell>
@@ -73,7 +125,7 @@ export default function CourierSettingsPage() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <Switch disabled={!courier.configured} />
+                                        <Switch disabled={!courier.configured} checked={courier.id === 'pathao'} />
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex justify-end">
@@ -86,7 +138,9 @@ export default function CourierSettingsPage() {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                    <DropdownMenuItem>Edit Configuration</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleEditClick(courier)}>
+                                                        Edit Configuration
+                                                    </DropdownMenuItem>
                                                     <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -98,6 +152,29 @@ export default function CourierSettingsPage() {
                     </Table>
                 </CardContent>
             </Card>
+
+             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Configure {selectedCourier?.name}</DialogTitle>
+                        <DialogDescription>
+                            Enter the API credentials for {selectedCourier?.name}.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        {fields.map((field) => (
+                             <div className="space-y-2" key={field.label}>
+                                <Label htmlFor={field.label}>{field.label}</Label>
+                                <Input id={field.label} placeholder={field.placeholder} type={field.type || 'text'} />
+                            </div>
+                        ))}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleSaveChanges}>Save Configuration</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

@@ -35,10 +35,103 @@ import { wooCommerceIntegrations, WooCommerceIntegration, businesses } from '@/l
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 export default function WooCommerceIntegrationsPage() {
     const [integrations, setIntegrations] = React.useState(wooCommerceIntegrations);
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+    const [isClient, setIsClient] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    const renderTable = () => (
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Store Name</TableHead>
+                    <TableHead>Business</TableHead>
+                    <TableHead>URL</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>
+                        <span className="sr-only">Actions</span>
+                    </TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {integrations.map((integration) => (
+                    <TableRow key={integration.id}>
+                        <TableCell className="font-medium">{integration.storeName}</TableCell>
+                        <TableCell>{integration.businessName}</TableCell>
+                        <TableCell className="text-muted-foreground">{integration.storeUrl}</TableCell>
+                        <TableCell>
+                            <Badge variant={integration.status === 'Active' ? 'default' : 'secondary'}>
+                                {integration.status}
+                            </Badge>
+                        </TableCell>
+                        <TableCell>
+                            <div className="flex justify-end">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                            <span className="sr-only">Toggle menu</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                                        <DropdownMenuItem>Sync Products</DropdownMenuItem>
+                                        <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    );
+
+    const renderCardList = () => (
+        <div className="space-y-4">
+            {integrations.map((integration) => (
+                <Card key={integration.id}>
+                    <CardContent className="p-4">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="font-semibold">{integration.storeName}</p>
+                                <p className="text-sm text-muted-foreground">{integration.businessName}</p>
+                            </div>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                        <span className="sr-only">Toggle menu</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                                    <DropdownMenuItem>Sync Products</DropdownMenuItem>
+                                    <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-2">{integration.storeUrl}</p>
+                        <Separator className="my-3" />
+                        <div className="flex items-center">
+                             <Badge variant={integration.status === 'Active' ? 'default' : 'secondary'}>
+                                {integration.status}
+                            </Badge>
+                        </div>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+    );
 
     return (
         <div className="space-y-6">
@@ -109,51 +202,14 @@ export default function WooCommerceIntegrationsPage() {
                     </Dialog>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Store Name</TableHead>
-                                <TableHead>Business</TableHead>
-                                <TableHead>URL</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>
-                                    <span className="sr-only">Actions</span>
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {integrations.map((integration) => (
-                                <TableRow key={integration.id}>
-                                    <TableCell className="font-medium">{integration.storeName}</TableCell>
-                                    <TableCell>{integration.businessName}</TableCell>
-                                    <TableCell className="text-muted-foreground">{integration.storeUrl}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={integration.status === 'Active' ? 'default' : 'secondary'}>
-                                            {integration.status}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex justify-end">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                        <span className="sr-only">Toggle menu</span>
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                                                    <DropdownMenuItem>Sync Products</DropdownMenuItem>
-                                                    <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                   {isClient ? (
+                        <>
+                            <div className="hidden sm:block">{renderTable()}</div>
+                            <div className="sm:hidden">{renderCardList()}</div>
+                        </>
+                    ) : (
+                        <div className="h-48 flex items-center justify-center text-muted-foreground">Loading integrations...</div>
+                    )}
                 </CardContent>
             </Card>
         </div>
