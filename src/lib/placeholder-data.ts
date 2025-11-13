@@ -459,7 +459,7 @@ export const orders: Order[] = [
     customerPhone: '+8801912345680',
     date: '2024-05-22', 
     status: 'New', 
-    total: 215.49, 
+    total: 200.49,
     products: [
         { productId: 'PROD003', name: 'Cotton Three-Piece', image: products[2].image, quantity: 1, price: products[2].price },
         { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price }
@@ -540,6 +540,157 @@ export const orders: Order[] = [
     paymentMethod: 'bKash',
     paidAmount: 120.50,
   },
+  {
+    id: 'ORD-2024-006',
+    customerName: 'Fiona Glenanne',
+    customerEmail: 'fiona@example.com',
+    customerPhone: '+8801312345683',
+    date: '2024-05-24',
+    status: 'Canceled',
+    total: 95.00,
+    products: [{ productId: 'PROD005', name: 'Linen Three-Piece', image: products[4].image, quantity: 1, price: products[4].price }],
+    logs: [
+        { status: 'Canceled', timestamp: '2024-05-24T15:00:00Z', description: 'Customer requested cancellation.', user: 'Jane Doe' },
+        { status: 'New', timestamp: '2024-05-24T11:20:00Z', description: 'Order was placed.', user: 'Fiona Glenanne' }
+    ],
+    customerNote: 'Changed my mind, please cancel.',
+    officeNote: 'Cancellation confirmed by phone.',
+    createdBy: 'Emily White',
+    businessId: 'BIZ001',
+    platform: 'Website',
+    shippingAddress: { address: '303 Cedar Blvd', district: 'Barisal', country: 'Bangladesh' },
+    paymentMethod: 'Cash on Delivery',
+    paidAmount: 0
+  },
+  {
+    id: 'ORD-2024-007',
+    customerName: 'George Mason',
+    customerEmail: 'george@example.com',
+    customerPhone: '+8801412345684',
+    date: '2024-05-25',
+    status: 'Hold',
+    total: 79.99,
+    products: [{ productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price }],
+    logs: [{ status: 'Hold', timestamp: '2024-05-25T10:00:00Z', description: 'Payment verification pending.', user: 'System' }],
+    customerNote: 'Paid via bKash, transaction ID is XXXXX.',
+    officeNote: 'Awaiting payment confirmation from accounts.',
+    createdBy: 'System',
+    businessId: 'BIZ002',
+    platform: 'Facebook',
+    shippingAddress: { address: '404 Walnut St', district: 'Rangpur', country: 'Bangladesh' },
+    paymentMethod: 'bKash',
+    paidAmount: 0
+  },
+  {
+    id: 'ORD-2024-008',
+    customerName: 'Hannah Abbott',
+    customerEmail: 'hannah@example.com',
+    customerPhone: '+8801112345685',
+    date: '2024-05-26',
+    status: 'Packing Hold',
+    total: 25.00,
+    products: [{ productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: products[0].price }],
+    logs: [{ status: 'Packing Hold', timestamp: '2024-05-26T18:00:00Z', description: 'Item out of stock. Awaiting new shipment.', user: 'John Smith' }],
+    customerNote: '',
+    officeNote: 'PROD001 in white, medium is out of stock. PO-2024-007 should arrive soon.',
+    createdBy: 'Emily White',
+    confirmedBy: 'Jane Doe',
+    businessId: 'BIZ003',
+    platform: 'Instagram',
+    shippingAddress: { address: '505 Willow Way', district: 'Mymensingh', country: 'Bangladesh' },
+    paymentMethod: 'Cash on Delivery',
+    paidAmount: 0
+  },
+  {
+    id: 'ORD-2024-009',
+    customerName: 'Irene Adler',
+    customerEmail: 'irene@example.com',
+    customerPhone: '+8801212345686',
+    date: '2024-05-27',
+    status: 'RTS (Ready to Ship)',
+    total: 350.00,
+    products: [{ productId: 'PROD004', name: 'Leather Biker Jacket', image: products[3].image, quantity: 1, price: products[3].price }],
+    logs: [{ status: 'RTS (Ready to Ship)', timestamp: '2024-05-27T17:00:00Z', description: 'Package packed and ready for courier pickup.', user: 'John Smith' }],
+    customerNote: 'Please ensure good packaging.',
+    officeNote: 'Packed with extra bubble wrap.',
+    createdBy: 'System',
+    confirmedBy: 'Jane Doe',
+    businessId: 'BIZ001',
+    platform: 'Website',
+    shippingAddress: { address: '606 Redwood Rd', district: 'Jessore', country: 'Bangladesh' },
+    paymentMethod: 'Cash on Delivery',
+    paidAmount: 0
+  },
+  {
+    id: 'ORD-2024-010',
+    customerName: 'Jack Harkness',
+    customerEmail: 'jack@example.com',
+    customerPhone: '+8801012345687',
+    date: '2024-05-19',
+    status: 'Returned',
+    total: 79.99,
+    products: [{ productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price }],
+    logs: [
+        { status: 'Returned', timestamp: '2024-05-28T13:00:00Z', description: 'Item returned by customer. Reason: Wrong size.', user: 'System' },
+        { status: 'Delivered', timestamp: '2024-05-22T11:00:00Z', description: 'Package delivered.', user: 'System' }
+    ],
+    customerNote: 'The size is too small, I would like to return it.',
+    officeNote: 'Return initiated. Refund processed.',
+    createdBy: 'Emily White',
+    confirmedBy: 'Jane Doe',
+    businessId: 'BIZ002',
+    platform: 'TikTok',
+    shippingAddress: { address: '707 Aspen Ct', district: 'Comilla', country: 'Bangladesh' },
+    paymentMethod: 'bKash',
+    paidAmount: 79.99
+  },
+  {
+    id: 'ORD-2024-011',
+    customerName: 'Kara Danvers',
+    customerEmail: 'kara@example.com',
+    customerPhone: '+8801992345688',
+    date: '2024-05-18',
+    status: 'Partially Delivered',
+    total: 145.50,
+    products: [
+        { productId: 'PROD003', name: 'Cotton Three-Piece', image: products[2].image, quantity: 1, price: 120.50 },
+        { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: 25.00 }
+    ],
+    logs: [{ status: 'Partially Delivered', timestamp: '2024-05-21T16:00:00Z', description: 'One item delivered, another pending.', user: 'System' }],
+    customerNote: 'Received only the T-shirt.',
+    officeNote: 'Three-piece is on backorder. Sent T-shirt first.',
+    createdBy: 'Emily White',
+    confirmedBy: 'Jane Doe',
+    businessId: 'BIZ001',
+    platform: 'Messenger',
+    shippingAddress: { address: '808 Elm Pl', district: 'Gazipur', country: 'Bangladesh' },
+    paymentMethod: 'Cash on Delivery',
+    paidAmount: 25.00
+  },
+  {
+    id: 'ORD-2024-012',
+    customerName: 'Lena Luthor',
+    customerEmail: 'lena@example.com',
+    customerPhone: '+8801882345689',
+    date: '2024-05-17',
+    status: 'Partially Returned',
+    total: 220.49,
+    products: [
+        { productId: 'PROD003', name: 'Cotton Three-Piece', image: products[2].image, quantity: 1, price: 120.50 },
+        { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: 79.99 },
+         { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: 25.00 }
+    ],
+    logs: [{ status: 'Partially Returned', timestamp: '2024-05-24T10:00:00Z', description: 'Customer returned the jeans.', user: 'System' }],
+    customerNote: 'Keeping the three-piece and t-shirt, but returning the jeans.',
+    officeNote: 'Partial return processed for denim jeans.',
+    createdBy: 'System',
+    confirmedBy: 'Jane Doe',
+    businessId: 'BIZ003',
+    platform: 'Website',
+    shippingAddress: { address: '909 Fir St', district: 'Narayanganj', country: 'Bangladesh' },
+    paymentMethod: 'Cash on Delivery',
+    paidAmount: 145.50
+  }
 ];
 
 export const customers: Customer[] = [
@@ -776,6 +927,7 @@ export const bdDistricts: string[] = [
     
 
     
+
 
 
 
