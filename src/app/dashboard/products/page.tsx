@@ -8,6 +8,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import * as React from "react";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -760,16 +761,22 @@ export default function ProductsPage() {
                 {filteredProducts.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell>
-                      <Image
-                        alt={product.name}
-                        className="aspect-square rounded-md object-cover"
-                        height="64"
-                        src={product.image.imageUrl}
-                        width="64"
-                        data-ai-hint={product.image.imageHint}
-                      />
+                      <Link href={`/dashboard/products/${product.id}`}>
+                        <Image
+                          alt={product.name}
+                          className="aspect-square rounded-md object-cover"
+                          height="64"
+                          src={product.image.imageUrl}
+                          width="64"
+                          data-ai-hint={product.image.imageHint}
+                        />
+                      </Link>
                     </TableCell>
-                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link href={`/dashboard/products/${product.id}`} className="hover:underline">
+                        {product.name}
+                      </Link>
+                    </TableCell>
                     <TableCell>৳{product.price.toFixed(2)}</TableCell>
                     <TableCell className="hidden md:table-cell">
                       {product.inventory}
@@ -802,7 +809,8 @@ export default function ProductsPage() {
           {/* For smaller screens */}
           <div className="sm:hidden grid grid-cols-2 gap-4">
               {filteredProducts.map((product) => (
-                  <Card key={product.id} className="overflow-hidden">
+                <Link href={`/dashboard/products/${product.id}`} key={product.id} className="block">
+                  <Card className="overflow-hidden h-full">
                       <CardContent className="p-0">
                            <Image
                               alt={product.name}
@@ -818,6 +826,7 @@ export default function ProductsPage() {
                             </div>
                       </CardContent>
                   </Card>
+                </Link>
               ))}
           </div>
 
