@@ -19,6 +19,7 @@ import {
   Landmark,
   Wallet,
   BarChartHorizontal,
+  Archive,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,11 +29,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuFooter
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import React from "react";
+import { Badge } from "@/components/ui/badge";
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
@@ -47,6 +50,33 @@ const navItems = [
   { href: "/dashboard/analytics", icon: BarChartHorizontal, label: "Analytics" },
   { href: "/dashboard/staff", icon: User, label: "Staff" },
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },
+];
+
+const notifications = [
+    {
+        id: '1',
+        icon: ShoppingCart,
+        title: "New order received",
+        description: "#ORD-2024-005",
+        time: "5m ago",
+        read: false,
+    },
+    {
+        id: '2',
+        icon: Warehouse,
+        title: "Stock running low",
+        description: "Organic Cotton T-Shirt",
+        time: "30m ago",
+        read: false,
+    },
+    {
+        id: '3',
+        icon: Archive,
+        title: "New product added",
+        description: "Leather Biker Jacket",
+        time: "2h ago",
+        read: true,
+    },
 ];
 
 function NavLinks() {
@@ -107,6 +137,8 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const isSettingsPage = pathname.startsWith('/dashboard/settings');
+  const unreadCount = notifications.filter(n => !n.read).length;
+
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -148,16 +180,39 @@ export default function DashboardLayout({
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="h-8 w-8">
+                <Button variant="outline" size="icon" className="relative h-8 w-8">
                     <Bell className="h-4 w-4" />
+                    {unreadCount > 0 && <Badge className="absolute -top-2 -right-2 h-5 w-5 justify-center p-0">{unreadCount}</Badge>}
                     <span className="sr-only">Toggle notifications</span>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-80">
+                <DropdownMenuLabel className="flex items-center justify-between">
+                    <span>Notifications</span>
+                    <Badge variant="secondary">{unreadCount} unread</Badge>
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>New order #ORD-2024-005 received.</DropdownMenuItem>
-                <DropdownMenuItem>Stock running low for "Organic Cotton T-Shirt".</DropdownMenuItem>
+                <div className="max-h-80 overflow-y-auto">
+                    {notifications.map((notification) => (
+                        <DropdownMenuItem key={notification.id} className={cn("flex items-start gap-3 p-3", !notification.read && "bg-blue-500/10")}>
+                           <div className={cn("p-2 rounded-full", !notification.read ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")}>
+                             <notification.icon className="h-5 w-5" />
+                           </div>
+                            <div className="flex-1">
+                                <p className="font-medium text-sm">{notification.title}</p>
+                                <p className="text-xs text-muted-foreground">{notification.description}</p>
+                            </div>
+                            <time className="text-xs text-muted-foreground">{notification.time}</time>
+                        </DropdownMenuItem>
+                    ))}
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuFooter className="p-2 flex justify-between items-center">
+                    <Button variant="ghost" size="sm">Mark all as read</Button>
+                    <Button variant="outline" size="sm" asChild>
+                        <Link href="#">View all</Link>
+                    </Button>
+                </DropdownMenuFooter>
             </DropdownMenuContent>
           </DropdownMenu>
           <DropdownMenu>
