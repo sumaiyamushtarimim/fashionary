@@ -35,22 +35,49 @@ import {
     PaginationNext,
     PaginationPrevious,
   } from "@/components/ui/pagination";
-import { staff } from "@/lib/placeholder-data";
+import { staff, StaffMember, allStatuses } from "@/lib/placeholder-data";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import React, { useMemo, useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const ITEMS_PER_PAGE = 10;
+
+type PaymentType = 'Salary' | 'Commission' | 'Both';
+type StaffRole = 'Admin' | 'Manager' | 'Sales' | 'Warehouse';
+
+const paymentTypes: PaymentType[] = ['Salary', 'Commission', 'Both'];
+const staffRoles: StaffRole[] = ['Admin', 'Manager', 'Sales', 'Warehouse'];
 
 export default function StaffPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [isClient, setIsClient] = React.useState(false);
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+    const [paymentType, setPaymentType] = useState<PaymentType | undefined>();
 
     React.useEffect(() => {
         setIsClient(true);
     }, []);
+
+    const handleEditClick = (member: StaffMember) => {
+        setSelectedStaff(member);
+        setPaymentType(member.paymentType);
+        setIsEditDialogOpen(true);
+    };
+
+    const handleAddClick = () => {
+        setSelectedStaff(null);
+        setPaymentType(undefined);
+        setIsAddDialogOpen(true);
+    };
 
     const totals = React.useMemo(() => {
         return staff.reduce((acc, member) => {
@@ -66,6 +93,107 @@ export default function StaffPage() {
         return staff.slice(startIndex, startIndex + ITEMS_PER_PAGE);
     }, [currentPage]);
 
+    const StaffForm = ({ staffMember, isEdit = false }: { staffMember?: StaffMember | null, isEdit?: boolean }) => {
+        const currentPaymentType = paymentType || staffMember?.paymentType;
+        
+        return (
+            <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto px-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input id="name" placeholder="Enter name" defaultValue={staffMember?.name} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" type="email" placeholder="Enter email" defaultValue={staffMember?.email} />
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="role">Role</Label>
+                        <Select defaultValue={staffMember?.role}>
+                            <SelectTrigger id="role">
+                                <SelectValue placeholder="Select a role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {staffRoles.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="payment-type">Payment Type</Label>
+                        <Select value={currentPaymentType} onValueChange={(value: PaymentType) => setPaymentType(value)}>
+                            <SelectTrigger id="payment-type">
+                                <SelectValue placeholder="Select a payment type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {paymentTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+                
+                {(currentPaymentType === 'Salary' || currentPaymentType === 'Both') && (
+                    <Card>
+                        <CardHeader className="p-4"><CardTitle className="text-base">Salary Details</CardTitle></CardHeader>
+                        <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="salary-amount">Amount</Label>
+                                <Input id="salary-amount" type="number" placeholder="e.g., 25000" defaultValue={staffMember?.salaryDetails?.amount}/>
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="salary-frequency">Frequency</Label>
+                                <Select defaultValue={staffMember?.salaryDetails?.frequency}>
+                                    <SelectTrigger id="salary-frequency">
+                                        <SelectValue placeholder="Select frequency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Monthly">Monthly</SelectItem>
+                                        <SelectItem value="Weekly">Weekly</SelectItem>
+                                        <SelectItem value="Daily">Daily</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {(currentPaymentType === 'Commission' || currentPaymentType === 'Both') && (
+                    <Card>
+                        <CardHeader className="p-4"><CardTitle className="text-base">Commission Details</CardTitle></CardHeader>
+                        <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="commission-create">On Order Create</Label>
+                                <Input id="commission-create" type="number" placeholder="e.g., 50" defaultValue={staffMember?.commissionDetails?.onOrderCreate}/>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="commission-confirm">On Order Confirm</Label>
+                                <Input id="commission-confirm" type="number" placeholder="e.g., 100" defaultValue={staffMember?.commissionDetails?.onOrderConfirm}/>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {!isEdit && (
+                     <div className="items-top flex space-x-3">
+                        <Checkbox id="send-invite" defaultChecked/>
+                        <div className="grid gap-1.5 leading-none">
+                            <label
+                            htmlFor="send-invite"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                            Send Invitation Email
+                            </label>
+                            <p className="text-sm text-muted-foreground">
+                            An email will be sent to the user to set their password.
+                            </p>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex items-center">
@@ -74,10 +202,27 @@ export default function StaffPage() {
             <p className="text-muted-foreground hidden sm:block">Manage staff access and roles.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm">
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Invite Staff
-          </Button>
+           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button size="sm" onClick={handleAddClick}>
+                        <PlusCircle className="h-4 w-4 mr-2" />
+                        Invite Staff
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>Invite New Staff</DialogTitle>
+                        <DialogDescription>
+                            Fill in the details to add a new staff member to your team.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <StaffForm />
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={() => setIsAddDialogOpen(false)}>Send Invitation</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
       </div>
 
@@ -158,7 +303,7 @@ export default function StaffPage() {
                           <DropdownMenuItem asChild>
                             <Link href={`/dashboard/staff/${member.id}`}>View Details</Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem>Edit Role</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditClick(member)}>Edit Role</DropdownMenuItem>
                           <DropdownMenuItem className="text-red-600">Deactivate Account</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -191,7 +336,7 @@ export default function StaffPage() {
                                   <DropdownMenuContent align="end">
                                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                       <DropdownMenuItem asChild><Link href={`/dashboard/staff/${member.id}`}>View Details</Link></DropdownMenuItem>
-                                      <DropdownMenuItem>Edit Role</DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleEditClick(member)}>Edit Role</DropdownMenuItem>
                                       <DropdownMenuItem className="text-red-600">Deactivate Account</DropdownMenuItem>
                                   </DropdownMenuContent>
                               </DropdownMenu>
@@ -242,10 +387,22 @@ export default function StaffPage() {
             </div>
         </CardFooter>
       </Card>
+
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent className="sm:max-w-xl">
+                <DialogHeader>
+                    <DialogTitle>Edit Staff: {selectedStaff?.name}</DialogTitle>
+                    <DialogDescription>
+                        Update the details for this staff member.
+                    </DialogDescription>
+                </DialogHeader>
+                <StaffForm staffMember={selectedStaff} isEdit={true} />
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={() => setIsEditDialogOpen(false)}>Save Changes</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }
-
-    
-
-    
