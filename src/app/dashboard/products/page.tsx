@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import Image from "next/image";
@@ -76,12 +75,12 @@ export default function ProductsPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-      <div className="flex items-center gap-4">
-        <div className="hidden sm:block flex-1">
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
             <h1 className="font-headline text-2xl font-bold">Products</h1>
             <p className="text-muted-foreground hidden sm:block">Manage your products and view their status.</p>
         </div>
-        <div className="w-full flex items-center justify-between sm:justify-start gap-2">
+        <div className="flex items-center gap-2">
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-[160px] sm:w-[180px]">
                     <SelectValue placeholder="Filter by category" />
