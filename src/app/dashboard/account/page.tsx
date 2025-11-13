@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -12,69 +13,220 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Save } from 'lucide-react';
+import { Save, Edit, X, User, Briefcase, DollarSign, BarChart2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { staff, OrderStatus } from '@/lib/placeholder-data';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
+import { Pie, PieChart, Cell } from 'recharts';
+
+// Mock data for the logged-in staff member
+const loggedInStaff = staff[2]; // Using Emily White as an example
+
+const chartColors = [
+    'hsl(var(--chart-1))',
+    'hsl(var(--chart-2))',
+    'hsl(var(--chart-3))',
+    'hsl(var(--chart-4))',
+    'hsl(var(--chart-5))',
+];
 
 export default function AccountPage() {
+    const [isEditing, setIsEditing] = React.useState(false);
+
+    const performanceChartData = Object.entries(loggedInStaff.performance.statusBreakdown)
+        .filter(([, value]) => value > 0)
+        .map(([status, value], index) => ({
+            status: status as OrderStatus,
+            value,
+            fill: chartColors[index % chartColors.length]
+        }));
+    
+    const chartConfig: ChartConfig = performanceChartData.reduce((acc, { status, fill }) => {
+        acc[status] = { label: status, color: fill };
+        return acc;
+    }, {} as ChartConfig);
+
     return (
         <div className="flex-1 space-y-6 p-4 lg:p-6">
-            <div>
-                <h1 className="text-2xl font-bold font-headline">My Account</h1>
-                <p className="text-muted-foreground">
-                    Manage your account settings and personal information.
-                </p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold font-headline">My Account</h1>
+                    <p className="text-muted-foreground">
+                        Manage your account settings and view your performance.
+                    </p>
+                </div>
+                {isEditing ? (
+                    <div className="flex items-center gap-2">
+                         <Button variant="outline" onClick={() => setIsEditing(false)}>
+                            <X className="mr-2 h-4 w-4" />
+                            Cancel
+                        </Button>
+                        <Button onClick={() => setIsEditing(false)}>
+                            <Save className="mr-2 h-4 w-4" />
+                            Save Changes
+                        </Button>
+                    </div>
+                ) : (
+                    <Button variant="outline" onClick={() => setIsEditing(true)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit Profile
+                    </Button>
+                )}
             </div>
+            
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                <div className="lg:col-span-2">
-                    <Card>
+                <div className="lg:col-span-2 grid gap-6">
+                     <Card>
                         <CardHeader>
                             <CardTitle>Profile Information</CardTitle>
-                            <CardDescription>Update your personal details here.</CardDescription>
+                            <CardDescription>Your personal and role details.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Name</Label>
-                                <Input id="name" defaultValue="Jane Doe" />
+                                <Input id="name" defaultValue={loggedInStaff.name} disabled={!isEditing} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email</Label>
-                                <Input id="email" type="email" defaultValue="jane.doe@fashionary.com" disabled />
+                                <Input id="email" type="email" defaultValue={loggedInStaff.email} disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="role">Role</Label>
-                                <Input id="role" defaultValue="Admin" disabled />
+                                <Input id="role" defaultValue={loggedInStaff.role} disabled />
                             </div>
                         </CardContent>
-                        <CardFooter>
-                            <Button>
-                                <Save className="mr-2 h-4 w-4" />
-                                Save Profile
-                            </Button>
-                        </CardFooter>
                     </Card>
-                </div>
-                <div>
+
+                    {isEditing && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Change Password</CardTitle>
+                                <CardDescription>Update your login password.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="current-password">Current Password</Label>
+                                    <Input id="current-password" type="password" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="new-password">New Password</Label>
+                                    <Input id="new-password" type="password" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="confirm-password">Confirm New Password</Label>
+                                    <Input id="confirm-password" type="password" />
+                                </div>
+                            </CardContent>
+                             <CardFooter>
+                                <Button className="ml-auto">Update Password</Button>
+                            </CardFooter>
+                        </Card>
+                    )}
+                    
                      <Card>
                         <CardHeader>
-                            <CardTitle>Change Password</CardTitle>
-                            <CardDescription>Update your login password.</CardDescription>
+                            <CardTitle className="flex items-center gap-2">
+                                <BarChart2 className="h-5 w-5 text-muted-foreground" />
+                                Performance Overview
+                            </CardTitle>
+                            <CardDescription>A summary of your order-related activities.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-6 md:grid-cols-2">
+                            <div className="space-y-4">
+                                <div className="rounded-lg border bg-card p-4 flex flex-col items-center justify-center text-center">
+                                    <p className="text-xs text-muted-foreground">Orders Created</p>
+                                    <p className="text-3xl font-bold">{loggedInStaff.performance.ordersCreated}</p>
+                                </div>
+                                <div className="rounded-lg border bg-card p-4 flex flex-col items-center justify-center text-center">
+                                    <p className="text-xs text-muted-foreground">Orders Confirmed</p>
+                                    <p className="text-3xl font-bold">{loggedInStaff.performance.ordersConfirmed}</p>
+                                </div>
+                            </div>
+                             <div>
+                                {performanceChartData.length > 0 ? (
+                                    <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[250px]">
+                                        <PieChart>
+                                            <ChartTooltip content={<ChartTooltipContent nameKey="status" hideLabel />} />
+                                            <Pie data={performanceChartData} dataKey="value" nameKey="status" innerRadius={50} paddingAngle={5}>
+                                                {performanceChartData.map((entry) => (
+                                                    <Cell key={`cell-${entry.status}`} fill={entry.fill} />
+                                                ))}
+                                            </Pie>
+                                        </PieChart>
+                                    </ChartContainer>
+                                ) : (
+                                    <div className="flex items-center justify-center h-full text-muted-foreground">No performance data.</div>
+                                )}
+                             </div>
+                        </CardContent>
+                    </Card>
+
+                </div>
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Briefcase className="h-5 w-5 text-muted-foreground" />
+                                Payment Details
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Type</span>
+                                <Badge variant="secondary">{loggedInStaff.paymentType}</Badge>
+                            </div>
+                            {(loggedInStaff.paymentType === 'Salary' || loggedInStaff.paymentType === 'Both') && loggedInStaff.salaryDetails && (
+                                <>
+                                    <Separator />
+                                    <p className='font-medium'>Salary</p>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Amount</span>
+                                        <span>৳{loggedInStaff.salaryDetails.amount.toLocaleString()} / {loggedInStaff.salaryDetails.frequency}</span>
+                                    </div>
+                                </>
+                            )}
+                            {(loggedInStaff.paymentType === 'Commission' || loggedInStaff.paymentType === 'Both') && loggedInStaff.commissionDetails && (
+                                <>
+                                    <Separator />
+                                    <p className='font-medium'>Commission</p>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">On Order Create</span>
+                                        <span>৳{loggedInStaff.commissionDetails.onOrderCreate.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">On Order Confirm</span>
+                                        <span>৳{loggedInStaff.commissionDetails.onOrderConfirm.toFixed(2)}</span>
+                                    </div>
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                     <Card>
+                        <CardHeader>
+                             <CardTitle className="flex items-center gap-2">
+                                <DollarSign className="h-5 w-5 text-muted-foreground" />
+                                My Financials
+                            </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="current-password">Current Password</Label>
-                                <Input id="current-password" type="password" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="new-password">New Password</Label>
-                                <Input id="new-password" type="password" />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="confirm-password">Confirm New Password</Label>
-                                <Input id="confirm-password" type="password" />
+                            <div className="space-y-2 rounded-lg border bg-card p-4">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Total Earned</span>
+                                    <span className="font-medium">৳{loggedInStaff.financials.totalEarned.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Total Paid</span>
+                                    <span className="font-medium text-green-600">৳{loggedInStaff.financials.totalPaid.toLocaleString()}</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between font-semibold text-lg">
+                                    <span className={cn(loggedInStaff.financials.dueAmount > 0 && "text-destructive")}>Due Amount</span>
+                                    <span className={cn(loggedInStaff.financials.dueAmount > 0 && "text-destructive")}>৳{loggedInStaff.financials.dueAmount.toLocaleString()}</span>
+                                </div>
                             </div>
                         </CardContent>
-                        <CardFooter>
-                            <Button className="w-full">Update Password</Button>
-                        </CardFooter>
                     </Card>
                 </div>
             </div>
