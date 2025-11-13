@@ -69,7 +69,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationNext,
+    PaginationPrevious,
+  } from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
+
+const ITEMS_PER_PAGE = 10;
 
 const attributeSchema = z.object({
   name: z.string().min(1, "Attribute name is required."),
@@ -124,6 +133,7 @@ type ProductFormValues = z.infer<typeof productSchema>;
 export default function ProductsPage() {
   const [popoverOpen, setPopoverOpen] = React.useState(false);
   const [categoryFilter, setCategoryFilter] = React.useState("all");
+  const [currentPage, setCurrentPage] = React.useState(1);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -172,6 +182,17 @@ export default function ProductsPage() {
         return false;
     });
   }, [categoryFilter]);
+
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const paginatedProducts = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredProducts, currentPage]);
+
+  React.useEffect(() => {
+      setCurrentPage(1);
+  }, [categoryFilter]);
+
 
   function generateVariations() {
     const attributes = form.getValues("attributes");
@@ -758,7 +779,7 @@ export default function ProductsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.map((product) => (
+                {paginatedProducts.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell>
                       <Link href={`/dashboard/products/${product.id}`}>
@@ -808,7 +829,7 @@ export default function ProductsPage() {
           
           {/* For smaller screens */}
           <div className="sm:hidden grid grid-cols-2 gap-4">
-              {filteredProducts.map((product) => (
+              {paginatedProducts.map((product) => (
                 <Link href={`/dashboard/products/${product.id}`} key={product.id} className="block">
                   <Card className="overflow-hidden h-full">
                       <CardContent className="p-0">
@@ -832,9 +853,33 @@ export default function ProductsPage() {
 
         </CardContent>
         <CardFooter>
-          <div className="text-xs text-muted-foreground">
-            Showing <strong>1-{filteredProducts.length}</strong> of <strong>{products.length}</strong> products
-          </div>
+            <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
+                <div>
+                    Showing <strong>{(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+                    {Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)}
+                    </strong> of <strong>{filteredProducts.length}</strong> products
+                </div>
+                {totalPages > 1 && (
+                    <Pagination>
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious 
+                                    href="#" 
+                                    onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.max(1, p - 1))}} 
+                                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                                />
+                            </PaginationItem>
+                            <PaginationItem>
+                                <PaginationNext 
+                                    href="#" 
+                                    onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.min(totalPages, p + 1))}}
+                                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''} 
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                )}
+            </div>
         </CardFooter>
       </Card>
     </div>

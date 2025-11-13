@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter,
 } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -28,13 +29,24 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationNext,
+    PaginationPrevious,
+  } from "@/components/ui/pagination";
 import { suppliers, vendors, purchaseOrders } from "@/lib/placeholder-data";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 
+const ITEMS_PER_PAGE = 5;
+
 export default function PartnersPage() {
   const [isClient, setIsClient] = useState(false);
+  const [currentSupplierPage, setCurrentSupplierPage] = useState(1);
+  const [currentVendorPage, setCurrentVendorPage] = useState(1);
 
   useEffect(() => {
     setIsClient(true);
@@ -82,6 +94,19 @@ export default function PartnersPage() {
     return finalDues;
   }, [isClient]);
 
+  const totalSupplierPages = Math.ceil(suppliers.length / ITEMS_PER_PAGE);
+  const paginatedSuppliers = useMemo(() => {
+      const startIndex = (currentSupplierPage - 1) * ITEMS_PER_PAGE;
+      return suppliers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [currentSupplierPage]);
+
+  const totalVendorPages = Math.ceil(vendors.length / ITEMS_PER_PAGE);
+  const paginatedVendors = useMemo(() => {
+        const startIndex = (currentVendorPage - 1) * ITEMS_PER_PAGE;
+        return vendors.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [currentVendorPage]);
+
+
   const renderSupplierTable = () => (
     <Table>
       <TableHeader>
@@ -94,7 +119,7 @@ export default function PartnersPage() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {suppliers.map((supplier) => {
+        {paginatedSuppliers.map((supplier) => {
           const due = partnerDues[supplier.name] || 0;
           return (
             <TableRow key={supplier.id}>
@@ -134,7 +159,7 @@ export default function PartnersPage() {
 
   const renderSupplierCards = () => (
     <div className="space-y-4">
-      {suppliers.map((supplier) => {
+      {paginatedSuppliers.map((supplier) => {
         const due = partnerDues[supplier.name] || 0;
         return (
           <Card key={supplier.id} className="overflow-hidden">
@@ -189,7 +214,7 @@ export default function PartnersPage() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {vendors.map((vendor) => {
+        {paginatedVendors.map((vendor) => {
           const due = partnerDues[vendor.name] || 0;
           return (
             <TableRow key={vendor.id}>
@@ -233,7 +258,7 @@ export default function PartnersPage() {
 
   const renderVendorCards = () => (
     <div className="sm:hidden space-y-4">
-      {vendors.map((vendor) => {
+      {paginatedVendors.map((vendor) => {
         const due = partnerDues[vendor.name] || 0;
         return (
           <Card key={vendor.id} className="overflow-hidden">
@@ -312,6 +337,35 @@ export default function PartnersPage() {
                 </>
               )}
             </CardContent>
+             <CardFooter>
+                <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
+                    <div>
+                        Showing <strong>{(currentSupplierPage - 1) * ITEMS_PER_PAGE + 1}-
+                        {Math.min(currentSupplierPage * ITEMS_PER_PAGE, suppliers.length)}
+                        </strong> of <strong>{suppliers.length}</strong> suppliers
+                    </div>
+                    {totalSupplierPages > 1 && (
+                        <Pagination>
+                            <PaginationContent>
+                                <PaginationItem>
+                                    <PaginationPrevious 
+                                        href="#" 
+                                        onClick={(e) => { e.preventDefault(); setCurrentSupplierPage(p => Math.max(1, p - 1))}} 
+                                        className={currentSupplierPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                                    />
+                                </PaginationItem>
+                                <PaginationItem>
+                                    <PaginationNext 
+                                        href="#" 
+                                        onClick={(e) => { e.preventDefault(); setCurrentSupplierPage(p => Math.min(totalSupplierPages, p + 1))}}
+                                        className={currentSupplierPage === totalSupplierPages ? 'pointer-events-none opacity-50' : ''} 
+                                    />
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+                    )}
+                </div>
+            </CardFooter>
           </Card>
         </TabsContent>
         <TabsContent value="vendors">
@@ -332,6 +386,35 @@ export default function PartnersPage() {
                 </>
               )}
             </CardContent>
+            <CardFooter>
+                <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
+                    <div>
+                        Showing <strong>{(currentVendorPage - 1) * ITEMS_PER_PAGE + 1}-
+                        {Math.min(currentVendorPage * ITEMS_PER_PAGE, vendors.length)}
+                        </strong> of <strong>{vendors.length}</strong> vendors
+                    </div>
+                    {totalVendorPages > 1 && (
+                        <Pagination>
+                            <PaginationContent>
+                                <PaginationItem>
+                                    <PaginationPrevious 
+                                        href="#" 
+                                        onClick={(e) => { e.preventDefault(); setCurrentVendorPage(p => Math.max(1, p - 1))}} 
+                                        className={currentVendorPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                                    />
+                                </PaginationItem>
+                                <PaginationItem>
+                                    <PaginationNext 
+                                        href="#" 
+                                        onClick={(e) => { e.preventDefault(); setCurrentVendorPage(p => Math.min(totalVendorPages, p + 1))}}
+                                        className={currentVendorPage === totalVendorPages ? 'pointer-events-none opacity-50' : ''} 
+                                    />
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+                    )}
+                </div>
+            </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>

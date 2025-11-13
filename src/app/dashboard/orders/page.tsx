@@ -51,10 +51,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationNext,
+    PaginationPrevious,
+  } from "@/components/ui/pagination";
 import { orders, businesses, OrderStatus, OrderProduct, allStatuses } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+
+const ITEMS_PER_PAGE = 10;
 
 const statusColors: Record<OrderStatus, string> = {
     'New': 'bg-blue-500/20 text-blue-700',
@@ -143,6 +152,7 @@ export default function OrdersPage() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -155,6 +165,7 @@ export default function OrdersPage() {
 
   const handleStatusFilterChange = (newStatus: string) => {
     setStatusFilter(newStatus);
+    setCurrentPage(1);
     const params = new URLSearchParams(searchParams.toString());
     if (newStatus === 'all') {
       params.delete('status');
@@ -185,14 +196,22 @@ export default function OrdersPage() {
       return statusMatch && businessMatch && dateMatch && searchMatch;
     });
   }, [statusFilter, businessFilter, dateRange, searchTerm]);
+  
+  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
+  const paginatedOrders = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredOrders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredOrders, currentPage]);
+
 
   useEffect(() => {
     setSelectedOrders([]);
+    setCurrentPage(1);
   }, [statusFilter, businessFilter, dateRange, searchTerm]);
 
   const handleSelectAll = (checked: boolean | 'indeterminate') => {
     if (checked === true) {
-      setSelectedOrders(filteredOrders.map(o => o.id));
+      setSelectedOrders(paginatedOrders.map(o => o.id));
     } else {
       setSelectedOrders([]);
     }
@@ -206,8 +225,8 @@ export default function OrdersPage() {
     }
   };
 
-  const isAllSelected = selectedOrders.length > 0 && selectedOrders.length === filteredOrders.length;
-  const isSomeSelected = selectedOrders.length > 0 && selectedOrders.length < filteredOrders.length;
+  const isAllSelected = selectedOrders.length > 0 && selectedOrders.length === paginatedOrders.length;
+  const isSomeSelected = selectedOrders.length > 0 && selectedOrders.length < paginatedOrders.length;
 
 
   const renderTable = () => (
@@ -233,7 +252,7 @@ export default function OrdersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredOrders.map((order) => (
+              {paginatedOrders.map((order) => (
                 <TableRow key={order.id} data-state={selectedOrders.includes(order.id) && "selected"}>
                    <TableCell padding="checkbox">
                       <Checkbox
@@ -302,7 +321,7 @@ export default function OrdersPage() {
 
   const renderCardList = () => (
       <div className="space-y-4">
-        {filteredOrders.map((order) => (
+        {paginatedOrders.map((order) => (
             <Card key={order.id} className={cn("relative", selectedOrders.includes(order.id) && "border-primary")}>
                 <div className="absolute top-2 left-2">
                     <Checkbox
@@ -454,9 +473,33 @@ export default function OrdersPage() {
             )}
         </CardContent>
         <CardFooter>
-          <div className="text-xs text-muted-foreground">
-            Showing <strong>1-{filteredOrders.length}</strong> of <strong>{orders.length}</strong> orders
-          </div>
+            <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
+                <div>
+                 Showing <strong>{(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+                 {Math.min(currentPage * ITEMS_PER_PAGE, filteredOrders.length)}
+                 </strong> of <strong>{filteredOrders.length}</strong> orders
+                </div>
+                 {totalPages > 1 && (
+                    <Pagination>
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious 
+                                    href="#" 
+                                    onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.max(1, p - 1))}} 
+                                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                                />
+                            </PaginationItem>
+                             <PaginationItem>
+                                <PaginationNext 
+                                    href="#" 
+                                    onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.min(totalPages, p + 1))}}
+                                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''} 
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                )}
+            </div>
         </CardFooter>
       </Card>
     </div>

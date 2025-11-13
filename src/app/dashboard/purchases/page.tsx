@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -31,11 +32,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationNext,
+    PaginationPrevious,
+  } from "@/components/ui/pagination";
 import { purchaseOrders } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 
+const ITEMS_PER_PAGE = 10;
 
 const statusColors = {
     'Received': 'bg-green-500/20 text-green-700',
@@ -49,6 +58,7 @@ const statusColors = {
 export default function PurchasesPage() {
 
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+    const [currentPage, setCurrentPage] = useState(1);
     const [isClient, setIsClient] = React.useState(false);
 
     React.useEffect(() => {
@@ -64,6 +74,16 @@ export default function PurchasesPage() {
 
             return dateMatch;
         });
+    }, [dateRange]);
+
+    const totalPages = Math.ceil(filteredPurchaseOrders.length / ITEMS_PER_PAGE);
+    const paginatedPurchaseOrders = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredPurchaseOrders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredPurchaseOrders, currentPage]);
+
+    React.useEffect(() => {
+        setCurrentPage(1);
     }, [dateRange]);
 
 
@@ -108,7 +128,7 @@ export default function PurchasesPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredPurchaseOrders.map((po) => (
+                    {paginatedPurchaseOrders.map((po) => (
                       <TableRow key={po.id}>
                         <TableCell className="font-medium">
                           <Link href={`/dashboard/purchases/${po.id}`} className="hover:underline">
@@ -152,7 +172,7 @@ export default function PurchasesPage() {
 
               {/* Card list for smaller screens */}
               <div className="sm:hidden space-y-4">
-                {filteredPurchaseOrders.map((po) => (
+                {paginatedPurchaseOrders.map((po) => (
                     <Card key={po.id} className="overflow-hidden">
                         <CardContent className="p-4 space-y-3">
                             <div className="flex justify-between items-start">
@@ -209,6 +229,35 @@ export default function PurchasesPage() {
             </div>
           )}
         </CardContent>
+        <CardFooter>
+            <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
+                <div>
+                    Showing <strong>{(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+                    {Math.min(currentPage * ITEMS_PER_PAGE, filteredPurchaseOrders.length)}
+                    </strong> of <strong>{filteredPurchaseOrders.length}</strong> purchase orders
+                </div>
+                {totalPages > 1 && (
+                    <Pagination>
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious 
+                                    href="#" 
+                                    onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.max(1, p - 1))}} 
+                                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                                />
+                            </PaginationItem>
+                            <PaginationItem>
+                                <PaginationNext 
+                                    href="#" 
+                                    onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.min(totalPages, p + 1))}}
+                                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''} 
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                )}
+            </div>
+        </CardFooter>
       </Card>
     </div>
   );

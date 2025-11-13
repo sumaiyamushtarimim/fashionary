@@ -9,6 +9,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -27,14 +28,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationNext,
+    PaginationPrevious,
+  } from "@/components/ui/pagination";
 import { staff } from "@/lib/placeholder-data";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
-import React from "react";
+import React, { useMemo, useState } from "react";
+
+const ITEMS_PER_PAGE = 10;
 
 export default function StaffPage() {
+    const [currentPage, setCurrentPage] = useState(1);
     const [isClient, setIsClient] = React.useState(false);
 
     React.useEffect(() => {
@@ -48,6 +59,12 @@ export default function StaffPage() {
             return acc;
         }, { totalDue: 0, totalEarned: 0 });
     }, []);
+
+    const totalPages = Math.ceil(staff.length / ITEMS_PER_PAGE);
+    const paginatedStaff = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return staff.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [currentPage]);
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -107,7 +124,7 @@ export default function StaffPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {staff.map((member) => (
+                {paginatedStaff.map((member) => (
                   <TableRow key={member.id}>
                     <TableCell className="font-medium">
                       <Link href={`/dashboard/staff/${member.id}`} className="hover:underline">
@@ -154,7 +171,7 @@ export default function StaffPage() {
           
           {/* Card list for smaller screens */}
           <div className="sm:hidden space-y-4">
-              {staff.map((member) => (
+              {paginatedStaff.map((member) => (
                   <Card key={member.id} className="overflow-hidden">
                       <CardContent className="p-4 space-y-3">
                           <div className="flex justify-between items-start">
@@ -195,6 +212,35 @@ export default function StaffPage() {
           </div>
 
         </CardContent>
+        <CardFooter>
+            <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
+                <div>
+                    Showing <strong>{(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+                    {Math.min(currentPage * ITEMS_PER_PAGE, staff.length)}
+                    </strong> of <strong>{staff.length}</strong> staff members
+                </div>
+                {totalPages > 1 && (
+                    <Pagination>
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious 
+                                    href="#" 
+                                    onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.max(1, p - 1))}} 
+                                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                                />
+                            </PaginationItem>
+                            <PaginationItem>
+                                <PaginationNext 
+                                    href="#" 
+                                    onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.min(totalPages, p + 1))}}
+                                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''} 
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                )}
+            </div>
+        </CardFooter>
       </Card>
     </div>
   );

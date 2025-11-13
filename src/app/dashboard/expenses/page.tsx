@@ -49,6 +49,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationNext,
+    PaginationPrevious,
+  } from "@/components/ui/pagination";
 import { expenses, businesses, expenseCategories, Expense, OrderPlatform } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -57,6 +64,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 
+const ITEMS_PER_PAGE = 10;
 const socialPlatforms: OrderPlatform[] = ['Facebook', 'Instagram', 'TikTok', 'Website'];
 
 
@@ -64,6 +72,7 @@ export default function ExpensesPage() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAdExpense, setIsAdExpense] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -81,6 +90,16 @@ export default function ExpensesPage() {
     });
   }, [dateRange]);
 
+  const totalPages = Math.ceil(filteredExpenses.length / ITEMS_PER_PAGE);
+  const paginatedExpenses = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredExpenses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredExpenses, currentPage]);
+
+  useEffect(() => {
+      setCurrentPage(1);
+  }, [dateRange]);
+
   const renderTable = () => (
      <Table>
             <TableHeader className="hidden sm:table-header-group">
@@ -94,7 +113,7 @@ export default function ExpensesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredExpenses.map((expense) => (
+              {paginatedExpenses.map((expense) => (
                 <TableRow key={expense.id} className="hidden sm:table-row">
                   <TableCell>{format(new Date(expense.date), "MMM d, yyyy")}</TableCell>
                   <TableCell>{expense.category}</TableCell>
@@ -135,7 +154,7 @@ export default function ExpensesPage() {
 
   const renderCardList = () => (
     <div className="space-y-4">
-        {filteredExpenses.map((expense) => (
+        {paginatedExpenses.map((expense) => (
             <Card key={expense.id}>
                 <CardContent className="p-4 space-y-3">
                     <div className="flex justify-between items-start">
@@ -305,9 +324,33 @@ export default function ExpensesPage() {
             )}
         </CardContent>
         <CardFooter>
-          <div className="text-xs text-muted-foreground">
-            Showing <strong>1-{filteredExpenses.length}</strong> of <strong>{expenses.length}</strong> expenses
-          </div>
+          <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
+                <div>
+                    Showing <strong>{(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+                    {Math.min(currentPage * ITEMS_PER_PAGE, filteredExpenses.length)}
+                    </strong> of <strong>{filteredExpenses.length}</strong> expenses
+                </div>
+                {totalPages > 1 && (
+                    <Pagination>
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious 
+                                    href="#" 
+                                    onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.max(1, p - 1))}} 
+                                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                                />
+                            </PaginationItem>
+                            <PaginationItem>
+                                <PaginationNext 
+                                    href="#" 
+                                    onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.min(totalPages, p + 1))}}
+                                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''} 
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                )}
+            </div>
         </CardFooter>
       </Card>
     </div>

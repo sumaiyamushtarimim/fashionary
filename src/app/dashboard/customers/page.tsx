@@ -11,6 +11,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -30,12 +31,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationNext,
+    PaginationPrevious,
+  } from "@/components/ui/pagination";
 import { Separator } from '@/components/ui/separator';
 import { customers, Customer } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
 
+const ITEMS_PER_PAGE = 10;
+
 export default function CustomersPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [currentPage, setCurrentPage] = React.useState(1);
   const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
@@ -49,6 +60,16 @@ export default function CustomersPage() {
       customer.name.toLowerCase().includes(lowercasedSearchTerm) ||
       customer.phone.toLowerCase().includes(lowercasedSearchTerm)
     );
+  }, [searchTerm]);
+
+  const totalPages = Math.ceil(filteredCustomers.length / ITEMS_PER_PAGE);
+  const paginatedCustomers = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredCustomers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredCustomers, currentPage]);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
   }, [searchTerm]);
 
   const renderTable = () => (
@@ -65,7 +86,7 @@ export default function CustomersPage() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {filteredCustomers.map(customer => (
+        {paginatedCustomers.map(customer => (
           <TableRow key={customer.id}>
             <TableCell className="font-medium">{customer.name}</TableCell>
             <TableCell className="hidden sm:table-cell">{customer.phone}</TableCell>
@@ -99,7 +120,7 @@ export default function CustomersPage() {
 
   const renderCardList = () => (
     <div className="space-y-4">
-      {filteredCustomers.map(customer => (
+      {paginatedCustomers.map(customer => (
         <Card key={customer.id}>
           <CardContent className="p-4 space-y-3">
             <div className="flex justify-between items-start">
@@ -182,6 +203,35 @@ export default function CustomersPage() {
             </div>
           )}
         </CardContent>
+        <CardFooter>
+            <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
+                <div>
+                    Showing <strong>{(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+                    {Math.min(currentPage * ITEMS_PER_PAGE, filteredCustomers.length)}
+                    </strong> of <strong>{filteredCustomers.length}</strong> customers
+                </div>
+                {totalPages > 1 && (
+                    <Pagination>
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious 
+                                    href="#" 
+                                    onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.max(1, p - 1))}} 
+                                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                                />
+                            </PaginationItem>
+                            <PaginationItem>
+                                <PaginationNext 
+                                    href="#" 
+                                    onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.min(totalPages, p + 1))}}
+                                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''} 
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                )}
+            </div>
+        </CardFooter>
       </Card>
     </div>
   );
