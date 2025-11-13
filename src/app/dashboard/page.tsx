@@ -85,6 +85,11 @@ const statusColors: Record<OrderStatus, string> = {
     'Partially Returned': 'bg-amber-500/20 text-amber-700',
 };
 
+const allStatuses: OrderStatus[] = [
+    'New', 'Confirmed', 'Hold', 'Packing', 'Packing Hold', 'RTS (Ready to Ship)',
+    'Shipped', 'Delivered', 'Canceled', 'Returned', 'Partially Delivered', 'Partially Returned'
+];
+
 export default function Dashboard() {
     const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
 
@@ -98,14 +103,19 @@ export default function Dashboard() {
 
 
     const orderStats = React.useMemo(() => {
-        return filteredOrders.reduce((acc, order) => {
-            if (acc[order.status]) {
-                acc[order.status]++;
-            } else {
-                acc[order.status] = 1;
-            }
+        const stats = allStatuses.reduce((acc, status) => {
+            acc[status] = { count: 0, total: 0 };
             return acc;
-        }, {} as Record<OrderStatus, number>);
+        }, {} as Record<OrderStatus, { count: number; total: number }>);
+
+        filteredOrders.forEach((order) => {
+            if (stats[order.status]) {
+                stats[order.status].count++;
+                stats[order.status].total += order.total;
+            }
+        });
+
+        return stats;
     }, [filteredOrders]);
 
 
@@ -173,69 +183,43 @@ export default function Dashboard() {
                 </CardContent>
             </Card>
 
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-5 md:gap-8">
-                <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-                    <ClipboardList className="h-4 w-4 text-muted-foreground" />
+            <Card>
+                <CardHeader>
+                    <CardTitle>Order Summary by Status</CardTitle>
+                    <CardDescription>
+                        A breakdown of orders based on their current status for the selected date range.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{filteredOrders.length}</div>
-                    <p className="text-xs text-muted-foreground">
-                    {dateRange?.from ? format(dateRange.from, "MMM d") : ''}
-                    {dateRange?.to ? ` - ${format(dateRange.to, "MMM d")}` : ''}
-                    </p>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-center">Order Count</TableHead>
+                                <TableHead className="text-right">Total Amount</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {allStatuses.map((status) => {
+                                const stat = orderStats[status];
+                                if (stat.count === 0) return null;
+                                return (
+                                    <TableRow key={status}>
+                                        <TableCell>
+                                            <Badge variant="outline" className={cn(statusColors[status])}>
+                                                {status}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-center font-medium">{stat.count}</TableCell>
+                                        <TableCell className="text-right font-mono">৳{stat.total.toLocaleString()}</TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
                 </CardContent>
-                </Card>
-                <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">New Orders</CardTitle>
-                    <PackagePlus className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">+{orderStats['New'] || 0}</div>
-                    <p className="text-xs text-muted-foreground">
-                    Awaiting confirmation
-                    </p>
-                </CardContent>
-                </Card>
-                <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Packing</CardTitle>
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{orderStats['Packing'] || 0}</div>
-                    <p className="text-xs text-muted-foreground">
-                    Items being prepared
-                    </p>
-                </CardContent>
-                </Card>
-                <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Shipped</CardTitle>
-                    <Ship className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{orderStats['Shipped'] || 0}</div>
-                    <p className="text-xs text-muted-foreground">
-                    On the way to customers
-                    </p>
-                </CardContent>
-                </Card>
-                <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Delivered</CardTitle>
-                    <PackageCheck className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{orderStats['Delivered'] || 0}</div>
-                    <p className="text-xs text-muted-foreground">
-                    Successfully delivered
-                    </p>
-                </CardContent>
-                </Card>
-            </div>
+            </Card>
+
         </div>
     </div>
   );
