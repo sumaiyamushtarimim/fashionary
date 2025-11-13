@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
   Home,
@@ -139,6 +139,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [notifications, setNotifications] = React.useState(initialNotifications);
   
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -147,6 +148,10 @@ export default function DashboardLayout({
     setNotifications(prevNotifications => 
         prevNotifications.map(n => ({ ...n, read: true }))
     );
+  };
+
+  const handleNotificationClick = (href: string) => {
+    router.push(href);
   };
 
 
@@ -204,17 +209,15 @@ export default function DashboardLayout({
                 <DropdownMenuSeparator />
                 <div className="max-h-80 overflow-y-auto">
                     {notifications.map((notification) => (
-                        <DropdownMenuItem key={notification.id} className={cn("flex items-start gap-3 p-3", !notification.read && "bg-blue-500/10")} asChild>
-                           <Link href={notification.href}>
-                             <div className={cn("p-2 rounded-full", !notification.read ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")}>
-                               <notification.icon className="h-5 w-5" />
-                             </div>
-                              <div className="flex-1">
-                                  <p className="font-medium text-sm">{notification.title}</p>
-                                  <p className="text-xs text-muted-foreground">{notification.description}</p>
-                              </div>
-                              <time className="text-xs text-muted-foreground">{notification.time}</time>
-                           </Link>
+                        <DropdownMenuItem key={notification.id} className={cn("flex items-start gap-3 p-3", !notification.read && "bg-blue-500/10")} onSelect={() => handleNotificationClick(notification.href)}>
+                           <div className={cn("p-2 rounded-full", !notification.read ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")}>
+                             <notification.icon className="h-5 w-5" />
+                           </div>
+                            <div className="flex-1">
+                                <p className="font-medium text-sm">{notification.title}</p>
+                                <p className="text-xs text-muted-foreground">{notification.description}</p>
+                            </div>
+                            <time className="text-xs text-muted-foreground">{notification.time}</time>
                         </DropdownMenuItem>
                     ))}
                 </div>

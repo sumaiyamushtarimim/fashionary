@@ -67,25 +67,25 @@ const allNotifications = [
 type Notification = typeof allNotifications[0];
 
 function NotificationItem({ notification }: { notification: Notification }) {
-    const itemContent = (
-        <div className={cn("flex items-start gap-4 p-4 border-b hover:bg-muted/50 transition-colors", !notification.read && "bg-blue-500/5")}>
-            <div className={cn("p-2 rounded-full", !notification.read ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")}>
-                <notification.icon className="h-6 w-6" />
-            </div>
-            <div className="flex-1 grid gap-1">
-                <p className="font-semibold">{notification.title}</p>
-                <p className="text-sm text-muted-foreground">{notification.description}</p>
-                 <time className="text-xs text-muted-foreground">{notification.time}</time>
-            </div>
-            {!notification.read && (
-                <div className="flex items-center h-full">
-                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
+    return (
+        <Link href={notification.href} className="block">
+            <div className={cn("flex items-start gap-4 p-4 border-b hover:bg-muted/50 transition-colors", !notification.read && "bg-blue-500/5")}>
+                <div className={cn("p-2 rounded-full", !notification.read ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")}>
+                    <notification.icon className="h-6 w-6" />
                 </div>
-            )}
-        </div>
+                <div className="flex-1 grid gap-1">
+                    <p className="font-semibold">{notification.title}</p>
+                    <p className="text-sm text-muted-foreground">{notification.description}</p>
+                    <time className="text-xs text-muted-foreground">{notification.time}</time>
+                </div>
+                {!notification.read && (
+                    <div className="flex items-center h-full">
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
+                    </div>
+                )}
+            </div>
+        </Link>
     );
-    
-    return <Link href={notification.href}>{itemContent}</Link>;
 }
 
 
