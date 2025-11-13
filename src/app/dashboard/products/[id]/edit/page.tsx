@@ -108,8 +108,24 @@ export default function EditProductPage() {
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
+      name: '',
+      slug: '',
+      description: '',
+      shortDescription: '',
       productType: 'simple',
-      attributes: [{ name: "", options: "" }],
+      regularPrice: 0,
+      salePrice: 0,
+      sku: '',
+      weight: 0,
+      length: 0,
+      width: 0,
+      height: 0,
+      categoryId: '',
+      tags: '',
+      ornaFabric: 0,
+      jamaFabric: 0,
+      selowarFabric: 0,
+      attributes: [],
       variations: [],
       comboProducts: [],
     },
@@ -118,26 +134,24 @@ export default function EditProductPage() {
   React.useEffect(() => {
     if (product) {
       form.reset({
-        name: product.name,
-        description: product.description,
+        name: product.name || '',
+        description: product.description || '',
         productType: product.variants && product.variants.length > 0 ? 'variable' : 'simple',
-        regularPrice: product.price,
-        sku: product.variants?.[0]?.sku,
-        categoryId: product.categoryId,
-        ornaFabric: product.ornaFabric,
-        jamaFabric: product.jamaFabric,
-        selowarFabric: product.selowarFabric,
-        // Mocking attributes for demonstration
+        regularPrice: product.price || 0,
+        sku: product.variants?.[0]?.sku || '',
+        categoryId: product.categoryId || '',
+        ornaFabric: product.ornaFabric || 0,
+        jamaFabric: product.jamaFabric || 0,
+        selowarFabric: product.selowarFabric || 0,
         attributes: product.variants ? [{ name: 'Size', options: 'Small, Medium, Large'}] : [],
-        // Mocking variations for demonstration
         variations: product.variants?.map(v => ({
             id: v.id,
             attributes: { Size: v.name.split(',')[0] },
-            sku: v.sku,
-            regularPrice: product.price,
+            sku: v.sku || '',
+            regularPrice: product.price || 0,
             salePrice: undefined,
             image: ''
-        }))
+        })) || []
       });
     }
   }, [product, form]);
