@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Settings,
   Store,
@@ -15,6 +15,15 @@ import {
 
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useIsMobile } from '@/hooks/use-mobile';
+import React from 'react';
 
 const settingsNav = [
   { href: '/dashboard/settings', label: 'Dashboard', icon: Settings },
@@ -27,37 +36,92 @@ const settingsNav = [
   { href: '/dashboard/settings/smtp', label: 'SMTP', icon: Mail },
 ];
 
+function DesktopNav() {
+    const pathname = usePathname();
+    return (
+        <aside className="hidden lg:block lg:w-1/5">
+            <nav className="flex flex-col space-y-1">
+                {settingsNav.map(({ href, label, icon: Icon }) => (
+                <Link
+                    key={href}
+                    href={href}
+                    className={cn(
+                    buttonVariants({ variant: 'ghost' }),
+                    pathname === href
+                        ? 'bg-muted hover:bg-muted'
+                        : 'hover:bg-transparent hover:underline',
+                    'justify-start'
+                    )}
+                >
+                    <Icon className="mr-2 h-4 w-4" />
+                    {label}
+                </Link>
+                ))}
+            </nav>
+        </aside>
+    )
+}
+
+function MobileNav() {
+    const pathname = usePathname();
+    const router = useRouter();
+    const [isClient, setIsClient] = React.useState(false);
+    
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    const handleValueChange = (value: string) => {
+        router.push(value);
+    };
+    
+    const currentNavItem = settingsNav.find(nav => nav.href === pathname);
+
+    if (!isClient) {
+        return null; // Or a skeleton loader
+    }
+
+    return (
+        <div className="lg:hidden mb-6">
+            <Select value={pathname} onValueChange={handleValueChange}>
+                <SelectTrigger>
+                    <SelectValue asChild>
+                         <div className="flex items-center gap-2">
+                           {currentNavItem?.icon && <currentNavItem.icon className="h-4 w-4" />}
+                           <span>{currentNavItem?.label || 'Select Setting'}</span>
+                        </div>
+                    </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                    {settingsNav.map(({ href, label, icon: Icon }) => (
+                        <SelectItem key={href} value={href}>
+                             <div className="flex items-center gap-3">
+                                <Icon className="h-4 w-4" />
+                                {label}
+                            </div>
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+    );
+}
+
+
 export default function SettingsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
 
   return (
     <div className="flex min-h-[calc(100vh_-_3.5rem)] flex-col">
-      <div className="flex flex-col space-y-8 p-4 lg:p-6 lg:flex-row lg:space-x-12 lg:space-y-0">
-        <aside className="-mx-4 lg:w-1/5">
-          <nav className="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
-            {settingsNav.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  buttonVariants({ variant: 'ghost' }),
-                  pathname === href
-                    ? 'bg-muted hover:bg-muted'
-                    : 'hover:bg-transparent hover:underline',
-                  'justify-start'
-                )}
-              >
-                <Icon className="mr-2 h-4 w-4" />
-                {label}
-              </Link>
-            ))}
-          </nav>
-        </aside>
-        <div className="flex-1 lg:max-w-4xl">{children}</div>
+      <div className="flex flex-col p-4 lg:flex-row lg:space-x-12 lg:p-6">
+        <DesktopNav />
+        <div className="w-full">
+            <MobileNav />
+            <div className="flex-1 lg:max-w-4xl">{children}</div>
+        </div>
       </div>
     </div>
   );
