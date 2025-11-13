@@ -172,7 +172,7 @@ export default function DashboardLayout({
         </div>
       </div>
       <div className="flex flex-col md:overflow-hidden">
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 md:relative md:z-auto md:sticky-0 sticky top-0 z-50">
+        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 md:relative md:z-auto sticky top-0 z-50">
           <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="shrink-0 md:hidden">
@@ -259,3 +259,5 @@ export default function DashboardLayout({
     </div>
   );
 }
+
+    
