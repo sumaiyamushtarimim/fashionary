@@ -36,21 +36,52 @@ import {
     PaginationNext,
     PaginationPrevious,
   } from "@/components/ui/pagination";
-import { suppliers, vendors, purchaseOrders } from "@/lib/placeholder-data";
+import { suppliers, vendors, purchaseOrders, Supplier, Vendor } from "@/lib/placeholder-data";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+  } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 const ITEMS_PER_PAGE = 5;
+type Partner = Supplier | Vendor;
 
 export default function PartnersPage() {
   const [isClient, setIsClient] = useState(false);
   const [currentSupplierPage, setCurrentSupplierPage] = useState(1);
   const [currentVendorPage, setCurrentVendorPage] = useState(1);
+  
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<'addSupplier' | 'addVendor' | 'editSupplier' | 'editVendor' | null>(null);
+  const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
+
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const openDialog = (mode: typeof dialogMode, partner?: Partner) => {
+    setDialogMode(mode);
+    setSelectedPartner(partner || null);
+    setIsDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+      setIsDialogOpen(false);
+      setDialogMode(null);
+      setSelectedPartner(null);
+  }
 
   const partnerDues = useMemo(() => {
     if (!isClient) {
@@ -146,7 +177,7 @@ export default function PartnersPage() {
                     <DropdownMenuItem asChild>
                       <Link href={`/dashboard/partners/${supplier.id}`}>View Details</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => openDialog('editSupplier', supplier)}>Edit</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
@@ -183,7 +214,7 @@ export default function PartnersPage() {
                     <DropdownMenuItem asChild>
                       <Link href={`/dashboard/partners/${supplier.id}`}>View Details</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => openDialog('editSupplier', supplier)}>Edit</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -245,7 +276,7 @@ export default function PartnersPage() {
                     <DropdownMenuItem asChild>
                       <Link href={`/dashboard/partners/${vendor.id}`}>View Details</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => openDialog('editVendor', vendor)}>Edit</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
@@ -282,7 +313,7 @@ export default function PartnersPage() {
                     <DropdownMenuItem asChild>
                       <Link href={`/dashboard/partners/${vendor.id}`}>View Details</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => openDialog('editVendor', vendor)}>Edit</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -321,11 +352,17 @@ export default function PartnersPage() {
         </TabsList>
         <TabsContent value="suppliers">
           <Card>
-            <CardHeader>
-              <CardTitle>Suppliers</CardTitle>
-              <CardDescription>
-                Manage your material and service suppliers.
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Suppliers</CardTitle>
+                <CardDescription>
+                  Manage your material and service suppliers.
+                </CardDescription>
+              </div>
+               <Button onClick={() => openDialog('addSupplier')}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Supplier
+                </Button>
             </CardHeader>
             <CardContent>
               {!isClient ? (
@@ -370,11 +407,17 @@ export default function PartnersPage() {
         </TabsContent>
         <TabsContent value="vendors">
           <Card>
-            <CardHeader>
-              <CardTitle>Vendors</CardTitle>
-              <CardDescription>
-                Manage your printing and cutting vendors.
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Vendors</CardTitle>
+                <CardDescription>
+                  Manage your printing and cutting vendors.
+                </CardDescription>
+              </div>
+               <Button onClick={() => openDialog('addVendor')}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Vendor
+                </Button>
             </CardHeader>
             <CardContent>
               {!isClient ? (
@@ -418,6 +461,68 @@ export default function PartnersPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      <Dialog open={isDialogOpen} onOpenChange={closeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+                {dialogMode?.startsWith('edit') ? 'Edit ' : 'Add New '}
+                {dialogMode?.includes('Supplier') ? 'Supplier' : 'Vendor'}
+            </DialogTitle>
+             <DialogDescription>
+                Fill in the details for the partner.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" defaultValue={selectedPartner?.name} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contactPerson">Contact Person</Label>
+              <Input id="contactPerson" defaultValue={selectedPartner?.contactPerson} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" defaultValue={selectedPartner?.email} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone</Label>
+              <Input id="phone" defaultValue={selectedPartner?.phone} />
+            </div>
+            {dialogMode?.includes('Supplier') && (
+                <div className="space-y-2">
+                    <Label htmlFor="address">Address</Label>
+                    <Input id="address" defaultValue={(selectedPartner as Supplier)?.address} />
+                </div>
+            )}
+             {dialogMode?.includes('Vendor') && (
+                <>
+                 <div className="space-y-2">
+                    <Label htmlFor="type">Vendor Type</Label>
+                    <Select defaultValue={(selectedPartner as Vendor)?.type}>
+                        <SelectTrigger id="type">
+                            <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Printing">Printing</SelectItem>
+                            <SelectItem value="Cutting">Cutting</SelectItem>
+                        </SelectContent>
+                    </Select>
+                 </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="rate">Rate</Label>
+                    <Input id="rate" defaultValue={(selectedPartner as Vendor)?.rate} />
+                 </div>
+                </>
+             )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeDialog}>Cancel</Button>
+            <Button onClick={closeDialog}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
