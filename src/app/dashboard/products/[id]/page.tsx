@@ -106,9 +106,11 @@ export default function ProductDetailsPage() {
             {product.name}
           </h1>
         </div>
-        <Button size="sm" variant="outline">
+        <Button size="sm" variant="outline" asChild>
+          <Link href={`/dashboard/products/${productId}/edit`}>
             <Edit className="mr-2 h-4 w-4" />
             Edit Product
+          </Link>
         </Button>
       </div>
 
