@@ -60,6 +60,7 @@ const initialNotifications = [
         description: "#ORD-2024-005",
         time: "5m ago",
         read: false,
+        href: '/dashboard/orders/ORD-2024-005'
     },
     {
         id: '2',
@@ -68,6 +69,7 @@ const initialNotifications = [
         description: "Organic Cotton T-Shirt",
         time: "30m ago",
         read: false,
+        href: '/dashboard/products/PROD001'
     },
     {
         id: '3',
@@ -76,6 +78,7 @@ const initialNotifications = [
         description: "Leather Biker Jacket",
         time: "2h ago",
         read: true,
+        href: '/dashboard/products/PROD004'
     },
 ];
 
@@ -201,15 +204,17 @@ export default function DashboardLayout({
                 <DropdownMenuSeparator />
                 <div className="max-h-80 overflow-y-auto">
                     {notifications.map((notification) => (
-                        <DropdownMenuItem key={notification.id} className={cn("flex items-start gap-3 p-3", !notification.read && "bg-blue-500/10")}>
-                           <div className={cn("p-2 rounded-full", !notification.read ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")}>
-                             <notification.icon className="h-5 w-5" />
-                           </div>
-                            <div className="flex-1">
-                                <p className="font-medium text-sm">{notification.title}</p>
-                                <p className="text-xs text-muted-foreground">{notification.description}</p>
-                            </div>
-                            <time className="text-xs text-muted-foreground">{notification.time}</time>
+                        <DropdownMenuItem key={notification.id} className={cn("flex items-start gap-3 p-3", !notification.read && "bg-blue-500/10")} asChild>
+                           <Link href={notification.href}>
+                             <div className={cn("p-2 rounded-full", !notification.read ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")}>
+                               <notification.icon className="h-5 w-5" />
+                             </div>
+                              <div className="flex-1">
+                                  <p className="font-medium text-sm">{notification.title}</p>
+                                  <p className="text-xs text-muted-foreground">{notification.description}</p>
+                              </div>
+                              <time className="text-xs text-muted-foreground">{notification.time}</time>
+                           </Link>
                         </DropdownMenuItem>
                     ))}
                 </div>

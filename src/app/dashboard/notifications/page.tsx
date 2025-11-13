@@ -8,6 +8,7 @@ import {
   Archive,
 } from 'lucide-react';
 import * as React from 'react';
+import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ const allNotifications = [
         description: "#ORD-2024-005",
         time: "5m ago",
         read: false,
+        href: '/dashboard/orders/ORD-2024-005'
     },
     {
         id: '2',
@@ -31,6 +33,7 @@ const allNotifications = [
         description: "Organic Cotton T-Shirt",
         time: "30m ago",
         read: false,
+        href: '/dashboard/products/PROD001'
     },
     {
         id: '3',
@@ -39,6 +42,7 @@ const allNotifications = [
         description: "Leather Biker Jacket",
         time: "2h ago",
         read: true,
+        href: '/dashboard/products/PROD004'
     },
     {
         id: '4',
@@ -47,6 +51,7 @@ const allNotifications = [
         description: "Customer: Diana Prince",
         time: "1d ago",
         read: true,
+        href: '/dashboard/orders/ORD-2024-004'
     },
      {
         id: '5',
@@ -55,14 +60,15 @@ const allNotifications = [
         description: "Customer: Alice Johnson",
         time: "2d ago",
         read: true,
+        href: '/dashboard/orders/ORD-2024-001'
     },
 ];
 
 type Notification = typeof allNotifications[0];
 
 function NotificationItem({ notification }: { notification: Notification }) {
-    return (
-        <div className={cn("flex items-start gap-4 p-4 border-b", !notification.read && "bg-blue-500/5")}>
+    const itemContent = (
+        <div className={cn("flex items-start gap-4 p-4 border-b hover:bg-muted/50 transition-colors", !notification.read && "bg-blue-500/5")}>
             <div className={cn("p-2 rounded-full", !notification.read ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")}>
                 <notification.icon className="h-6 w-6" />
             </div>
@@ -78,6 +84,8 @@ function NotificationItem({ notification }: { notification: Notification }) {
             )}
         </div>
     );
+    
+    return <Link href={notification.href}>{itemContent}</Link>;
 }
 
 
@@ -86,6 +94,10 @@ export default function NotificationsPage() {
 
     const unreadNotifications = notifications.filter(n => !n.read);
     const readNotifications = notifications.filter(n => n.read);
+    
+    const handleMarkAllAsRead = () => {
+        setNotifications(prev => prev.map(n => ({...n, read: true})))
+    }
 
     return (
         <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -94,7 +106,7 @@ export default function NotificationsPage() {
                     <h1 className="font-headline text-2xl font-bold">Notifications</h1>
                     <p className="text-muted-foreground hidden sm:block">View and manage all your notifications.</p>
                 </div>
-                <Button variant="outline" size="sm">Mark all as read</Button>
+                <Button variant="outline" size="sm" onClick={handleMarkAllAsRead}>Mark all as read</Button>
             </div>
             <Card>
                 <CardHeader className="p-0">
@@ -128,4 +140,3 @@ export default function NotificationsPage() {
         </div>
     );
 }
-
