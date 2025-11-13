@@ -216,14 +216,14 @@ export default function ExpensesPage() {
                     <span className="sm:hidden sr-only">Add Expense</span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
+            <DialogContent className="sm:max-w-lg flex flex-col max-h-[90vh]">
                 <DialogHeader>
                     <DialogTitle>Add New Expense</DialogTitle>
                     <DialogDescription>
                         Record a new expense for your business.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-6 py-4">
+                <div className="grid gap-6 py-4 overflow-y-auto px-1">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="date">Date</Label>
@@ -297,7 +297,7 @@ export default function ExpensesPage() {
                         </div>
                     )}
                 </div>
-                <DialogFooter>
+                <DialogFooter className="mt-auto pt-4 border-t">
                     <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
                     <Button type="submit">Save Expense</Button>
                 </DialogFooter>
