@@ -41,6 +41,9 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { customers, Customer } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -48,10 +51,17 @@ export default function CustomersPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isClient, setIsClient] = React.useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+  const [selectedCustomer, setSelectedCustomer] = React.useState<Customer | null>(null);
 
   React.useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const handleEditClick = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setIsEditDialogOpen(true);
+  };
 
   const filteredCustomers = React.useMemo(() => {
     if (!searchTerm) return customers;
@@ -107,7 +117,7 @@ export default function CustomersPage() {
                   <DropdownMenuItem asChild>
                     <Link href={`/dashboard/customers/${customer.id}`}>View Details</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleEditClick(customer)}>Edit</DropdownMenuItem>
                   <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -140,7 +150,7 @@ export default function CustomersPage() {
                   <DropdownMenuItem asChild>
                     <Link href={`/dashboard/customers/${customer.id}`}>View Details</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleEditClick(customer)}>Edit</DropdownMenuItem>
                   <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -233,6 +243,35 @@ export default function CustomersPage() {
             </div>
         </CardFooter>
       </Card>
+      
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Customer</DialogTitle>
+            <DialogDescription>
+              Update the details for {selectedCustomer?.name}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Name</Label>
+              <Input id="edit-name" defaultValue={selectedCustomer?.name} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-phone">Phone</Label>
+              <Input id="edit-phone" defaultValue={selectedCustomer?.phone} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-address">Address</Label>
+              <Textarea id="edit-address" defaultValue={selectedCustomer?.address} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+            <Button onClick={() => setIsEditDialogOpen(false)}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
