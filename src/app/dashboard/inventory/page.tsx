@@ -5,6 +5,7 @@
 import { MoreHorizontal, PlusCircle, History, ArrowRight } from "lucide-react";
 import * as React from "react";
 import Link from 'next/link';
+import Image from 'next/image';
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -127,6 +128,7 @@ export default function InventoryPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[80px] hidden sm:table-cell">Image</TableHead>
                 <TableHead>Product</TableHead>
                 <TableHead className="hidden sm:table-cell">SKU</TableHead>
                 <TableHead className="hidden md:table-cell">Lot (FIFO)</TableHead>
@@ -138,49 +140,63 @@ export default function InventoryPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {inventory.map((item) => (
-                <TableRow key={item.id} className={item.quantity <= 10 ? "bg-destructive/10" : ""}>
-                  <TableCell className="font-medium">{item.productName}</TableCell>
-                  <TableCell className="hidden sm:table-cell">{item.sku}</TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <div className="flex flex-col">
-                        <span>{item.lotNumber}</span>
-                        <span className="text-xs text-muted-foreground">{item.receivedDate}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <span>{item.quantity}</span>
-                      {item.quantity <= 10 && (
-                        <Badge variant="destructive" className="ml-2 hidden sm:inline-flex">Low Stock</Badge>
-                      )}
-                       {item.quantity <= 10 && (
-                        <div className="sm:hidden h-2 w-2 rounded-full bg-red-500" title="Low Stock"></div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">{item.location}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => openDialog('viewMovement', item)}>View Movement</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openDialog('adjust', item)}>Adjust Quantity</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {inventory.map((item) => {
+                const product = products.find(p => p.id === item.productId);
+                return (
+                    <TableRow key={item.id} className={item.quantity <= 10 ? "bg-destructive/10" : ""}>
+                        <TableCell className="hidden sm:table-cell">
+                            {product && (
+                                <Image
+                                    alt={product.name}
+                                    className="aspect-square rounded-md object-cover"
+                                    height="64"
+                                    src={product.image.imageUrl}
+                                    width="64"
+                                />
+                            )}
+                        </TableCell>
+                      <TableCell className="font-medium">{item.productName}</TableCell>
+                      <TableCell className="hidden sm:table-cell">{item.sku}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <div className="flex flex-col">
+                            <span>{item.lotNumber}</span>
+                            <span className="text-xs text-muted-foreground">{item.receivedDate}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <span>{item.quantity}</span>
+                          {item.quantity <= 10 && (
+                            <Badge variant="destructive" className="ml-2 hidden sm:inline-flex">Low Stock</Badge>
+                          )}
+                           {item.quantity <= 10 && (
+                            <div className="sm:hidden h-2 w-2 rounded-full bg-red-500" title="Low Stock"></div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">{item.location}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              aria-haspopup="true"
+                              size="icon"
+                              variant="ghost"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => openDialog('viewMovement', item)}>View Movement</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openDialog('adjust', item)}>Adjust Quantity</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         </CardContent>
@@ -331,4 +347,5 @@ export default function InventoryPage() {
     </div>
   );
 }
+
 
