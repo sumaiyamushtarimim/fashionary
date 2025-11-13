@@ -19,6 +19,7 @@ import {
   products as allProducts,
   categories as allCategories,
   Product,
+  ProductVariant,
 } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import {
@@ -41,6 +42,10 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
+interface VariantWithStock extends ProductVariant {
+    stock: number;
+}
+
 export default function ProductDetailsPage() {
   const params = useParams();
   const productId = params.id as string;
@@ -49,6 +54,18 @@ export default function ProductDetailsPage() {
     () => allProducts.find((p) => p.id === productId),
     [productId]
   );
+  
+  const [variantsWithStock, setVariantsWithStock] = React.useState<VariantWithStock[]>([]);
+
+  React.useEffect(() => {
+      if (product?.variants) {
+          const variantsData = product.variants.map(variant => ({
+              ...variant,
+              stock: Math.floor(Math.random() * 50)
+          }));
+          setVariantsWithStock(variantsData);
+      }
+  }, [product]);
 
   const category = React.useMemo(() => {
     if (!product?.categoryId) return null;
@@ -211,16 +228,15 @@ export default function ProductDetailsPage() {
                         </TableRow>
                         </TableHeader>
                         <TableBody>
-                        {product.variants.map((variant) => {
-                            const variantStock = Math.floor(Math.random() * 50);
-                            const variantStockStatus = stockStatus(variantStock);
+                        {variantsWithStock.map((variant) => {
+                            const variantStockStatus = stockStatus(variant.stock);
                            return (
                              <TableRow key={variant.id}>
                                 <TableCell className="font-medium">{variant.name}</TableCell>
                                 <TableCell>{variant.sku}</TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex items-center justify-end gap-2">
-                                         <span className={variantStockStatus.color}>{variantStock}</span>
+                                         <span className={variantStockStatus.color}>{variant.stock}</span>
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-right font-mono">৳{product.price.toFixed(2)}</TableCell>
