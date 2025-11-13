@@ -101,7 +101,7 @@ export default function ProductsPage() {
                 </SelectContent>
             </Select>
             <Button size="sm" asChild>
-                <Link href="/dashboard/products/new/edit">
+                <Link href="/dashboard/products/new">
                     <PlusCircle className="h-4 w-4 sm:mr-2" />
                     <span className="hidden sm:inline">Add Product</span>
                     <span className="sm:hidden sr-only">Add Product</span>

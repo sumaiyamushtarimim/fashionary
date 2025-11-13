@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -95,17 +95,10 @@ const productSchema = z.object({
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
-export default function EditProductPage() {
-  const params = useParams();
+export default function NewProductPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const productId = params.id as string;
   const [popoverOpen, setPopoverOpen] = React.useState(false);
-
-  const product = React.useMemo(
-    () => products.find((p) => p.id === productId),
-    [productId]
-  );
   
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -132,32 +125,6 @@ export default function EditProductPage() {
       comboProducts: [],
     },
   });
-
-  React.useEffect(() => {
-    if (product) {
-      form.reset({
-        name: product.name || '',
-        description: product.description || '',
-        productType: product.variants && product.variants.length > 0 ? 'variable' : 'simple',
-        regularPrice: product.price || undefined,
-        salePrice: undefined,
-        sku: (product.variants?.[0]?.sku || '') || '',
-        categoryId: product.categoryId || '',
-        ornaFabric: product.ornaFabric || undefined,
-        jamaFabric: product.jamaFabric || undefined,
-        selowarFabric: product.selowarFabric || undefined,
-        attributes: product.variants ? [{ name: 'Size', options: 'Small, Medium, Large'}] : [],
-        variations: product.variants?.map(v => ({
-            id: v.id,
-            attributes: { Size: v.name.split(',')[0] },
-            sku: v.sku || '',
-            regularPrice: product.price || undefined,
-            salePrice: undefined,
-            image: ''
-        })) || []
-      });
-    }
-  }, [product, form]);
 
   const { fields: attributeFields, append: appendAttribute, remove: removeAttribute } = useFieldArray({
     control: form.control,
@@ -210,10 +177,10 @@ export default function EditProductPage() {
   function onSubmit(values: ProductFormValues) {
     console.log(values);
     toast({
-        title: "Product Saved",
-        description: `Changes for "${values.name}" have been successfully saved.`
+        title: "Product Created",
+        description: `Product "${values.name}" has been successfully created.`
     });
-    router.push(`/dashboard/products/${productId}`);
+    router.push(`/dashboard/products`);
   }
 
   const selectedComboProducts = form.watch('comboProducts') || [];
@@ -222,35 +189,25 @@ export default function EditProductPage() {
   const mainCategories = categories.filter(c => !c.parentId);
   const subCategories = (parentId: string) => categories.filter(c => c.parentId === parentId);
 
-  const existingImages = React.useMemo(() => {
-    if (!product) return [];
-    // For demo, we'll use placeholder images.
-    return [product.image, ...PlaceHolderImages.slice(1, 4)];
-  }, [product]);
-
-  const pageTitle = product ? "Edit Product" : "Add New Product";
-  const backLink = product ? `/dashboard/products/${productId}` : '/dashboard/products';
-
-
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
                 <div className="flex items-center gap-4 mb-6">
                     <Button variant="outline" size="icon" className="h-7 w-7" asChild>
-                        <Link href={backLink}>
+                        <Link href="/dashboard/products">
                             <ChevronLeft className="h-4 w-4" />
                             <span className="sr-only">Back</span>
                         </Link>
                     </Button>
                     <div className="flex-1">
                         <h1 className="font-headline text-xl font-semibold sm:text-2xl">
-                            {pageTitle}
+                            Add New Product
                         </h1>
                     </div>
                     <Button type="submit">
                         <Save className="mr-2 h-4 w-4" />
-                        Save Changes
+                        Create Product
                     </Button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -265,31 +222,11 @@ export default function EditProductPage() {
                             <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea rows={8} {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                          <Card>
-                            <CardHeader><CardTitle>Product Images</CardTitle><CardDescription>Manage images for your product.</CardDescription></CardHeader>
-                            <CardContent className="grid grid-cols-3 lg:grid-cols-5 gap-4">
-                               {existingImages.map((image) => (
-                                    <div key={image.id} className="relative group">
-                                        <Image
-                                            src={image.imageUrl}
-                                            alt={image.description}
-                                            width={150}
-                                            height={150}
-                                            className="aspect-square object-cover border w-full rounded-lg overflow-hidden"
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="destructive"
-                                            size="icon"
-                                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <X className="h-4 w-4" />
-                                            <span className="sr-only">Remove image</span>
-                                        </Button>
-                                    </div>
-                                ))}
-                                <div className="border-2 border-dashed border-muted-foreground/50 rounded-lg flex flex-col items-center justify-center text-center aspect-square p-2">
-                                    <UploadCloud className="w-8 h-8 text-muted-foreground" />
-                                    <p className="mt-2 text-xs text-muted-foreground">Add new image</p>
+                            <CardHeader><CardTitle>Product Images</CardTitle><CardDescription>Upload images for your product.</CardDescription></CardHeader>
+                            <CardContent>
+                                <div className="border-2 border-dashed border-muted-foreground/50 rounded-lg flex flex-col items-center justify-center text-center p-8">
+                                    <UploadCloud className="w-10 h-10 text-muted-foreground" />
+                                    <p className="mt-4 text-sm text-muted-foreground">Drag & drop images here, or click to browse</p>
                                 </div>
                             </CardContent>
                         </Card>
