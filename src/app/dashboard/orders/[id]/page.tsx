@@ -25,6 +25,8 @@ import {
   Trash2,
   PlusCircle,
   TrendingUp,
+  TrendingDown,
+  ArrowRight,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import * as React from 'react';
@@ -200,6 +202,7 @@ const totalParcels = courierStatsData.reduce((sum, c) => sum + c.total, 0);
 const totalDelivered = courierStatsData.reduce((sum, c) => sum + c.delivered, 0);
 const totalCanceled = courierStatsData.reduce((sum, c) => sum + c.canceled, 0);
 const deliveryRatio = totalParcels > 0 ? (totalDelivered / totalParcels) * 100 : 0;
+const cancelRatio = totalParcels > 0 ? (totalCanceled / totalParcels) * 100 : 0;
 
 
 export default function OrderDetailsPage() {
@@ -519,51 +522,45 @@ export default function OrderDetailsPage() {
                         Parcel history for customer phone number: {order.customerPhone}
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-4 sm:grid-cols-2 md:grid-cols-5">
+                <CardContent className="grid gap-4">
+                    <div className="grid grid-cols-4 gap-x-4 border-b pb-2 text-xs font-medium text-muted-foreground">
+                        <div className="col-span-1">Courier</div>
+                        <div className="col-span-1 text-center">Total</div>
+                        <div className="col-span-1 text-center">Delivered</div>
+                        <div className="col-span-1 text-center">Canceled</div>
+                    </div>
                     {courierStatsData.map(courier => (
-                        <div key={courier.name} className="rounded-lg border bg-card text-card-foreground p-4 space-y-3">
-                            <h3 className="font-semibold">{courier.name}</h3>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Total</span>
-                                <span className="font-medium">{courier.total}</span>
-                            </div>
-                            <div className="flex justify-between text-sm text-green-600">
-                                <span className="text-muted-foreground">Delivered</span>
-                                <span className="font-medium">{courier.delivered}</span>
-                            </div>
-                            <div className="flex justify-between text-sm text-red-500">
-                                <span className="text-muted-foreground">Canceled</span>
-                                <span className="font-medium">{courier.canceled}</span>
-                            </div>
-                        </div>
+                         <div key={courier.name} className="grid grid-cols-4 gap-x-4 items-center text-sm">
+                             <div className="col-span-1 font-semibold">{courier.name}</div>
+                             <div className="col-span-1 text-center font-medium">{courier.total}</div>
+                             <div className="col-span-1 text-center font-medium text-green-600">{courier.delivered}</div>
+                             <div className="col-span-1 text-center font-medium text-red-500">{courier.canceled}</div>
+                         </div>
                     ))}
-                     <Card className="sm:col-span-2 md:col-span-1 bg-muted/50">
-                        <CardHeader className="p-4">
-                            <CardTitle className="text-base">Total Summary</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4 pt-0 space-y-4">
-                             <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Total Parcels</span>
-                                <span className="font-bold">{totalParcels}</span>
-                            </div>
-                            <div className="flex justify-between text-sm text-green-600">
-                                <span className="text-muted-foreground">Total Delivered</span>
-                                <span className="font-bold">{totalDelivered}</span>
-                            </div>
-                            <div className="flex justify-between text-sm text-red-500">
-                                <span className="text-muted-foreground">Total Canceled</span>
-                                <span className="font-bold">{totalCanceled}</span>
-                            </div>
-                            <Separator />
-                            <div>
-                                <div className="flex justify-between items-center mb-1">
-                                    <h4 className="text-sm font-semibold">Delivery Ratio</h4>
-                                    <span className="text-lg font-bold text-primary">{deliveryRatio.toFixed(1)}%</span>
-                                </div>
-                                <Progress value={deliveryRatio} aria-label={`${deliveryRatio.toFixed(1)}% delivery ratio`} />
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <Separator />
+                     <div className="grid grid-cols-4 gap-x-4 items-center text-sm font-bold">
+                         <div className="col-span-1">Total</div>
+                         <div className="col-span-1 text-center">{totalParcels}</div>
+                         <div className="col-span-1 text-center text-green-600">{totalDelivered}</div>
+                         <div className="col-span-1 text-center text-red-500">{totalCanceled}</div>
+                     </div>
+                     <Separator />
+                     <div className="grid grid-cols-2 gap-4">
+                         <div className="space-y-1">
+                             <div className="flex justify-between items-center text-sm">
+                                 <span className="font-semibold">Delivery Ratio</span>
+                                 <span className="font-bold text-green-600">{deliveryRatio.toFixed(1)}%</span>
+                             </div>
+                             <Progress value={deliveryRatio} className="h-2 [&>div]:bg-green-500" />
+                         </div>
+                          <div className="space-y-1">
+                             <div className="flex justify-between items-center text-sm">
+                                 <span className="font-semibold">Cancel Ratio</span>
+                                 <span className="font-bold text-red-500">{cancelRatio.toFixed(1)}%</span>
+                             </div>
+                             <Progress value={cancelRatio} className="h-2 [&>div]:bg-red-500" />
+                         </div>
+                     </div>
                 </CardContent>
             </Card>
         </div>
@@ -749,3 +746,4 @@ export default function OrderDetailsPage() {
     </div>
   );
 }
+
