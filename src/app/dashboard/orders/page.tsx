@@ -4,6 +4,7 @@
 import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { MoreHorizontal, PlusCircle } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { format, isWithinInterval } from "date-fns";
@@ -50,7 +51,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { orders, businesses, OrderStatus, OrderProduct } from "@/lib/placeholder-data";
+import { orders, businesses, OrderStatus, OrderProduct, allStatuses } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -69,12 +70,6 @@ const statusColors: Record<OrderStatus, string> = {
     'Partially Delivered': 'bg-teal-500/20 text-teal-700',
     'Partially Returned': 'bg-amber-500/20 text-amber-700',
 };
-
-const allStatuses: OrderStatus[] = [
-    'New', 'Confirmed', 'Canceled', 'Hold', 'Packing', 'Packing Hold', 
-    'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 
-    'Partially Delivered', 'Partially Returned'
-];
 
 function OrderImages({ products }: { products: OrderProduct[] }) {
     const firstProduct = products[0];
@@ -140,7 +135,10 @@ function OrderImages({ products }: { products: OrderProduct[] }) {
 }
 
 export default function OrdersPage() {
-  const [statusFilter, setStatusFilter] = useState("all");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || "all");
   const [businessFilter, setBusinessFilter] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState("");
@@ -149,7 +147,22 @@ export default function OrdersPage() {
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    const statusFromUrl = searchParams.get('status');
+    if (statusFromUrl) {
+      setStatusFilter(statusFromUrl);
+    }
+  }, [searchParams]);
+
+  const handleStatusFilterChange = (newStatus: string) => {
+    setStatusFilter(newStatus);
+    const params = new URLSearchParams(searchParams.toString());
+    if (newStatus === 'all') {
+      params.delete('status');
+    } else {
+      params.set('status', newStatus);
+    }
+    router.replace(`/dashboard/orders?${params.toString()}`);
+  };
 
   const filteredOrders = useMemo(() => {
     const lowercasedSearchTerm = searchTerm.toLowerCase();
@@ -359,7 +372,7 @@ export default function OrdersPage() {
             </div>
 
             <div className="flex items-center justify-between gap-2">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
                     <SelectTrigger className="w-full sm:w-auto sm:min-w-[180px]">
                         <SelectValue placeholder="Filter by status" />
                     </SelectTrigger>

@@ -23,6 +23,7 @@ import Link from "next/link";
 import * as React from 'react';
 import { DateRange } from 'react-day-picker';
 import { format, isWithinInterval } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
 
 import { Badge } from "@/components/ui/badge";
@@ -49,7 +50,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DateRangePicker } from '@/components/ui/date-range-picker';
-import { orders, OrderStatus, Order } from "@/lib/placeholder-data";
+import { orders, OrderStatus, Order, allStatuses } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 
@@ -85,13 +86,10 @@ const statusColors: Record<OrderStatus, string> = {
     'Partially Returned': 'bg-amber-500/20 text-amber-700',
 };
 
-const allStatuses: OrderStatus[] = [
-    'New', 'Confirmed', 'Hold', 'Packing', 'Packing Hold', 'RTS (Ready to Ship)',
-    'Shipped', 'Delivered', 'Canceled', 'Returned', 'Partially Delivered', 'Partially Returned'
-];
 
 export default function Dashboard() {
     const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
+    const router = useRouter();
 
     const filteredOrders = React.useMemo(() => {
         if (!dateRange?.from) return orders;
@@ -117,6 +115,12 @@ export default function Dashboard() {
 
         return stats;
     }, [filteredOrders]);
+
+    const handleStatusClick = (status: OrderStatus) => {
+        const params = new URLSearchParams();
+        params.set('status', status);
+        router.push(`/dashboard/orders?${params.toString()}`);
+    };
 
 
   return (
@@ -204,7 +208,7 @@ export default function Dashboard() {
                                 const stat = orderStats[status];
                                 if (stat.count === 0) return null;
                                 return (
-                                    <TableRow key={status}>
+                                    <TableRow key={status} onClick={() => handleStatusClick(status)} className="cursor-pointer">
                                         <TableCell>
                                             <Badge variant="outline" className={cn(statusColors[status])}>
                                                 {status}

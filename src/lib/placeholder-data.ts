@@ -47,6 +47,12 @@ export type OrderStatus =
   | 'Partially Delivered'
   | 'Partially Returned';
 
+export const allStatuses: OrderStatus[] = [
+    'New', 'Confirmed', 'Canceled', 'Hold', 'Packing', 'Packing Hold', 
+    'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 
+    'Partially Delivered', 'Partially Returned'
+];
+
 export type OrderPlatform = 'TikTok' | 'Messenger' | 'Facebook' | 'Instagram' | 'Website';
 export type PaymentMethod = 'Cash on Delivery' | 'bKash' | 'Nagad';
 
@@ -770,6 +776,7 @@ export const bdDistricts: string[] = [
     
 
     
+
 
 
 
