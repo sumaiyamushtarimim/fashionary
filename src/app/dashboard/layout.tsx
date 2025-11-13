@@ -104,7 +104,7 @@ function NavLinks() {
     );
 }
 
-function MobileNavLinks() {
+function MobileNavLinks({ onLinkClick }: { onLinkClick: () => void }) {
     const pathname = usePathname();
     return (
         <nav className="grid gap-2 text-lg font-medium">
@@ -117,16 +117,17 @@ function MobileNavLinks() {
             </Link>
             {navItems.map(({ href, icon: Icon, label }) => (
                 <Link
-                key={href}
-                href={href}
-                className={cn(
-                    "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
-                    pathname.startsWith(href) && href !== "/dashboard" && "bg-muted text-foreground",
-                    pathname === href && "bg-muted text-foreground"
-                )}
+                    key={href}
+                    href={href}
+                    onClick={onLinkClick}
+                    className={cn(
+                        "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
+                        pathname.startsWith(href) && href !== "/dashboard" && "bg-muted text-foreground",
+                        pathname === href && "bg-muted text-foreground"
+                    )}
                 >
-                <Icon className="h-5 w-5" />
-                {label}
+                    <Icon className="h-5 w-5" />
+                    {label}
                 </Link>
             ))}
         </nav>
@@ -138,14 +139,14 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
   const router = useRouter();
   const [notifications, setNotifications] = React.useState(initialNotifications);
-  
+  const [isMobileNavOpen, setIsMobileNavOpen] = React.useState(false);
+
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const handleMarkAllAsRead = () => {
-    setNotifications(prevNotifications => 
+    setNotifications(prevNotifications =>
         prevNotifications.map(n => ({ ...n, read: true }))
     );
   };
@@ -172,7 +173,7 @@ export default function DashboardLayout({
       </div>
       <div className="flex flex-col">
         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-          <Sheet>
+          <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="shrink-0 md:hidden">
                 <PanelLeft className="h-5 w-5" />
@@ -183,7 +184,7 @@ export default function DashboardLayout({
               <SheetHeader>
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
               </SheetHeader>
-              <MobileNavLinks />
+              <MobileNavLinks onLinkClick={() => setIsMobileNavOpen(false)} />
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1">
