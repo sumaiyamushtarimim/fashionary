@@ -52,7 +52,7 @@ const navItems = [
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
-const notifications = [
+const initialNotifications = [
     {
         id: '1',
         icon: ShoppingCart,
@@ -136,8 +136,15 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isSettingsPage = pathname.startsWith('/dashboard/settings');
+  const [notifications, setNotifications] = React.useState(initialNotifications);
+  
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  const handleMarkAllAsRead = () => {
+    setNotifications(prevNotifications => 
+        prevNotifications.map(n => ({ ...n, read: true }))
+    );
+  };
 
 
   return (
@@ -208,9 +215,9 @@ export default function DashboardLayout({
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuFooter className="p-2 flex justify-between items-center">
-                    <Button variant="ghost" size="sm">Mark all as read</Button>
+                    <Button variant="ghost" size="sm" onClick={handleMarkAllAsRead}>Mark all as read</Button>
                     <Button variant="outline" size="sm" asChild>
-                        <Link href="#">View all</Link>
+                        <Link href="/dashboard/notifications">View all</Link>
                     </Button>
                 </DropdownMenuFooter>
             </DropdownMenuContent>
