@@ -53,6 +53,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { inventory, products, inventoryMovements, InventoryItem, ProductVariant, InventoryMovement } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
 
 
 type DialogState = {
@@ -65,6 +66,11 @@ type DialogState = {
 export default function InventoryPage() {
     const [selectedProduct, setSelectedProduct] = React.useState<string | undefined>(undefined);
     const [selectedVariant, setSelectedVariant] = React.useState<string | undefined>(undefined);
+    const [isClient, setIsClient] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const [dialogState, setDialogState] = React.useState<DialogState>({
         isOpen: false,
@@ -106,6 +112,141 @@ export default function InventoryPage() {
     
     const movements: InventoryMovement[] = currentItem ? inventoryMovements[currentItem.id] || [] : [];
 
+    const renderTable = () => (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[80px] hidden sm:table-cell">Image</TableHead>
+            <TableHead>Product</TableHead>
+            <TableHead className="hidden sm:table-cell">SKU</TableHead>
+            <TableHead className="hidden md:table-cell">Lot (FIFO)</TableHead>
+            <TableHead className="text-right">Quantity</TableHead>
+            <TableHead className="hidden lg:table-cell">Location</TableHead>
+            <TableHead>
+              <span className="sr-only">Actions</span>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {inventory.map((item) => {
+            const product = products.find(p => p.id === item.productId);
+            return (
+                <TableRow key={item.id} className={item.quantity <= 10 ? "bg-destructive/10" : ""}>
+                    <TableCell className="hidden sm:table-cell">
+                        {product && (
+                            <Image
+                                alt={product.name}
+                                className="aspect-square rounded-md object-cover"
+                                height="64"
+                                src={product.image.imageUrl}
+                                width="64"
+                            />
+                        )}
+                    </TableCell>
+                  <TableCell className="font-medium">{item.productName}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{item.sku}</TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    <div className="flex flex-col">
+                        <span>{item.lotNumber}</span>
+                        <span className="text-xs text-muted-foreground">{item.receivedDate}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <span>{item.quantity}</span>
+                      {item.quantity <= 10 && (
+                        <Badge variant="destructive" className="ml-2 hidden sm:inline-flex">Low Stock</Badge>
+                      )}
+                       {item.quantity <= 10 && (
+                        <div className="sm:hidden h-2 w-2 rounded-full bg-red-500" title="Low Stock"></div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell">{item.location}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          aria-haspopup="true"
+                          size="icon"
+                          variant="ghost"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => openDialog('viewMovement', item)}>View Movement</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openDialog('adjust', item)}>Adjust Quantity</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+            )
+          })}
+        </TableBody>
+      </Table>
+    );
+
+    const renderCardList = () => (
+      <div className="space-y-4">
+        {inventory.map((item) => {
+            const product = products.find(p => p.id === item.productId);
+            return (
+              <Card key={item.id} className={cn("overflow-hidden", item.quantity <= 10 && "bg-destructive/10")}>
+                <CardContent className="p-4">
+                  <div className="flex gap-4">
+                    {product && (
+                        <Image
+                            alt={product.name}
+                            className="aspect-square rounded-md object-cover"
+                            height="80"
+                            src={product.image.imageUrl}
+                            width="80"
+                        />
+                    )}
+                    <div className="flex-1 space-y-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                           <p className="font-semibold">{item.productName}</p>
+                           <p className="text-sm text-muted-foreground">{item.sku}</p>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => openDialog('viewMovement', item)}>View Movement</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openDialog('adjust', item)}>Adjust Quantity</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                       <div className="flex justify-between items-end">
+                            <div>
+                                <p className="text-xs text-muted-foreground">Lot: {item.lotNumber}</p>
+                                <p className="text-xs text-muted-foreground">Location: {item.location}</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="font-semibold text-lg">{item.quantity} <span className="text-sm text-muted-foreground">units</span></p>
+                                {item.quantity <= 10 && (
+                                    <Badge variant="destructive" className="mt-1">Low Stock</Badge>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+        })}
+      </div>
+    );
+
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -125,80 +266,16 @@ export default function InventoryPage() {
       </div>
       <Card>
         <CardContent className="pt-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[80px] hidden sm:table-cell">Image</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead className="hidden sm:table-cell">SKU</TableHead>
-                <TableHead className="hidden md:table-cell">Lot (FIFO)</TableHead>
-                <TableHead className="text-right">Quantity</TableHead>
-                <TableHead className="hidden lg:table-cell">Location</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {inventory.map((item) => {
-                const product = products.find(p => p.id === item.productId);
-                return (
-                    <TableRow key={item.id} className={item.quantity <= 10 ? "bg-destructive/10" : ""}>
-                        <TableCell className="hidden sm:table-cell">
-                            {product && (
-                                <Image
-                                    alt={product.name}
-                                    className="aspect-square rounded-md object-cover"
-                                    height="64"
-                                    src={product.image.imageUrl}
-                                    width="64"
-                                />
-                            )}
-                        </TableCell>
-                      <TableCell className="font-medium">{item.productName}</TableCell>
-                      <TableCell className="hidden sm:table-cell">{item.sku}</TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        <div className="flex flex-col">
-                            <span>{item.lotNumber}</span>
-                            <span className="text-xs text-muted-foreground">{item.receivedDate}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <span>{item.quantity}</span>
-                          {item.quantity <= 10 && (
-                            <Badge variant="destructive" className="ml-2 hidden sm:inline-flex">Low Stock</Badge>
-                          )}
-                           {item.quantity <= 10 && (
-                            <div className="sm:hidden h-2 w-2 rounded-full bg-red-500" title="Low Stock"></div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">{item.location}</TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              aria-haspopup="true"
-                              size="icon"
-                              variant="ghost"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Toggle menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => openDialog('viewMovement', item)}>View Movement</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => openDialog('adjust', item)}>Adjust Quantity</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
+          {isClient ? (
+            <>
+              <div className="hidden sm:block">{renderTable()}</div>
+              <div className="sm:hidden">{renderCardList()}</div>
+            </>
+          ) : (
+            <div className="h-48 flex items-center justify-center text-muted-foreground">
+              Loading inventory...
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -347,5 +424,6 @@ export default function InventoryPage() {
     </div>
   );
 }
+
 
 
