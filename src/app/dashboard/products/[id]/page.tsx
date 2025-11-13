@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -124,7 +125,7 @@ export default function ProductDetailsPage() {
           </h1>
         </div>
         <Button size="sm" variant="outline" asChild>
-          <Link href={`/dashboard/products/${productId}/edit`}>
+          <Link href={`/dashboard/products/new/edit`}>
             <Edit className="mr-2 h-4 w-4" />
             Edit Product
           </Link>
