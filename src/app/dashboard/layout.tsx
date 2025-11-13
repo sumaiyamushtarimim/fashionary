@@ -91,7 +91,7 @@ function NavLinks() {
             key={href}
             href={href}
             className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-muted hover:text-primary",
                 pathname.startsWith(href) && href !== "/dashboard" && "bg-muted text-primary",
                 pathname === href && "bg-muted text-primary"
             )}
@@ -121,7 +121,7 @@ function MobileNavLinks({ onLinkClick }: { onLinkClick: () => void }) {
                     href={href}
                     onClick={onLinkClick}
                     className={cn(
-                        "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
+                        "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground",
                         pathname.startsWith(href) && href !== "/dashboard" && "bg-muted text-foreground",
                         pathname === href && "bg-muted text-foreground"
                     )}
