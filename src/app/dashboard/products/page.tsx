@@ -738,63 +738,89 @@ export default function ProductsPage() {
       </div>
       <Card>
         <CardContent className="pt-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="hidden w-[100px] sm:table-cell">
-                  <span className="sr-only">Image</span>
-                </TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead className="hidden md:table-cell">
-                  Inventory
-                </TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="hidden sm:table-cell">
-                    <Image
-                      alt={product.name}
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src={product.image.imageUrl}
-                      width="64"
-                      data-ai-hint={product.image.imageHint}
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>৳{product.price.toFixed(2)}</TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {product.inventory}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          {/* For larger screens */}
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">
+                    <span className="sr-only">Image</span>
+                  </TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Inventory
+                  </TableHead>
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredProducts.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell>
+                      <Image
+                        alt={product.name}
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={product.image.imageUrl}
+                        width="64"
+                        data-ai-hint={product.image.imageHint}
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell>৳{product.price.toFixed(2)}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {product.inventory}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            aria-haspopup="true"
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem>Edit</DropdownMenuItem>
+                          <DropdownMenuItem>Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          
+          {/* For smaller screens */}
+          <div className="sm:hidden grid grid-cols-2 gap-4">
+              {filteredProducts.map((product) => (
+                  <Card key={product.id} className="overflow-hidden">
+                      <CardContent className="p-0">
+                           <Image
+                              alt={product.name}
+                              className="aspect-square w-full object-cover"
+                              height="150"
+                              src={product.image.imageUrl}
+                              width="150"
+                              data-ai-hint={product.image.imageHint}
+                            />
+                            <div className="p-3">
+                                <h3 className="font-medium truncate">{product.name}</h3>
+                                <p className="text-sm text-muted-foreground">৳{product.price.toFixed(2)}</p>
+                            </div>
+                      </CardContent>
+                  </Card>
               ))}
-            </TableBody>
-          </Table>
+          </div>
+
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">
