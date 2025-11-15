@@ -491,21 +491,36 @@ export default function OrdersClientPage() {
                                 <Button variant="outline" size="sm">Bulk Actions</Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                                <DropdownMenuLabel>Update Status for {selectedOrders.length} orders</DropdownMenuLabel>
+                                <DropdownMenuLabel>Actions for {selectedOrders.length} orders</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                {allStatuses.map(status => (
-                                    <DropdownMenuItem key={status}>Mark as {status}</DropdownMenuItem>
-                                ))}
-                                <DropdownMenuSeparator />
-                                 <DropdownMenuItem onClick={() => handleBulkPrint('invoice')}>
-                                    <Printer className="mr-2 h-4 w-4" />
-                                    Print Invoices
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleBulkPrint('sticker')}>
-                                    <FileIcon className="mr-2 h-4 w-4" />
-                                    Print Stickers
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
+                                <DropdownMenuSub>
+                                    <DropdownMenuSubTrigger>Update Status</DropdownMenuSubTrigger>
+                                    <DropdownMenuPortal>
+                                        <DropdownMenuSubContent>
+                                            {allStatuses.map(status => (
+                                                <DropdownMenuItem key={status}>Mark as {status}</DropdownMenuItem>
+                                            ))}
+                                        </DropdownMenuSubContent>
+                                    </DropdownMenuPortal>
+                                </DropdownMenuSub>
+                                <DropdownMenuSub>
+                                    <DropdownMenuSubTrigger>
+                                        <Printer className="mr-2 h-4 w-4" />
+                                        Print
+                                    </DropdownMenuSubTrigger>
+                                    <DropdownMenuPortal>
+                                        <DropdownMenuSubContent>
+                                            <DropdownMenuItem onClick={() => handleBulkPrint('invoice')}>
+                                                <FileIcon className="mr-2 h-4 w-4" />
+                                                Invoices
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleBulkPrint('sticker')}>
+                                                <FileIcon className="mr-2 h-4 w-4" />
+                                                Stickers
+                                            </DropdownMenuItem>
+                                        </DropdownMenuSubContent>
+                                    </DropdownMenuPortal>
+                                </DropdownMenuSub>
                                 <DropdownMenuSub>
                                     <DropdownMenuSubTrigger>
                                         <Truck className="mr-2 h-4 w-4" />
@@ -521,7 +536,6 @@ export default function OrdersClientPage() {
                                         </DropdownMenuSubContent>
                                     </DropdownMenuPortal>
                                 </DropdownMenuSub>
-
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem className="text-destructive">Delete Selected</DropdownMenuItem>
                             </DropdownMenuContent>
