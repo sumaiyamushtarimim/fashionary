@@ -1,5 +1,5 @@
-import { orders } from '@/lib/placeholder-data';
-import { Order } from '@/types';
+import { orders, allStatuses } from '@/lib/placeholder-data';
+import { Order, OrderStatus } from '@/types';
 
 // In a real app, you'd fetch this from your API
 // e.g. export async function getOrders() { const res = await fetch('/api/orders'); return res.json(); }
@@ -22,4 +22,10 @@ export async function getOrdersByCustomer(customerName: string): Promise<Order[]
     return Promise.resolve(customerOrders);
 }
 
+export async function getStatuses(): Promise<OrderStatus[]> {
+    return Promise.resolve(allStatuses);
+}
+
 // Add other functions like createOrder, updateOrder, etc.
+
+    

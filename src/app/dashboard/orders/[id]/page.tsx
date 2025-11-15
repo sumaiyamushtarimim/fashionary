@@ -63,7 +63,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { allStatuses, Business, OrderPlatform, OrderProduct, OrderLog, Order as OrderType } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
 import {
     Select,
@@ -78,10 +77,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { getOrderById } from '@/services/orders';
+import { getOrderById, getStatuses } from '@/services/orders';
 import { getProducts } from '@/services/products';
 import { getBusinesses } from '@/services/partners';
-import type { Product } from '@/types';
+import type { Product, Business, OrderPlatform, OrderProduct, OrderLog, Order as OrderType, OrderStatus } from '@/types';
 
 
 const statusColors: Record<OrderType['status'], string> = {
@@ -209,6 +208,7 @@ export default function OrderDetailsPage() {
   
   const [order, setOrder] = React.useState<OrderType | undefined>(undefined);
   const [allProducts, setAllProducts] = React.useState<Product[]>([]);
+  const [allStatuses, setAllStatuses] = React.useState<OrderStatus[]>([]);
   const [businesses, setBusinesses] = React.useState<Business[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
@@ -229,8 +229,9 @@ export default function OrderDetailsPage() {
         Promise.all([
             getOrderById(orderId),
             getProducts(),
-            getBusinesses()
-        ]).then(([orderData, productsData, businessesData]) => {
+            getBusinesses(),
+            getStatuses()
+        ]).then(([orderData, productsData, businessesData, statusesData]) => {
             if (orderData) {
                 setOrder(orderData);
                 setCustomerNote(orderData.customerNote);
@@ -242,6 +243,7 @@ export default function OrderDetailsPage() {
             }
             setAllProducts(productsData);
             setBusinesses(businessesData);
+            setAllStatuses(statusesData);
             setIsLoading(false);
         });
     }
@@ -662,7 +664,7 @@ export default function OrderDetailsPage() {
               </div>
             </CardContent>
           </Card>
-            <Card>
+           <Card>
                 <CardHeader>
                     <CardTitle>Order Source</CardTitle>
                     <CardDescription>The business and platform this order originated from.</CardDescription>
@@ -763,3 +765,6 @@ export default function OrderDetailsPage() {
   );
 }
 
+
+
+    
