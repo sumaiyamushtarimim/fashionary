@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -519,23 +518,6 @@ export default function OrdersClientPage() {
         
         <div className="hidden sm:flex items-center gap-2 justify-end">
             <DateRangePicker date={dateRange} onDateChange={setDateRange} placeholder="Filter by date" />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="outline">
-                    <Download className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Export</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuLabel>Export Options</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleExport('all')}>All Orders</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('steadfast')}>Steadfast Format</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('pathao')}>Pathao Format</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('redx')}>RedX Format</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
             <Button size="sm" asChild>
                 <Link href="/dashboard/orders/new">
                     <PlusCircle className="h-4 w-4 sm:mr-2" />
@@ -595,6 +577,20 @@ export default function OrdersClientPage() {
                                                 <FileIcon className="mr-2 h-4 w-4" />
                                                 Stickers
                                             </DropdownMenuItem>
+                                        </DropdownMenuSubContent>
+                                    </DropdownMenuPortal>
+                                </DropdownMenuSub>
+                                <DropdownMenuSub>
+                                    <DropdownMenuSubTrigger>
+                                        <Download className="mr-2 h-4 w-4" />
+                                        Export
+                                    </DropdownMenuSubTrigger>
+                                    <DropdownMenuPortal>
+                                        <DropdownMenuSubContent>
+                                             <DropdownMenuItem onClick={() => handleExport('all')}>All Selected</DropdownMenuItem>
+                                             <DropdownMenuItem onClick={() => handleExport('steadfast')}>Steadfast Format</DropdownMenuItem>
+                                             <DropdownMenuItem onClick={() => handleExport('pathao')}>Pathao Format</DropdownMenuItem>
+                                             <DropdownMenuItem onClick={() => handleExport('redx')}>RedX Format</DropdownMenuItem>
                                         </DropdownMenuSubContent>
                                     </DropdownMenuPortal>
                                 </DropdownMenuSub>
@@ -678,3 +674,5 @@ export default function OrdersClientPage() {
   );
 }
 
+
+    
