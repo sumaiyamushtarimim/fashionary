@@ -34,7 +34,6 @@ export function InvoiceTemplate({ order }: { order: Order }) {
                         </div>
                         <div className="text-right">
                             <h2 className="text-3xl font-bold text-gray-400 uppercase">Invoice</h2>
-                            <p className="text-sm">#<span className="font-medium text-gray-600">{order.id}</span></p>
                             <div className="mt-2 flex justify-end">
                                 <Barcode value={order.id} height={30} width={1.2} fontSize={10} margin={0} />
                             </div>
