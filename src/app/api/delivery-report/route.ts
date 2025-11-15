@@ -17,30 +17,30 @@ export async function GET(request: Request) {
     const mockReport = {
         Summaries: {
             "Steadfast": {
-                "Total Parcels": 15,
-                "Delivered Parcels": 14,
-                "Canceled Parcels": 1,
+                "Total Parcels": 218,
+                "Delivered Parcels": 2,
+                "Canceled Parcels": 216,
             },
             "RedX": {
-                "Total Parcels": 10,
-                "Delivered Parcels": 8,
-                "Canceled Parcels": 2,
+                "Total Parcels": 0,
+                "Delivered Parcels": 0,
+                "Canceled Parcels": 0,
             },
             "Pathao": {
-                "Total Delivery": 22,
-                "Successful Delivery": 21,
-                "Canceled Delivery": 1,
+                "Total Delivery": 0,
+                "Successful Delivery": 0,
+                "Canceled Delivery": 0,
             },
             "Carrybee": {
-                "Total Delivery": 5,
-                "Successful Delivery": 5,
+                "Total Delivery": 0,
+                "Successful Delivery": 0,
                 "Canceled Delivery": 0,
             }
         },
         totalSummary: {
-            "Total Parcels": 52,
-            "Delivered Parcels": 48,
-            "Canceled Parcels": 4,
+            "Total Parcels": 218,
+            "Delivered Parcels": 2,
+            "Canceled Parcels": 216,
         }
     };
     return NextResponse.json(mockReport);
