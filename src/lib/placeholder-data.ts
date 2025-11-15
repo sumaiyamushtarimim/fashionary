@@ -486,11 +486,22 @@ export const inventory: InventoryItem[] = [
 ];
 
 export const inventoryMovements: Record<string, InventoryMovement[]> = {
+    'INV001': [
+        { id: 'MOV005', date: '2024-05-21', type: 'Sold', quantityChange: -2, balance: 50, notes: 'Sale', user: 'Emily White', reference: 'ORD-2024-001' },
+        { id: 'MOV006', date: '2024-05-15', type: 'Received', quantityChange: 52, balance: 52, notes: 'From Godown', user: 'System', reference: 'TRN-002', fromLocationId: 'LOC001', toLocationId: 'LOC002' },
+    ],
     'INV002': [
         { id: 'MOV001', date: '2024-05-20', type: 'Sold', quantityChange: -1, balance: 9, notes: 'Sale', user: 'Emily White', reference: 'ORD-2024-002' },
         { id: 'MOV002', date: '2024-05-18', type: 'Adjusted', quantityChange: -1, balance: 10, notes: 'Damaged item', user: 'John Smith', reference: 'ADJ-001' },
         { id: 'MOV003', date: '2024-05-17', type: 'Transfer', quantityChange: -5, balance: 11, notes: 'Restock Showroom 1', user: 'John Smith', reference: 'TRN-001', fromLocationId: 'LOC001', toLocationId: 'LOC002' },
         { id: 'MOV004', date: '2024-04-10', type: 'Received', quantityChange: 16, balance: 16, notes: 'Initial stock', user: 'System', reference: 'PO-2024-001' },
+    ],
+    'INV003': [
+        { id: 'MOV007', date: '2024-05-22', type: 'Sold', quantityChange: -1, balance: 29, notes: 'Sale', user: 'Emily White', reference: 'ORD-2024-003' },
+        { id: 'MOV008', date: '2024-04-15', type: 'Received', quantityChange: 30, balance: 30, notes: 'Initial stock', user: 'System', reference: 'PO-2024-002' },
+    ],
+    'INV004': [
+        { id: 'MOV009', date: '2024-04-20', type: 'Received', quantityChange: 15, balance: 15, notes: 'Initial stock', user: 'System', reference: 'PO-2024-003' },
     ]
 };
 
@@ -829,6 +840,7 @@ export const bdDistricts: string[] = [
 
 
     
+
 
 
 

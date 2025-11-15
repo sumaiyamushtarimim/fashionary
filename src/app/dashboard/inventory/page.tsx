@@ -74,8 +74,6 @@ export default function InventoryPage() {
     const [allLocations, setAllLocations] = React.useState<StockLocation[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
 
-    const [selectedProduct, setSelectedProduct] = React.useState<string | undefined>(undefined);
-    const [selectedVariant, setSelectedVariant] = React.useState<string | undefined>(undefined);
     const [isClient, setIsClient] = React.useState(false);
     const [locationFilter, setLocationFilter] = React.useState<string>('all');
 
@@ -130,34 +128,24 @@ export default function InventoryPage() {
 
     const openDialog = (mode: 'movement' | 'viewMovement', item?: InventoryItem) => {
         setDialogState({ isOpen: true, mode, selectedItem: item || null });
-        if (item) {
-            setSelectedProduct(item.productId);
-            if (item.variants && item.variants.length > 0) {
-                 const variant = item.variants.find(v => v.sku === item.sku);
-                 if(variant) setSelectedVariant(variant.id);
-            }
-        }
     };
     
     const closeDialog = () => {
         setDialogState({ isOpen: false, mode: null, selectedItem: null });
-        setSelectedProduct(undefined);
-        setSelectedVariant(undefined);
     };
 
     const currentItem = dialogState.selectedItem;
-
+    
     const availableVariants = React.useMemo(() => {
-        if (!selectedProduct) return [];
-        return allProducts.find(p => p.id === selectedProduct)?.variants || [];
-    }, [selectedProduct, allProducts]);
+        if (!currentItem?.productId) return [];
+        return allProducts.find(p => p.id === currentItem.productId)?.variants || [];
+    }, [currentItem, allProducts]);
 
     const currentStock = React.useMemo(() => {
-        if (!selectedProduct) return 0;
+        if (!currentItem) return 0;
         // In a real app, you'd also filter by location here
-        const item = allInventory.find(i => i.productId === selectedProduct && (selectedVariant ? i.sku.includes(selectedVariant) : true));
-        return item?.quantity || 0;
-    }, [selectedProduct, selectedVariant, allInventory]);
+        return currentItem.quantity || 0;
+    }, [currentItem]);
     
     const movements: InventoryMovement[] = currentItem ? allMovements[currentItem.id] || [] : [];
 
@@ -413,7 +401,7 @@ export default function InventoryPage() {
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="grid gap-3">
                                     <Label htmlFor="product">Product</Label>
-                                    <Select onValueChange={setSelectedProduct} value={selectedProduct}>
+                                    <Select onValueChange={(value) => setDialogState(d => ({...d, selectedItem: { ...d.selectedItem!, productId: value }}))} value={currentItem?.productId}>
                                         <SelectTrigger id="product"><SelectValue placeholder="Select a product" /></SelectTrigger>
                                         <SelectContent>{allProducts.map(product => (<SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>))}</SelectContent>
                                     </Select>
@@ -421,7 +409,7 @@ export default function InventoryPage() {
                                 {availableVariants.length > 0 && (
                                     <div className="grid gap-3">
                                         <Label htmlFor="variant">Variant</Label>
-                                        <Select onValueChange={setSelectedVariant} value={selectedVariant}>
+                                        <Select>
                                             <SelectTrigger id="variant"><SelectValue placeholder="Select a variant" /></SelectTrigger>
                                             <SelectContent>{availableVariants.map(variant => (<SelectItem key={variant.id} value={variant.id}>{variant.name}</SelectItem>))}</SelectContent>
                                         </Select>
@@ -454,14 +442,14 @@ export default function InventoryPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                <div className="grid gap-3">
                                     <Label htmlFor="product-adj">Product</Label>
-                                    <Select onValueChange={setSelectedProduct} value={selectedProduct} disabled={!!dialogState.selectedItem}>
+                                     <Select onValueChange={(value) => setDialogState(d => ({...d, selectedItem: { ...d.selectedItem!, productId: value }}))} value={currentItem?.productId} disabled={!!dialogState.selectedItem}>
                                         <SelectTrigger id="product-adj"><SelectValue placeholder="Select a product" /></SelectTrigger>
                                         <SelectContent>{allProducts.map(product => (<SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>))}</SelectContent>
                                     </Select>
                                 </div>
                                 <div className="grid gap-3">
                                     <Label htmlFor="location-adj">Location</Label>
-                                    <Select><SelectTrigger id="location-adj"><SelectValue placeholder="Select location" /></SelectTrigger>
+                                    <Select value={currentItem?.locationId}><SelectTrigger id="location-adj"><SelectValue placeholder="Select location" /></SelectTrigger>
                                         <SelectContent>{allLocations.map(loc => (<SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>))}</SelectContent>
                                     </Select>
                                 </div>
@@ -495,7 +483,7 @@ export default function InventoryPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                <div className="grid gap-3">
                                     <Label htmlFor="product-trans">Product</Label>
-                                    <Select onValueChange={setSelectedProduct} value={selectedProduct} disabled={!!dialogState.selectedItem}>
+                                    <Select onValueChange={(value) => setDialogState(d => ({...d, selectedItem: { ...d.selectedItem!, productId: value }}))} value={currentItem?.productId} disabled={!!dialogState.selectedItem}>
                                         <SelectTrigger id="product-trans"><SelectValue placeholder="Select a product" /></SelectTrigger>
                                         <SelectContent>{allProducts.map(product => (<SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>))}</SelectContent>
                                     </Select>
@@ -508,14 +496,14 @@ export default function InventoryPage() {
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                                <div className="grid gap-3">
                                     <Label htmlFor="from-loc">From Location</Label>
-                                    <Select><SelectTrigger id="from-loc"><SelectValue placeholder="Select source" /></SelectTrigger>
+                                    <Select value={currentItem?.locationId}><SelectTrigger id="from-loc"><SelectValue placeholder="Select source" /></SelectTrigger>
                                         <SelectContent>{allLocations.map(loc => (<SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>))}</SelectContent>
                                     </Select>
                                 </div>
                                 <div className="grid gap-3">
                                     <Label htmlFor="to-loc">To Location</Label>
                                      <Select><SelectTrigger id="to-loc"><SelectValue placeholder="Select destination" /></SelectTrigger>
-                                        <SelectContent>{allLocations.map(loc => (<SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>))}</SelectContent>
+                                        <SelectContent>{allLocations.map(loc => (<SelectItem key={loc.id} value={loc.id} disabled={loc.id === currentItem?.locationId}>{loc.name}</SelectItem>))}</SelectContent>
                                     </Select>
                                 </div>
                             </div>
