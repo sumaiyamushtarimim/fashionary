@@ -12,59 +12,12 @@ import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from '@/lib/utils';
+import { getNotifications } from '@/services/notifications';
+import type { Notification } from '@/types';
 
-const allNotifications = [
-    {
-        id: '1',
-        icon: ShoppingCart,
-        title: "New order received",
-        description: "#ORD-2024-005",
-        time: "5m ago",
-        read: false,
-        href: '/dashboard/orders/ORD-2024-005'
-    },
-    {
-        id: '2',
-        icon: Warehouse,
-        title: "Stock running low",
-        description: "Organic Cotton T-Shirt",
-        time: "30m ago",
-        read: false,
-        href: '/dashboard/products/PROD001'
-    },
-    {
-        id: '3',
-        icon: Archive,
-        title: "New product added",
-        description: "Leather Biker Jacket",
-        time: "2h ago",
-        read: true,
-        href: '/dashboard/products/PROD004'
-    },
-    {
-        id: '4',
-        icon: ShoppingCart,
-        title: "Order #ORD-2024-004 shipped",
-        description: "Customer: Diana Prince",
-        time: "1d ago",
-        read: true,
-        href: '/dashboard/orders/ORD-2024-004'
-    },
-     {
-        id: '5',
-        icon: ShoppingCart,
-        title: "Order #ORD-2024-001 delivered",
-        description: "Customer: Alice Johnson",
-        time: "2d ago",
-        read: true,
-        href: '/dashboard/orders/ORD-2024-001'
-    },
-];
-
-type Notification = typeof allNotifications[0];
 
 function NotificationItem({ notification }: { notification: Notification }) {
     return (
@@ -90,7 +43,11 @@ function NotificationItem({ notification }: { notification: Notification }) {
 
 
 export default function NotificationsPage() {
-    const [notifications, setNotifications] = React.useState(allNotifications);
+    const [notifications, setNotifications] = React.useState<Notification[]>([]);
+
+    React.useEffect(() => {
+        getNotifications().then(setNotifications);
+    }, []);
 
     const unreadNotifications = notifications.filter(n => !n.read);
     const readNotifications = notifications.filter(n => n.read);
@@ -140,5 +97,3 @@ export default function NotificationsPage() {
         </div>
     );
 }
-
-    

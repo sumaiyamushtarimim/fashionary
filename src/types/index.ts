@@ -1,6 +1,17 @@
 
 
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
+import type { LucideIcon } from 'lucide-react';
+
+export type Notification = {
+    id: string;
+    icon: LucideIcon;
+    title: string;
+    description: string;
+    time: string;
+    read: boolean;
+    href: string;
+};
 
 export type Category = {
     id: string;
@@ -255,5 +266,3 @@ export type WooCommerceIntegration = {
     businessId: string;
     businessName: string;
 };
-
-    

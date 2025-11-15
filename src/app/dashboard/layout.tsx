@@ -37,9 +37,11 @@ import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import React, { Suspense } from "react";
 import { Badge } from "@/components/ui/badge";
-import { UserButton, ClerkLoaded, ClerkLoading } from "@clerk/nextjs";
+import { ClerkLoaded, ClerkLoading, UserButton } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoader } from "@/components/ui/page-loader";
+import { getNotifications } from "@/services/notifications";
+import type { Notification } from "@/types";
 
 // In a real app, this would be fetched from a settings service
 const isCourierReportEnabled = true; 
@@ -60,35 +62,6 @@ const navItems = [
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
-const initialNotifications = [
-    {
-        id: '1',
-        icon: ShoppingCart,
-        title: "New order received",
-        description: "#ORD-2024-005",
-        time: "5m ago",
-        read: false,
-        href: '/dashboard/orders/ORD-2024-005'
-    },
-    {
-        id: '2',
-        icon: Warehouse,
-        title: "Stock running low",
-        description: "Organic Cotton T-Shirt",
-        time: "30m ago",
-        read: false,
-        href: '/dashboard/products/PROD001'
-    },
-    {
-        id: '3',
-        icon: Archive,
-        title: "New product added",
-        description: "Leather Biker Jacket",
-        time: "2h ago",
-        read: true,
-        href: '/dashboard/products/PROD004'
-    },
-];
 
 function NavLinks() {
     const pathname = usePathname();
@@ -148,8 +121,12 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [notifications, setNotifications] = React.useState(initialNotifications);
+  const [notifications, setNotifications] = React.useState<Notification[]>([]);
   const [isMobileNavOpen, setIsMobileNavOpen] = React.useState(false);
+  
+  React.useEffect(() => {
+    getNotifications().then(setNotifications);
+  }, []);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
