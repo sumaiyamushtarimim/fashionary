@@ -196,12 +196,18 @@ export type StaffPayment = {
     notes: string;
 };
 
+export type Permission = {
+    create: boolean;
+    read: boolean;
+    update: boolean;
+    delete: boolean;
+};
 
 export type StaffMember = {
     id: string;
     name: string;
     email: string;
-    role: 'Admin' | 'Manager' | 'Sales' | 'Warehouse';
+    role: 'Admin' | 'Manager' | 'Sales' | 'Warehouse' | 'Custom';
     lastLogin: string;
     paymentType: 'Salary' | 'Commission' | 'Both';
     salaryDetails?: {
@@ -224,6 +230,15 @@ export type StaffMember = {
     };
     paymentHistory: StaffPayment[];
     incomeHistory: StaffIncome[];
+    permissions: {
+        orders: Permission;
+        products: Permission;
+        customers: Permission;
+        purchases: Permission;
+        staff: Permission;
+        settings: Permission;
+        analytics: Permission;
+    };
 };
 
 export type Supplier = {

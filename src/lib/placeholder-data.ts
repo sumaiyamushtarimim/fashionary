@@ -1,6 +1,6 @@
 
 import { PlaceHolderImages } from './placeholder-images';
-import type { Order, Product, Customer, Category, ExpenseCategory, Business, PurchaseOrder, StaffMember, Supplier, Vendor, Expense, InventoryItem, InventoryMovement, WooCommerceIntegration, OrderStatus, CourierService } from '@/types';
+import type { Order, Product, Customer, Category, ExpenseCategory, Business, PurchaseOrder, StaffMember, Supplier, Vendor, Expense, InventoryItem, InventoryMovement, WooCommerceIntegration, OrderStatus, CourierService, Permission } from '@/types';
 
 
 export const businesses: Business[] = [
@@ -576,6 +576,46 @@ export const purchaseOrders: PurchaseOrder[] = [
     },
 ];
 
+const defaultPermissions: { [key in 'Admin' | 'Manager' | 'Sales' | 'Warehouse']: StaffMember['permissions'] } = {
+    Admin: {
+        orders: { create: true, read: true, update: true, delete: true },
+        products: { create: true, read: true, update: true, delete: true },
+        customers: { create: true, read: true, update: true, delete: true },
+        purchases: { create: true, read: true, update: true, delete: true },
+        staff: { create: true, read: true, update: true, delete: true },
+        settings: { create: true, read: true, update: true, delete: true },
+        analytics: { create: true, read: true, update: true, delete: true },
+    },
+    Manager: {
+        orders: { create: true, read: true, update: true, delete: false },
+        products: { create: true, read: true, update: true, delete: false },
+        customers: { create: true, read: true, update: true, delete: false },
+        purchases: { create: true, read: true, update: true, delete: false },
+        staff: { create: true, read: true, update: true, delete: false },
+        settings: { create: false, read: true, update: false, delete: false },
+        analytics: { create: false, read: true, update: false, delete: false },
+    },
+    Sales: {
+        orders: { create: true, read: true, update: true, delete: false },
+        products: { create: false, read: true, update: false, delete: false },
+        customers: { create: true, read: true, update: false, delete: false },
+        purchases: { create: false, read: false, update: false, delete: false },
+        staff: { create: false, read: false, update: false, delete: false },
+        settings: { create: false, read: false, update: false, delete: false },
+        analytics: { create: false, read: false, update: false, delete: false },
+    },
+    Warehouse: {
+        orders: { create: false, read: true, update: true, delete: false },
+        products: { create: false, read: true, update: false, delete: false },
+        customers: { create: false, read: false, update: false, delete: false },
+        purchases: { create: false, read: true, update: true, delete: false },
+        staff: { create: false, read: false, update: false, delete: false },
+        settings: { create: false, read: false, update: false, delete: false },
+        analytics: { create: false, read: false, update: false, delete: false },
+    },
+};
+
+
 export const staff: StaffMember[] = [
     { 
         id: 'STAFF001', 
@@ -590,7 +630,8 @@ export const staff: StaffMember[] = [
         paymentHistory: [
             { date: '2024-05-01', amount: 50000, notes: 'May Salary' }
         ],
-        incomeHistory: []
+        incomeHistory: [],
+        permissions: defaultPermissions.Admin,
     },
     { 
         id: 'STAFF002', 
@@ -605,7 +646,8 @@ export const staff: StaffMember[] = [
         paymentHistory: [
             { date: '2024-05-01', amount: 55000, notes: 'May Salary (Partial)' }
         ],
-        incomeHistory: []
+        incomeHistory: [],
+        permissions: defaultPermissions.Manager,
     },
     { 
         id: 'STAFF003', 
@@ -629,7 +671,8 @@ export const staff: StaffMember[] = [
             { date: '2024-05-22', orderId: 'ORD-2024-003', action: 'Created', amount: 50 },
             { date: '2024-05-22', orderId: 'ORD-2024-004', action: 'Created', amount: 50 },
             { date: '2024-05-23', orderId: 'ORD-2024-005', action: 'Created', amount: 50 },
-        ]
+        ],
+        permissions: defaultPermissions.Sales,
     },
     { 
         id: 'STAFF004', 
@@ -644,7 +687,8 @@ export const staff: StaffMember[] = [
         paymentHistory: [
              { date: '2024-05-01', amount: 35000, notes: 'May Salary' }
         ],
-        incomeHistory: []
+        incomeHistory: [],
+        permissions: defaultPermissions.Warehouse,
     },
 ];
 

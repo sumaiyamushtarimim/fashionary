@@ -1,8 +1,7 @@
 
-
 'use client';
 
-import { MoreHorizontal, PlusCircle, DollarSign, TrendingUp } from "lucide-react";
+import { MoreHorizontal, PlusCircle, DollarSign, TrendingUp, KeyRound, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,15 +45,18 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getStaff } from "@/services/staff";
-import type { StaffMember } from "@/types";
+import type { StaffMember, Permission } from "@/types";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const ITEMS_PER_PAGE = 10;
 
 type PaymentType = 'Salary' | 'Commission' | 'Both';
-type StaffRole = 'Admin' | 'Manager' | 'Sales' | 'Warehouse';
+type StaffRole = 'Admin' | 'Manager' | 'Sales' | 'Warehouse' | 'Custom';
 
 const paymentTypes: PaymentType[] = ['Salary', 'Commission', 'Both'];
-const staffRoles: StaffRole[] = ['Admin', 'Manager', 'Sales', 'Warehouse'];
+const staffRoles: StaffRole[] = ['Admin', 'Manager', 'Sales', 'Warehouse', 'Custom'];
+const permissionModules: (keyof StaffMember['permissions'])[] = ['orders', 'products', 'customers', 'purchases', 'staff', 'settings', 'analytics'];
+const permissionActions: (keyof StaffMember['permissions']['orders'])[] = ['create', 'read', 'update', 'delete'];
 
 export default function StaffPage() {
     const [allStaff, setAllStaff] = useState<StaffMember[]>([]);
@@ -63,7 +65,6 @@ export default function StaffPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
-    const [paymentType, setPaymentType] = useState<PaymentType | undefined>();
 
     React.useEffect(() => {
         setIsLoading(true);
@@ -75,13 +76,11 @@ export default function StaffPage() {
 
     const handleEditClick = (member: StaffMember) => {
         setSelectedStaff(member);
-        setPaymentType(member.paymentType);
         setIsEditDialogOpen(true);
     };
 
     const handleAddClick = () => {
         setSelectedStaff(null);
-        setPaymentType(undefined);
         setIsAddDialogOpen(true);
     };
 
@@ -99,11 +98,33 @@ export default function StaffPage() {
         return allStaff.slice(startIndex, startIndex + ITEMS_PER_PAGE);
     }, [currentPage, allStaff]);
 
-    const StaffForm = ({ staffMember, isEdit = false }: { staffMember?: StaffMember | null, isEdit?: boolean }) => {
-        const currentPaymentType = paymentType || staffMember?.paymentType;
+  const StaffForm = ({ staffMember, isEdit = false }: { staffMember?: StaffMember | null, isEdit?: boolean }) => {
+    const [role, setRole] = useState<StaffRole | undefined>(staffMember?.role);
+    const [paymentType, setPaymentType] = useState<PaymentType | undefined>(staffMember?.paymentType);
+    const [permissions, setPermissions] = useState<StaffMember['permissions']>(
+        staffMember?.permissions || {
+            orders: { create: false, read: true, update: false, delete: false },
+            products: { create: false, read: true, update: false, delete: false },
+            customers: { create: false, read: true, update: false, delete: false },
+            purchases: { create: false, read: true, update: false, delete: false },
+            staff: { create: false, read: false, update: false, delete: false },
+            settings: { create: false, read: false, update: false, delete: false },
+            analytics: { create: false, read: true, update: false, delete: false },
+        }
+    );
+
+    const handlePermissionChange = (module: keyof StaffMember['permissions'], action: keyof StaffMember['permissions']['orders'], value: boolean) => {
+        setPermissions(prev => ({
+            ...prev,
+            [module]: {
+                ...prev[module],
+                [action]: value,
+            },
+        }));
+    };
         
         return (
-            <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto px-1">
+            <div className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto px-2 -mr-2">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="name">Full Name</Label>
@@ -114,74 +135,124 @@ export default function StaffPage() {
                         <Input id="email" type="email" placeholder="Enter email" defaultValue={staffMember?.email} />
                     </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="role">Role</Label>
-                        <Select defaultValue={staffMember?.role}>
-                            <SelectTrigger id="role">
-                                <SelectValue placeholder="Select a role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {staffRoles.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="payment-type">Payment Type</Label>
-                        <Select value={currentPaymentType} onValueChange={(value: PaymentType) => setPaymentType(value)}>
-                            <SelectTrigger id="payment-type">
-                                <SelectValue placeholder="Select a payment type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {paymentTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
                 
-                {(currentPaymentType === 'Salary' || currentPaymentType === 'Both') && (
-                    <Card>
-                        <CardHeader className="p-4"><CardTitle className="text-base">Salary Details</CardTitle></CardHeader>
-                        <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                             <div className="space-y-2">
-                                <Label htmlFor="salary-amount">Amount</Label>
-                                <Input id="salary-amount" type="number" placeholder="e.g., 25000" defaultValue={staffMember?.salaryDetails?.amount}/>
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="salary-frequency">Frequency</Label>
-                                <Select defaultValue={staffMember?.salaryDetails?.frequency}>
-                                    <SelectTrigger id="salary-frequency">
-                                        <SelectValue placeholder="Select frequency" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Monthly">Monthly</SelectItem>
-                                        <SelectItem value="Weekly">Weekly</SelectItem>
-                                        <SelectItem value="Daily">Daily</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
+                <Card>
+                    <CardHeader className="p-4 flex flex-row items-center gap-4">
+                        <KeyRound className="w-6 h-6 text-muted-foreground"/>
+                        <div>
+                            <CardTitle className="text-base">Role & Permissions</CardTitle>
+                            <CardDescription className="text-xs">Define what this staff member can see and do.</CardDescription>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-4 grid gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="role">Role</Label>
+                            <Select value={role} onValueChange={(value: StaffRole) => setRole(value)}>
+                                <SelectTrigger id="role">
+                                    <SelectValue placeholder="Select a role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {staffRoles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        {role === 'Custom' && (
+                             <Accordion type="multiple" className="w-full">
+                                {permissionModules.map(module => (
+                                    <AccordionItem value={module} key={module}>
+                                        <AccordionTrigger className="capitalize">{module}</AccordionTrigger>
+                                        <AccordionContent>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-2">
+                                                {permissionActions.map(action => (
+                                                    <div key={action} className="flex items-center space-x-2">
+                                                        <Checkbox 
+                                                            id={`${module}-${action}`} 
+                                                            checked={permissions[module][action]}
+                                                            onCheckedChange={(checked) => handlePermissionChange(module, action, !!checked)}
+                                                        />
+                                                        <label
+                                                            htmlFor={`${module}-${action}`}
+                                                            className="text-sm font-medium leading-none capitalize"
+                                                        >
+                                                            {action}
+                                                        </label>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                        )}
+                    </CardContent>
+                </Card>
 
-                {(currentPaymentType === 'Commission' || currentPaymentType === 'Both') && (
-                    <Card>
-                        <CardHeader className="p-4"><CardTitle className="text-base">Commission Details</CardTitle></CardHeader>
-                        <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                             <div className="space-y-2">
-                                <Label htmlFor="commission-create">On Order Create</Label>
-                                <Input id="commission-create" type="number" placeholder="e.g., 50" defaultValue={staffMember?.commissionDetails?.onOrderCreate}/>
+                <Card>
+                    <CardHeader className="p-4 flex flex-row items-center gap-4">
+                         <DollarSign className="w-6 h-6 text-muted-foreground"/>
+                        <div>
+                            <CardTitle className="text-base">Payment Details</CardTitle>
+                            <CardDescription className="text-xs">Configure how this staff member is paid.</CardDescription>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-4 grid gap-4">
+                         <div className="space-y-2">
+                            <Label htmlFor="payment-type">Payment Type</Label>
+                            <Select value={paymentType} onValueChange={(value: PaymentType) => setPaymentType(value)}>
+                                <SelectTrigger id="payment-type">
+                                    <SelectValue placeholder="Select a payment type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {paymentTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                         {(paymentType === 'Salary' || paymentType === 'Both') && (
+                             <div className="space-y-4 pt-4 border-t">
+                                <Label className="font-semibold">Salary</Label>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                     <div className="space-y-2">
+                                        <Label htmlFor="salary-amount">Amount</Label>
+                                        <Input id="salary-amount" type="number" placeholder="e.g., 25000" defaultValue={staffMember?.salaryDetails?.amount}/>
+                                    </div>
+                                     <div className="space-y-2">
+                                        <Label htmlFor="salary-frequency">Frequency</Label>
+                                        <Select defaultValue={staffMember?.salaryDetails?.frequency}>
+                                            <SelectTrigger id="salary-frequency">
+                                                <SelectValue placeholder="Select frequency" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Monthly">Monthly</SelectItem>
+                                                <SelectItem value="Weekly">Weekly</SelectItem>
+                                                <SelectItem value="Daily">Daily</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                             </div>
+                        )}
+
+                        {(paymentType === 'Commission' || paymentType === 'Both') && (
+                            <div className="space-y-4 pt-4 border-t">
+                                <Label className="font-semibold">Commission</Label>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                     <div className="space-y-2">
+                                        <Label htmlFor="commission-create">On Order Create</Label>
+                                        <Input id="commission-create" type="number" placeholder="e.g., 50" defaultValue={staffMember?.commissionDetails?.onOrderCreate}/>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="commission-confirm">On Order Confirm</Label>
+                                        <Input id="commission-confirm" type="number" placeholder="e.g., 100" defaultValue={staffMember?.commissionDetails?.onOrderConfirm}/>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="commission-confirm">On Order Confirm</Label>
-                                <Input id="commission-confirm" type="number" placeholder="e.g., 100" defaultValue={staffMember?.commissionDetails?.onOrderConfirm}/>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
+                        )}
+                    </CardContent>
+                </Card>
 
                 {!isEdit && (
-                     <div className="items-top flex space-x-3">
+                     <div className="items-top flex space-x-3 pt-4">
                         <Checkbox id="send-invite" defaultChecked/>
                         <div className="grid gap-1.5 leading-none">
                             <label
@@ -205,7 +276,7 @@ export default function StaffPage() {
       <div className="flex items-center">
         <div className="flex-1">
             <h1 className="font-headline text-2xl font-bold">Staff Management</h1>
-            <p className="text-muted-foreground hidden sm:block">Manage staff access and roles.</p>
+            <p className="text-muted-foreground hidden sm:block">Manage staff access, roles, and payments.</p>
         </div>
         <div className="flex items-center gap-2">
            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -215,7 +286,7 @@ export default function StaffPage() {
                         Invite Staff
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-xl">
+                <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Invite New Staff</DialogTitle>
                         <DialogDescription>
@@ -313,7 +384,7 @@ export default function StaffPage() {
                           <DropdownMenuItem asChild>
                             <Link href={`/dashboard/staff/${member.id}`}>View Details</Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEditClick(member)}>Edit Role</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditClick(member)}>Edit Staff</DropdownMenuItem>
                           <DropdownMenuItem className="text-red-600">Deactivate Account</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -346,7 +417,7 @@ export default function StaffPage() {
                                   <DropdownMenuContent align="end">
                                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                       <DropdownMenuItem asChild><Link href={`/dashboard/staff/${member.id}`}>View Details</Link></DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => handleEditClick(member)}>Edit Role</DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleEditClick(member)}>Edit Staff</DropdownMenuItem>
                                       <DropdownMenuItem className="text-red-600">Deactivate Account</DropdownMenuItem>
                                   </DropdownMenuContent>
                               </DropdownMenu>
@@ -401,7 +472,7 @@ export default function StaffPage() {
       </Card>
 
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent className="sm:max-w-xl">
+            <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>Edit Staff: {selectedStaff?.name}</DialogTitle>
                     <DialogDescription>
