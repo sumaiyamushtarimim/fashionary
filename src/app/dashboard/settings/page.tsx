@@ -7,6 +7,7 @@ import {
   Truck,
   MessageSquare,
   Mail,
+  BellRing,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -28,8 +29,14 @@ const settingsLinks = [
   {
     href: '/dashboard/settings/categories',
     title: 'Categories',
-    description: 'Organize your products into categories.',
+    description: 'Organize your products and expenses.',
     icon: LayoutGrid,
+  },
+  {
+    href: '/dashboard/settings/notifications',
+    title: 'Notifications',
+    description: 'Configure SMS and Email templates for events.',
+    icon: BellRing,
   },
   {
     href: '/dashboard/settings/integrations',
@@ -44,13 +51,13 @@ const settingsLinks = [
     icon: Truck,
   },
   {
-    href: '/dashboard/settings/sms',
+    href: '/dashboard/settings/gateways/sms',
     title: 'SMS Gateway',
-    description: 'Configure SMS notifications for orders.',
+    description: 'Configure your SMS provider.',
     icon: MessageSquare,
   },
   {
-    href: '/dashboard/settings/smtp',
+    href: '/dashboard/settings/gateways/smtp',
     title: 'SMTP',
     description: 'Configure your email sending service.',
     icon: Mail,

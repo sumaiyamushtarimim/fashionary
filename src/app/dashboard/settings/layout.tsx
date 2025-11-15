@@ -11,6 +11,7 @@ import {
   Truck,
   MessageSquare,
   Mail,
+  BellRing,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -30,10 +31,11 @@ const settingsNav = [
   { href: '/dashboard/settings/general', label: 'General', icon: Settings },
   { href: '/dashboard/settings/business', label: 'Business', icon: Store },
   { href: '/dashboard/settings/categories', label: 'Categories', icon: LayoutGrid },
+  { href: '/dashboard/settings/notifications', label: 'Notifications', icon: BellRing },
   { href: '/dashboard/settings/integrations', label: 'Integrations', icon: Plug },
   { href: '/dashboard/settings/courier', label: 'Courier', icon: Truck },
-  { href: '/dashboard/settings/sms', label: 'SMS Gateway', icon: MessageSquare },
-  { href: '/dashboard/settings/smtp', label: 'SMTP', icon: Mail },
+  { href: '/dashboard/settings/gateways/sms', label: 'SMS Gateway', icon: MessageSquare },
+  { href: '/dashboard/settings/gateways/smtp', label: 'SMTP', icon: Mail },
 ];
 
 function DesktopNav() {
@@ -47,9 +49,8 @@ function DesktopNav() {
                     href={href}
                     className={cn(
                     buttonVariants({ variant: 'ghost' }),
-                    pathname === href
-                        ? 'bg-muted hover:bg-muted'
-                        : 'hover:bg-transparent hover:underline',
+                    pathname.startsWith(href) && href !== '/dashboard/settings' && 'bg-muted hover:bg-muted',
+                    pathname === href && 'bg-muted hover:bg-muted',
                     'justify-start'
                     )}
                 >
