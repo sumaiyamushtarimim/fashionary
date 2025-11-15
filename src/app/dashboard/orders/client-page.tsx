@@ -255,8 +255,33 @@ export default function OrdersClientPage() {
             });
             break;
             
+        case 'pathao':
+            headers = ['ItemType', 'StoreName', 'MerchantOrderld', 'RecipientName(*)', 'RecipientPhone(*)', 'RecipientAddress(*)', 'RecipientCity(*)', 'RecipientZone(*)', 'RecipientArea', 'AmountToCollect(*)', 'ItemQuantity', 'ItemWeight', 'ItemDesc', 'SpecialInstruction'];
+            rows = ordersToExport.map(order => {
+                const business = businesses.find(b => b.id === order.businessId);
+                const dueAmount = order.total - order.paidAmount;
+                const itemQuantity = order.products.reduce((acc, p) => acc + p.quantity, 0);
+
+                return [
+                    '2', // ItemType (Parcel)
+                    business?.name || '', // StoreName
+                    order.id, // MerchantOrderld
+                    order.customerName, // RecipientName(*)
+                    order.customerPhone, // RecipientPhone(*)
+                    order.shippingAddress.address.replace(/,/g, ''), // RecipientAddress(*)
+                    order.shippingAddress.district, // RecipientCity(*)
+                    '', // RecipientZone(*)
+                    '', // RecipientArea
+                    dueAmount.toString(), // AmountToCollect(*)
+                    itemQuantity.toString(), // ItemQuantity
+                    '0.5', // ItemWeight
+                    order.products.map(p => p.name).join(', '), // ItemDesc
+                    order.officeNote?.replace(/,/g, '') || '', // SpecialInstruction
+                ];
+            });
+            break;
+
         case 'all':
-        case 'pathao': // Pathao and 'all' will use full export for now
         default:
             const allHeaders = [...new Set(ordersToExport.flatMap(obj => Object.keys(obj)))];
             headers = allHeaders;
