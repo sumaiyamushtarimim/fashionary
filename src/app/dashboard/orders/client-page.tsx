@@ -6,7 +6,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { MoreHorizontal, PlusCircle, Truck } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Truck, Printer, File as FileIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { format, isWithinInterval } from "date-fns";
 
@@ -197,6 +197,12 @@ export default function OrdersClientPage() {
       setStatusFilter(statusFromUrl);
     }
   }, [searchParams]);
+
+  const handleBulkPrint = (type: 'invoice' | 'sticker') => {
+    if (selectedOrders.length === 0) return;
+    const ids = selectedOrders.join(',');
+    window.open(`/dashboard/orders/print/bulk?type=${type}&ids=${ids}`, '_blank');
+  };
 
   const handleStatusFilterChange = (newStatus: string) => {
     setStatusFilter(newStatus);
@@ -490,6 +496,15 @@ export default function OrdersClientPage() {
                                 {allStatuses.map(status => (
                                     <DropdownMenuItem key={status}>Mark as {status}</DropdownMenuItem>
                                 ))}
+                                <DropdownMenuSeparator />
+                                 <DropdownMenuItem onClick={() => handleBulkPrint('invoice')}>
+                                    <Printer className="mr-2 h-4 w-4" />
+                                    Print Invoices
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleBulkPrint('sticker')}>
+                                    <FileIcon className="mr-2 h-4 w-4" />
+                                    Print Stickers
+                                </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuSub>
                                     <DropdownMenuSubTrigger>

@@ -30,6 +30,8 @@ import {
   PackageSearch,
   BookUser,
   StickyNote,
+  Printer,
+  File,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import * as React from 'react';
@@ -382,9 +384,18 @@ export default function OrderDetailsPage() {
               {order.status}
             </Badge>
             <div className="hidden items-center gap-2 md:ml-auto md:flex">
-              <Button variant="outline" size="sm">
-                Print Invoice
-              </Button>
+                <Button variant="outline" size="sm" asChild>
+                    <Link href={`/dashboard/orders/print/invoice/${order.id}`} target="_blank">
+                        <Printer className="mr-2 h-4 w-4" />
+                        Print Invoice
+                    </Link>
+                </Button>
+                 <Button variant="outline" size="sm" asChild>
+                    <Link href={`/dashboard/orders/print/sticker/${order.id}`} target="_blank">
+                        <File className="mr-2 h-4 w-4" />
+                        Print Sticker
+                    </Link>
+                </Button>
               {isEditing ? (
                 <>
                   <Button variant="outline" size="sm" type="button" onClick={handleEditToggle}>Cancel</Button>
@@ -778,16 +789,3 @@ export default function OrderDetailsPage() {
     </Form>
   );
 }
-
-
-
-    
-
-    
-
-    
-
-
-
-
-
