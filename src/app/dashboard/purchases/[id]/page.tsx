@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Check, HardHat, Package, Truck, Minus, Plus, History, FileText, Printer, Scissors } from "lucide-react";
+import { Check, Printer, Package, Truck, Minus, Plus, History, FileText, Scissors } from "lucide-react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -40,14 +40,14 @@ const initialPaymentState: Payment = { cash: 0, check: 0, checkDate: '' };
 
 const productionSteps = [
     { id: 'fabric', name: 'Fabric Ordered', status: 'complete', icon: Package },
-    { id: 'printing', name: 'Printing', status: 'current', icon: HardHat },
+    { id: 'printing', name: 'Printing', status: 'current', icon: Printer },
     { id: 'cutting', name: 'Cutting', status: 'pending', icon: Scissors },
     { id: 'delivery', name: 'Delivery', status: 'pending', icon: Truck },
 ];
 
 const statusIcons: Record<string, React.ElementType> = {
     'Fabric Ordered': Package,
-    'Printing': HardHat,
+    'Printing': Printer,
     'Cutting': Scissors,
     'Received': Check,
     'Cancelled': FileText,
