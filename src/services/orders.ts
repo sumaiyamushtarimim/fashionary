@@ -27,5 +27,3 @@ export async function getStatuses(): Promise<OrderStatus[]> {
 }
 
 // Add other functions like createOrder, updateOrder, etc.
-
-    

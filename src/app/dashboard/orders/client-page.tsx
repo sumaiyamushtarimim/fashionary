@@ -58,12 +58,12 @@ import {
     PaginationNext,
     PaginationPrevious,
   } from "@/components/ui/pagination";
-import { businesses, allStatuses } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getOrders } from "@/services/orders";
-import type { Order, OrderProduct, OrderStatus } from "@/types";
+import { getOrders, getStatuses } from "@/services/orders";
+import { getBusinesses } from "@/services/partners";
+import type { Order, OrderProduct, OrderStatus, Business } from "@/types";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -150,6 +150,9 @@ export default function OrdersClientPage() {
   const router = useRouter();
 
   const [allOrders, setAllOrders] = useState<Order[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [allStatuses, setAllStatuses] = useState<OrderStatus[]>([]);
+
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || "all");
   const [businessFilter, setBusinessFilter] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -160,10 +163,17 @@ export default function OrdersClientPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    getOrders().then(data => {
-        setAllOrders(data);
+    Promise.all([
+        getOrders(),
+        getBusinesses(),
+        getStatuses()
+    ]).then(([ordersData, businessesData, statusesData]) => {
+        setAllOrders(ordersData);
+        setBusinesses(businessesData);
+        setAllStatuses(statusesData);
         setIsLoading(false);
     });
+
     const statusFromUrl = searchParams.get('status');
     if (statusFromUrl) {
       setStatusFilter(statusFromUrl);
@@ -197,7 +207,7 @@ export default function OrdersClientPage() {
         order.id.toLowerCase().includes(lowercasedSearchTerm) ||
         order.customerName.toLowerCase().includes(lowercasedSearchTerm) ||
         order.customerPhone.toLowerCase().includes(lowercasedSearchTerm) ||
-        order.customerEmail.toLowerCase().includes(lowercasedSearchTerm)
+        (order.customerEmail && order.customerEmail.toLowerCase().includes(lowercasedSearchTerm))
       );
 
       return statusMatch && businessMatch && dateMatch && searchMatch;
