@@ -55,7 +55,20 @@ type StaffRole = 'Admin' | 'Manager' | 'Sales' | 'Warehouse' | 'Custom';
 
 const paymentTypes: PaymentType[] = ['Salary', 'Commission', 'Both'];
 const staffRoles: StaffRole[] = ['Admin', 'Manager', 'Sales', 'Warehouse', 'Custom'];
-const permissionModules: (keyof StaffMember['permissions'])[] = ['orders', 'products', 'customers', 'purchases', 'staff', 'settings', 'analytics'];
+const permissionModules: (keyof StaffMember['permissions'])[] = [
+    'orders', 
+    'products', 
+    'inventory',
+    'customers', 
+    'purchases', 
+    'expenses',
+    'checkPassing',
+    'partners',
+    'courierReport',
+    'analytics',
+    'staff', 
+    'settings'
+];
 const permissionActions: (keyof Permission)[] = ['create', 'read', 'update', 'delete'];
 
 export default function StaffPage() {
@@ -105,8 +118,13 @@ export default function StaffPage() {
         staffMember?.permissions || {
             orders: { create: false, read: true, update: false, delete: false },
             products: { create: false, read: true, update: false, delete: false },
+            inventory: { create: false, read: true, update: false, delete: false },
             customers: { create: false, read: true, update: false, delete: false },
             purchases: { create: false, read: true, update: false, delete: false },
+            expenses: { create: false, read: true, update: false, delete: false },
+            checkPassing: { create: false, read: true, update: false, delete: false },
+            partners: { create: false, read: true, update: false, delete: false },
+            courierReport: { create: false, read: true, update: false, delete: false },
             staff: { create: false, read: false, update: false, delete: false },
             settings: { create: false, read: false, update: false, delete: false },
             analytics: { create: false, read: true, update: false, delete: false },
@@ -160,7 +178,7 @@ export default function StaffPage() {
                              <Accordion type="multiple" className="w-full">
                                 {permissionModules.map(module => (
                                     <AccordionItem value={module} key={module}>
-                                        <AccordionTrigger className="capitalize">{module}</AccordionTrigger>
+                                        <AccordionTrigger className="capitalize">{module.replace(/([A-Z])/g, ' $1')}</AccordionTrigger>
                                         <AccordionContent>
                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-2">
                                                 {permissionActions.map(action => (

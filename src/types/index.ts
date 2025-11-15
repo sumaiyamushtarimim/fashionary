@@ -233,8 +233,13 @@ export type StaffMember = {
     permissions: {
         orders: Permission;
         products: Permission;
+        inventory: Permission;
         customers: Permission;
         purchases: Permission;
+        expenses: Permission;
+        checkPassing: Permission;
+        partners: Permission;
+        courierReport: Permission;
         staff: Permission;
         settings: Permission;
         analytics: Permission;

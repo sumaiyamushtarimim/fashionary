@@ -580,8 +580,13 @@ const defaultPermissions: { [key in 'Admin' | 'Manager' | 'Sales' | 'Warehouse']
     Admin: {
         orders: { create: true, read: true, update: true, delete: true },
         products: { create: true, read: true, update: true, delete: true },
+        inventory: { create: true, read: true, update: true, delete: true },
         customers: { create: true, read: true, update: true, delete: true },
         purchases: { create: true, read: true, update: true, delete: true },
+        expenses: { create: true, read: true, update: true, delete: true },
+        checkPassing: { create: true, read: true, update: true, delete: true },
+        partners: { create: true, read: true, update: true, delete: true },
+        courierReport: { create: true, read: true, update: true, delete: true },
         staff: { create: true, read: true, update: true, delete: true },
         settings: { create: true, read: true, update: true, delete: true },
         analytics: { create: true, read: true, update: true, delete: true },
@@ -589,8 +594,13 @@ const defaultPermissions: { [key in 'Admin' | 'Manager' | 'Sales' | 'Warehouse']
     Manager: {
         orders: { create: true, read: true, update: true, delete: false },
         products: { create: true, read: true, update: true, delete: false },
+        inventory: { create: true, read: true, update: true, delete: false },
         customers: { create: true, read: true, update: true, delete: false },
         purchases: { create: true, read: true, update: true, delete: false },
+        expenses: { create: true, read: true, update: true, delete: false },
+        checkPassing: { create: false, read: true, update: true, delete: false },
+        partners: { create: true, read: true, update: true, delete: false },
+        courierReport: { create: false, read: true, update: false, delete: false },
         staff: { create: true, read: true, update: true, delete: false },
         settings: { create: false, read: true, update: false, delete: false },
         analytics: { create: false, read: true, update: false, delete: false },
@@ -598,8 +608,13 @@ const defaultPermissions: { [key in 'Admin' | 'Manager' | 'Sales' | 'Warehouse']
     Sales: {
         orders: { create: true, read: true, update: true, delete: false },
         products: { create: false, read: true, update: false, delete: false },
+        inventory: { create: false, read: false, update: false, delete: false },
         customers: { create: true, read: true, update: false, delete: false },
         purchases: { create: false, read: false, update: false, delete: false },
+        expenses: { create: false, read: false, update: false, delete: false },
+        checkPassing: { create: false, read: false, update: false, delete: false },
+        partners: { create: false, read: false, update: false, delete: false },
+        courierReport: { create: false, read: false, update: false, delete: false },
         staff: { create: false, read: false, update: false, delete: false },
         settings: { create: false, read: false, update: false, delete: false },
         analytics: { create: false, read: false, update: false, delete: false },
@@ -607,8 +622,13 @@ const defaultPermissions: { [key in 'Admin' | 'Manager' | 'Sales' | 'Warehouse']
     Warehouse: {
         orders: { create: false, read: true, update: true, delete: false },
         products: { create: false, read: true, update: false, delete: false },
+        inventory: { create: true, read: true, update: true, delete: false },
         customers: { create: false, read: false, update: false, delete: false },
         purchases: { create: false, read: true, update: true, delete: false },
+        expenses: { create: false, read: false, update: false, delete: false },
+        checkPassing: { create: false, read: false, update: false, delete: false },
+        partners: { create: false, read: false, update: false, delete: false },
+        courierReport: { create: false, read: false, update: false, delete: false },
         staff: { create: false, read: false, update: false, delete: false },
         settings: { create: false, read: false, update: false, delete: false },
         analytics: { create: false, read: false, update: false, delete: false },
@@ -755,3 +775,4 @@ export const bdDistricts: string[] = [
 
 
     
+
