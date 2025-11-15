@@ -17,7 +17,6 @@ import {
   Save
 } from 'lucide-react';
 
-import { products, categories, Product, ImagePlaceholder } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -47,7 +46,8 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { getProducts, getCategories } from '@/services/products';
+import type { Product, Category, ImagePlaceholder } from '@/types';
 
 
 const attributeSchema = z.object({
@@ -99,6 +99,21 @@ export default function NewProductPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [popoverOpen, setPopoverOpen] = React.useState(false);
+  const [allProducts, setAllProducts] = React.useState<Product[]>([]);
+  const [allCategories, setAllCategories] = React.useState<Category[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    setIsLoading(true);
+    Promise.all([
+      getProducts(),
+      getCategories()
+    ]).then(([productsData, categoriesData]) => {
+      setAllProducts(productsData);
+      setAllCategories(categoriesData);
+      setIsLoading(false);
+    });
+  }, []);
   
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -141,13 +156,13 @@ export default function NewProductPage() {
 
   const isThreePieceCategory = React.useMemo(() => {
     if (!selectedCategoryId) return false;
-    let currentCategory = categories.find(c => c.id === selectedCategoryId);
+    let currentCategory = allCategories.find(c => c.id === selectedCategoryId);
     while (currentCategory) {
         if (currentCategory.name === 'Three-Piece') return true;
-        currentCategory = categories.find(c => c.id === currentCategory?.parentId);
+        currentCategory = allCategories.find(c => c.id === currentCategory?.parentId);
     }
     return false;
-  }, [selectedCategoryId]);
+  }, [selectedCategoryId, allCategories]);
 
   function generateVariations() {
     const attributes = form.getValues("attributes");
@@ -184,10 +199,14 @@ export default function NewProductPage() {
   }
 
   const selectedComboProducts = form.watch('comboProducts') || [];
-  const comboProductDetails = products.filter(p => selectedComboProducts.includes(p.id));
+  const comboProductDetails = allProducts.filter(p => selectedComboProducts.includes(p.id));
 
-  const mainCategories = categories.filter(c => !c.parentId);
-  const subCategories = (parentId: string) => categories.filter(c => c.parentId === parentId);
+  const mainCategories = allCategories.filter(c => !c.parentId);
+  const subCategories = (parentId: string) => allCategories.filter(c => c.parentId === parentId);
+
+  if (isLoading) {
+      return <div className="p-6">Loading...</div>
+  }
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -278,7 +297,7 @@ export default function NewProductPage() {
                                             <FormItem className="flex flex-col"><FormLabel>Select Products</FormLabel>
                                             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}><PopoverTrigger asChild><FormControl><Button variant="outline" role="combobox" className={cn("w-full justify-between", !field.value?.length && "text-muted-foreground")}>{field.value?.length ? `${field.value.length} selected` : "Select products"}<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" /></Button></FormControl></PopoverTrigger>
                                                 <PopoverContent className="w-[--radix-popover-trigger-width] p-0"><Command><CommandInput placeholder="Search product..." /><CommandList><CommandEmpty>No product found.</CommandEmpty><CommandGroup>
-                                                        {products.map((product) => (<CommandItem key={product.id} value={product.name} onSelect={() => { const currentValue = field.value || []; const newValue = currentValue.includes(product.id) ? currentValue.filter((id) => id !== product.id) : [...currentValue, product.id]; field.onChange(newValue);}}>
+                                                        {allProducts.map((product) => (<CommandItem key={product.id} value={product.name} onSelect={() => { const currentValue = field.value || []; const newValue = currentValue.includes(product.id) ? currentValue.filter((id) => id !== product.id) : [...currentValue, product.id]; field.onChange(newValue);}}>
                                                                 <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary", field.value?.includes(product.id) ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible")}><Check className="h-4 w-4" /></div>{product.name}</CommandItem>))}
                                                         </CommandGroup></CommandList></Command></PopoverContent>
                                             </Popover><FormDescription>These products will be bundled together.</FormDescription><FormMessage />
@@ -353,3 +372,5 @@ export default function NewProductPage() {
     </div>
   );
 }
+
+    

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useEffect } from "react";
@@ -31,9 +30,11 @@ import {
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { PlusCircle, Trash2 } from "lucide-react";
-import { products, suppliers, vendors, ProductVariant } from "@/lib/placeholder-data";
 import Link from "next/link";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { getProducts } from "@/services/products";
+import { getSuppliers, getVendors } from "@/services/partners";
+import type { Product, ProductVariant, Supplier, Vendor } from "@/types";
 
 type OrderItem = {
     id: string;
@@ -70,6 +71,10 @@ type PurchaseType = 'three-piece' | 'general';
 
 export default function NewPurchaseOrderPage() {
   const [purchaseType, setPurchaseType] = useState<PurchaseType>('three-piece');
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [allSuppliers, setAllSuppliers] = useState<Supplier[]>([]);
+  const [allVendors, setAllVendors] = useState<Vendor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [orderItems, setOrderItems] = useState<OrderItem[]>([
     { id: `item-${Date.now()}`, ...initialOrderItemState, lineTotal: 0 }
@@ -82,6 +87,20 @@ export default function NewPurchaseOrderPage() {
   const [generalPayment, setGeneralPayment] = useState<Payment>(initialPaymentState);
 
   const [availableVariants, setAvailableVariants] = useState<Record<string, ProductVariant[]>>({});
+  
+  useEffect(() => {
+    setIsLoading(true);
+    Promise.all([
+        getProducts(),
+        getSuppliers(),
+        getVendors()
+    ]).then(([productsData, suppliersData, vendorsData]) => {
+        setAllProducts(productsData);
+        setAllSuppliers(suppliersData);
+        setAllVendors(vendorsData);
+        setIsLoading(false);
+    });
+  }, []);
 
   const fabricBillSummary = useMemo(() => {
     let totalOrnaYards = 0;
@@ -151,7 +170,7 @@ export default function NewPurchaseOrderPage() {
         let updatedItem = { ...item, [field]: value };
         
         if (field === 'productId') {
-          const selectedProduct = products.find(p => p.id === value);
+          const selectedProduct = allProducts.find(p => p.id === value);
           setAvailableVariants(prev => ({...prev, [id]: selectedProduct?.variants || []}));
           updatedItem.variantId = ''; // Reset variant selection
         }
@@ -179,7 +198,7 @@ export default function NewPurchaseOrderPage() {
             let updatedItem = { ...item, [field]: value };
             
             if (field === 'productId') {
-                const selectedProduct = products.find(p => p.id === value);
+                const selectedProduct = allProducts.find(p => p.id === value);
                 setAvailableVariants(prev => ({...prev, [id]: selectedProduct?.variants || []}));
                 updatedItem.variantId = ''; // Reset variant
                 updatedItem.unitCost = 0; // Reset cost
@@ -203,6 +222,10 @@ export default function NewPurchaseOrderPage() {
   
   const fabricDue = useMemo(() => calculateDue(fabricBillSummary.grandTotalCost, fabricPayment), [fabricBillSummary.grandTotalCost, fabricPayment]);
   const generalDue = useMemo(() => calculateDue(generalBillSummary, generalPayment), [generalBillSummary, generalPayment]);
+
+  if (isLoading) {
+      return <div className="p-6">Loading...</div>
+  }
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -280,7 +303,7 @@ export default function NewPurchaseOrderPage() {
                                                             <SelectValue placeholder="Select Product" />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {products.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                                                            {allProducts.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                                                         </SelectContent>
                                                     </Select>
                                                 </TableCell>
@@ -339,7 +362,7 @@ export default function NewPurchaseOrderPage() {
                                         <SelectValue placeholder="Select a supplier" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                        {allSuppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -350,7 +373,7 @@ export default function NewPurchaseOrderPage() {
                                         <SelectValue placeholder="Select a printing vendor" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {vendors.filter(v => v.type === 'Printing').map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                        {allVendors.filter(v => v.type === 'Printing').map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -449,7 +472,7 @@ export default function NewPurchaseOrderPage() {
                                                         <SelectValue placeholder="Select Product" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {products.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                                                        {allProducts.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                                                     </SelectContent>
                                                 </Select>
                                             </TableCell>
@@ -501,7 +524,7 @@ export default function NewPurchaseOrderPage() {
                                         <SelectValue placeholder="Select a supplier" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                        {allSuppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
