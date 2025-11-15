@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { MoreHorizontal, PlusCircle, DollarSign, TrendingUp, KeyRound, ShieldCheck } from "lucide-react";
@@ -45,16 +46,15 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getStaff } from "@/services/staff";
-import type { StaffMember, Permission } from "@/types";
+import type { StaffMember, Permission, StaffRole } from "@/types";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const ITEMS_PER_PAGE = 10;
 
 type PaymentType = 'Salary' | 'Commission' | 'Both';
-type StaffRole = 'Admin' | 'Manager' | 'Sales' | 'Warehouse' | 'Custom';
 
 const paymentTypes: PaymentType[] = ['Salary', 'Commission', 'Both'];
-const staffRoles: StaffRole[] = ['Admin', 'Manager', 'Sales', 'Warehouse', 'Custom'];
+const staffRoles: StaffRole[] = ['Admin', 'Manager', 'Sales', 'Warehouse', 'Packing Assistant', 'Custom'];
 const permissionModules: (keyof StaffMember['permissions'])[] = [
     'orders', 
     'products', 

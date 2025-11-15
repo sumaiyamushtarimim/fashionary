@@ -203,11 +203,13 @@ export type Permission = {
     delete: boolean;
 };
 
+export type StaffRole = 'Admin' | 'Manager' | 'Sales' | 'Warehouse' | 'Packing Assistant' | 'Custom';
+
 export type StaffMember = {
     id: string;
     name: string;
     email: string;
-    role: 'Admin' | 'Manager' | 'Sales' | 'Warehouse' | 'Custom';
+    role: StaffRole;
     lastLogin: string;
     paymentType: 'Salary' | 'Commission' | 'Both';
     salaryDetails?: {

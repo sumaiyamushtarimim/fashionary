@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -95,6 +96,9 @@ const statusColors: Record<OrderStatus, string> = {
     'Partial': 'bg-fuchsia-500/20 text-fuchsia-700',
 };
 
+// In a real app, this would come from the user's session
+const MOCK_USER_ROLE = 'Packing Assistant'; 
+
 function OrderImages({ products }: { products: OrderProduct[] }) {
     const firstProduct = products[0];
     if (!firstProduct) return null;
@@ -166,8 +170,12 @@ export default function OrdersClientPage() {
   const [businesses, setBusinesses] = React.useState<Business[]>([]);
   const [allStatuses, setAllStatuses] = React.useState<OrderStatus[]>([]);
   const [courierServices, setCourierServices] = React.useState<CourierService[]>([]);
+  
+  // This is a mock implementation for demonstration. In a real app, you would get the user role from an auth context.
+  const userRole = MOCK_USER_ROLE;
+  const isPackingAssistant = userRole === 'Packing Assistant';
 
-  const [statusFilter, setStatusFilter] = React.useState(searchParams.get('status') || "all");
+  const [statusFilter, setStatusFilter] = React.useState(isPackingAssistant ? 'Confirmed' : searchParams.get('status') || "all");
   const [businessFilter, setBusinessFilter] = React.useState("all");
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -192,10 +200,10 @@ export default function OrdersClientPage() {
     });
 
     const statusFromUrl = searchParams.get('status');
-    if (statusFromUrl) {
+    if (statusFromUrl && !isPackingAssistant) {
       setStatusFilter(statusFromUrl);
     }
-  }, [searchParams]);
+  }, [searchParams, isPackingAssistant]);
   
   const handleExport = (format: 'all' | 'steadfast' | 'pathao' | 'redx') => {
     const ordersToExport = selectedOrders.length > 0
@@ -457,13 +465,25 @@ export default function OrdersClientPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem asChild>
-                            <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
+                             <DropdownMenuItem asChild>
+                                <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem>Update Status</DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">
-                            Cancel Order
-                            </DropdownMenuItem>
+                             {!isPackingAssistant && (
+                                <>
+                                    <DropdownMenuItem>Update Status</DropdownMenuItem>
+                                    <DropdownMenuItem className="text-red-600">Cancel Order</DropdownMenuItem>
+                                </>
+                            )}
+                            {isPackingAssistant && (
+                                <DropdownMenuSub>
+                                    <DropdownMenuSubTrigger>Update Status</DropdownMenuSubTrigger>
+                                    <DropdownMenuPortal>
+                                        <DropdownMenuSubContent>
+                                            <DropdownMenuItem>Mark as RTS (Ready to Ship)</DropdownMenuItem>
+                                        </DropdownMenuSubContent>
+                                    </DropdownMenuPortal>
+                                </DropdownMenuSub>
+                            )}
                         </DropdownMenuContent>
                         </DropdownMenu>
                      </div>
@@ -501,11 +521,25 @@ export default function OrdersClientPage() {
                                             <span className="sr-only">Toggle menu</span>
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
+                                     <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                         <DropdownMenuItem asChild><Link href={`/dashboard/orders/${order.id}`}>View Details</Link></DropdownMenuItem>
-                                        <DropdownMenuItem>Update Status</DropdownMenuItem>
-                                        <DropdownMenuItem className="text-red-600">Cancel Order</DropdownMenuItem>
+                                        {!isPackingAssistant && (
+                                            <>
+                                                <DropdownMenuItem>Update Status</DropdownMenuItem>
+                                                <DropdownMenuItem className="text-red-600">Cancel Order</DropdownMenuItem>
+                                            </>
+                                        )}
+                                        {isPackingAssistant && (
+                                            <DropdownMenuSub>
+                                                <DropdownMenuSubTrigger>Update Status</DropdownMenuSubTrigger>
+                                                <DropdownMenuPortal>
+                                                    <DropdownMenuSubContent>
+                                                        <DropdownMenuItem>Mark as RTS (Ready to Ship)</DropdownMenuItem>
+                                                    </DropdownMenuSubContent>
+                                                </DropdownMenuPortal>
+                                            </DropdownMenuSub>
+                                        )}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
@@ -528,25 +562,27 @@ export default function OrdersClientPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2 flex-grow">
-            <div className="flex items-center justify-between gap-2">
-                <Select value={businessFilter} onValueChange={setBusinessFilter}>
-                  <SelectTrigger className="w-full sm:w-auto sm:min-w-[180px]">
-                      <SelectValue placeholder="Filter by business" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      <SelectItem value="all">All Businesses</SelectItem>
-                      {businesses.map(business => (
-                          <SelectItem key={business.id} value={business.id}>{business.name}</SelectItem>
-                      ))}
-                  </SelectContent>
-              </Select>
-               <div className="sm:hidden">
-                    <DateRangePicker date={dateRange} onDateChange={setDateRange} placeholder="Filter by date" />
-               </div>
-            </div>
+            {!isPackingAssistant && (
+                <div className="flex items-center justify-between gap-2">
+                    <Select value={businessFilter} onValueChange={setBusinessFilter}>
+                    <SelectTrigger className="w-full sm:w-auto sm:min-w-[180px]">
+                        <SelectValue placeholder="Filter by business" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Businesses</SelectItem>
+                        {businesses.map(business => (
+                            <SelectItem key={business.id} value={business.id}>{business.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <div className="sm:hidden">
+                        <DateRangePicker date={dateRange} onDateChange={setDateRange} placeholder="Filter by date" />
+                </div>
+                </div>
+            )}
 
             <div className="flex items-center justify-between gap-2">
-                <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+                <Select value={statusFilter} onValueChange={handleStatusFilterChange} disabled={isPackingAssistant}>
                     <SelectTrigger className="w-full sm:w-auto sm:min-w-[180px]">
                         <SelectValue placeholder="Filter by status" />
                     </SelectTrigger>
@@ -558,33 +594,37 @@ export default function OrdersClientPage() {
                     </SelectContent>
                 </Select>
                  <div className="sm:hidden">
-                    <Button size="sm" asChild>
-                        <Link href="/dashboard/orders/new">
-                            <PlusCircle className="h-4 w-4" />
-                            <span className="sr-only">Add Order</span>
-                        </Link>
-                    </Button>
+                    {!isPackingAssistant && (
+                        <Button size="sm" asChild>
+                            <Link href="/dashboard/orders/new">
+                                <PlusCircle className="h-4 w-4" />
+                                <span className="sr-only">Add Order</span>
+                            </Link>
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>
         
-        <div className="hidden sm:flex items-center gap-2 justify-end">
-            <DateRangePicker date={dateRange} onDateChange={setDateRange} placeholder="Filter by date" />
-            <Button size="sm" asChild>
-                <Link href="/dashboard/orders/new">
-                    <PlusCircle className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Add Order</span>
-                    <span className="sm:hidden sr-only">Add Order</span>
-                </Link>
-            </Button>
-        </div>
+        {!isPackingAssistant && (
+            <div className="hidden sm:flex items-center gap-2 justify-end">
+                <DateRangePicker date={dateRange} onDateChange={setDateRange} placeholder="Filter by date" />
+                <Button size="sm" asChild>
+                    <Link href="/dashboard/orders/new">
+                        <PlusCircle className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Add Order</span>
+                        <span className="sm:hidden sr-only">Add Order</span>
+                    </Link>
+                </Button>
+            </div>
+        )}
       </div>
       
       <Card>
         <CardHeader>
           <CardTitle className="font-headline">Orders</CardTitle>
           <CardDescription>
-            Manage and track all customer orders.
+            {isPackingAssistant ? "Orders confirmed and ready for packing." : "Manage and track all customer orders."}
           </CardDescription>
           <div className="pt-4 flex flex-col sm:flex-row gap-4">
               <Input

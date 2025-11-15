@@ -1,6 +1,7 @@
 
+
 import { PlaceHolderImages } from './placeholder-images';
-import type { Order, Product, Customer, Category, ExpenseCategory, Business, PurchaseOrder, StaffMember, Supplier, Vendor, Expense, InventoryItem, InventoryMovement, WooCommerceIntegration, OrderStatus, CourierService, Permission } from '@/types';
+import type { Order, Product, Customer, Category, ExpenseCategory, Business, PurchaseOrder, StaffMember, Supplier, Vendor, Expense, InventoryItem, InventoryMovement, WooCommerceIntegration, OrderStatus, CourierService, Permission, StaffRole } from '@/types';
 
 
 export const businesses: Business[] = [
@@ -576,7 +577,7 @@ export const purchaseOrders: PurchaseOrder[] = [
     },
 ];
 
-const defaultPermissions: { [key in 'Admin' | 'Manager' | 'Sales' | 'Warehouse']: StaffMember['permissions'] } = {
+const defaultPermissions: { [key in StaffRole]: StaffMember['permissions'] } = {
     Admin: {
         orders: { create: true, read: true, update: true, delete: true },
         products: { create: true, read: true, update: true, delete: true },
@@ -633,6 +634,34 @@ const defaultPermissions: { [key in 'Admin' | 'Manager' | 'Sales' | 'Warehouse']
         settings: { create: false, read: false, update: false, delete: false },
         analytics: { create: false, read: false, update: false, delete: false },
     },
+    'Packing Assistant': {
+        orders: { create: false, read: true, update: true, delete: false },
+        products: { create: false, read: true, update: false, delete: false },
+        inventory: { create: false, read: false, update: false, delete: false },
+        customers: { create: false, read: false, update: false, delete: false },
+        purchases: { create: false, read: false, update: false, delete: false },
+        expenses: { create: false, read: false, update: false, delete: false },
+        checkPassing: { create: false, read: false, update: false, delete: false },
+        partners: { create: false, read: false, update: false, delete: false },
+        courierReport: { create: false, read: false, update: false, delete: false },
+        staff: { create: false, read: false, update: false, delete: false },
+        settings: { create: false, read: false, update: false, delete: false },
+        analytics: { create: false, read: false, update: false, delete: false },
+    },
+    Custom: {
+        orders: { create: false, read: false, update: false, delete: false },
+        products: { create: false, read: false, update: false, delete: false },
+        inventory: { create: false, read: false, update: false, delete: false },
+        customers: { create: false, read: false, update: false, delete: false },
+        purchases: { create: false, read: false, update: false, delete: false },
+        expenses: { create: false, read: false, update: false, delete: false },
+        checkPassing: { create: false, read: false, update: false, delete: false },
+        partners: { create: false, read: false, update: false, delete: false },
+        courierReport: { create: false, read: false, update: false, delete: false },
+        staff: { create: false, read: false, update: false, delete: false },
+        settings: { create: false, read: false, update: false, delete: false },
+        analytics: { create: false, read: false, update: false, delete: false },
+    }
 };
 
 
@@ -710,6 +739,22 @@ export const staff: StaffMember[] = [
         incomeHistory: [],
         permissions: defaultPermissions.Warehouse,
     },
+    { 
+        id: 'STAFF005', 
+        name: 'Gary Good', 
+        email: 'gary.good@fashionary.com', 
+        role: 'Packing Assistant', 
+        lastLogin: '2024-05-24T11:00:00Z',
+        paymentType: 'Salary',
+        salaryDetails: { amount: 15000, frequency: 'Monthly' },
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
+        financials: { totalEarned: 15000, totalPaid: 15000, dueAmount: 0 },
+        paymentHistory: [
+             { date: '2024-05-01', amount: 15000, notes: 'May Salary' }
+        ],
+        incomeHistory: [],
+        permissions: defaultPermissions['Packing Assistant'],
+    },
 ];
 
 
@@ -775,4 +820,5 @@ export const bdDistricts: string[] = [
 
 
     
+
 
