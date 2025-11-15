@@ -1,11 +1,12 @@
 
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { MoreHorizontal, PlusCircle } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Truck } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { format, isWithinInterval } from "date-fns";
 
@@ -26,6 +27,15 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -34,6 +44,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import {
   Select,
@@ -62,8 +76,8 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getOrders, getStatuses } from "@/services/orders";
-import { getBusinesses } from "@/services/partners";
-import type { Order, OrderProduct, OrderStatus, Business } from "@/types";
+import { getBusinesses, getCourierServices } from "@/services/partners";
+import type { Order, OrderProduct, OrderStatus, Business, CourierService } from "@/types";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -152,6 +166,7 @@ export default function OrdersClientPage() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [allStatuses, setAllStatuses] = useState<OrderStatus[]>([]);
+  const [courierServices, setCourierServices] = React.useState<CourierService[]>([]);
 
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || "all");
   const [businessFilter, setBusinessFilter] = useState("all");
@@ -166,11 +181,13 @@ export default function OrdersClientPage() {
     Promise.all([
         getOrders(),
         getBusinesses(),
-        getStatuses()
-    ]).then(([ordersData, businessesData, statusesData]) => {
+        getStatuses(),
+        getCourierServices()
+    ]).then(([ordersData, businessesData, statusesData, couriersData]) => {
         setAllOrders(ordersData);
         setBusinesses(businessesData);
         setAllStatuses(statusesData);
+        setCourierServices(couriersData);
         setIsLoading(false);
     });
 
@@ -461,20 +478,51 @@ export default function OrdersClientPage() {
               {selectedOrders.length > 0 && (
                 <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">{selectedOrders.length} selected</span>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm">Bulk Actions</Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                             <DropdownMenuLabel>Update Status for {selectedOrders.length} orders</DropdownMenuLabel>
-                             <DropdownMenuSeparator />
-                             {allStatuses.map(status => (
-                                <DropdownMenuItem key={status}>Mark as {status}</DropdownMenuItem>
-                             ))}
-                             <DropdownMenuSeparator />
-                             <DropdownMenuItem className="text-destructive">Delete Selected</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                     <AlertDialog>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm">Bulk Actions</Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuLabel>Update Status for {selectedOrders.length} orders</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                {allStatuses.map(status => (
+                                    <DropdownMenuItem key={status}>Mark as {status}</DropdownMenuItem>
+                                ))}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuSub>
+                                    <DropdownMenuSubTrigger>
+                                        <Truck className="mr-2 h-4 w-4" />
+                                        Send to Courier
+                                    </DropdownMenuSubTrigger>
+                                    <DropdownMenuPortal>
+                                        <DropdownMenuSubContent>
+                                            {courierServices.map(courier => (
+                                                 <AlertDialogTrigger asChild key={courier}>
+                                                    <DropdownMenuItem>{courier}</DropdownMenuItem>
+                                                </AlertDialogTrigger>
+                                            ))}
+                                        </DropdownMenuSubContent>
+                                    </DropdownMenuPortal>
+                                </DropdownMenuSub>
+
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-destructive">Delete Selected</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                         <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Confirm Bulk Dispatch</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Are you sure you want to dispatch {selectedOrders.length} selected orders? This action cannot be undone.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction>Confirm & Dispatch</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
               )}
             </div>
@@ -522,3 +570,5 @@ export default function OrdersClientPage() {
     </div>
   );
 }
+
+    

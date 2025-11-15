@@ -85,8 +85,8 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { getOrderById, getStatuses } from '@/services/orders';
 import { getProducts } from '@/services/products';
-import { getBusinesses } from '@/services/partners';
-import type { Product, Business, OrderPlatform, OrderProduct, OrderLog, Order as OrderType, OrderStatus } from '@/types';
+import { getBusinesses, getCourierServices } from '@/services/partners';
+import type { Product, Business, OrderPlatform, OrderProduct, OrderLog, Order as OrderType, OrderStatus, CourierService } from '@/types';
 
 
 const statusColors: Record<OrderType['status'], string> = {
@@ -122,7 +122,7 @@ const statusIcons: Record<string, React.ElementType> = {
 
 
 const allPlatforms: OrderPlatform[] = ['TikTok', 'Messenger', 'Facebook', 'Instagram', 'Website'];
-const courierServices = ['Pathao', 'RedX', 'Steadfast'];
+
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -216,6 +216,7 @@ export default function OrderDetailsPage() {
   const [allProducts, setAllProducts] = React.useState<Product[]>([]);
   const [allStatuses, setAllStatuses] = React.useState<OrderStatus[]>([]);
   const [businesses, setBusinesses] = React.useState<Business[]>([]);
+  const [courierServices, setCourierServices] = React.useState<CourierService[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
   const [isEditing, setIsEditing] = React.useState(false);
@@ -237,8 +238,9 @@ export default function OrderDetailsPage() {
             getOrderById(orderId),
             getProducts(),
             getBusinesses(),
-            getStatuses()
-        ]).then(([orderData, productsData, businessesData, statusesData]) => {
+            getStatuses(),
+            getCourierServices()
+        ]).then(([orderData, productsData, businessesData, statusesData, couriersData]) => {
             if (orderData) {
                 setOrder(orderData);
                 setCustomerNote(orderData.customerNote);
@@ -251,6 +253,7 @@ export default function OrderDetailsPage() {
             setAllProducts(productsData);
             setBusinesses(businessesData);
             setAllStatuses(statusesData);
+            setCourierServices(couriersData);
             setIsLoading(false);
         });
     }
@@ -817,5 +820,7 @@ export default function OrderDetailsPage() {
 }
 
 
+
+    
 
     

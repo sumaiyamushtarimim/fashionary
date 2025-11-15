@@ -53,6 +53,7 @@ export const allStatuses: OrderStatus[] = [
 
 export type OrderPlatform = 'TikTok' | 'Messenger' | 'Facebook' | 'Instagram' | 'Website';
 export type PaymentMethod = 'Cash on Delivery' | 'bKash' | 'Nagad';
+export type CourierService = 'Pathao' | 'RedX' | 'Steadfast';
 
 export type Business = {
     id: string;
@@ -252,3 +253,5 @@ export type WooCommerceIntegration = {
     businessId: string;
     businessName: string;
 };
+
+    

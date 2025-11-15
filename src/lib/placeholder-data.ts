@@ -1,6 +1,6 @@
 
 import { PlaceHolderImages } from './placeholder-images';
-import type { Order, Product, Customer, Category, ExpenseCategory, Business, PurchaseOrder, StaffMember, Supplier, Vendor, Expense, InventoryItem, InventoryMovement, WooCommerceIntegration, OrderStatus } from '@/types';
+import type { Order, Product, Customer, Category, ExpenseCategory, Business, PurchaseOrder, StaffMember, Supplier, Vendor, Expense, InventoryItem, InventoryMovement, WooCommerceIntegration, OrderStatus, CourierService } from '@/types';
 
 
 export const businesses: Business[] = [
@@ -447,6 +447,8 @@ export const allStatuses: OrderStatus[] = [
     'Partially Delivered', 'Partially Returned'
 ];
 
+export const courierServices: CourierService[] = ['Pathao', 'RedX', 'Steadfast'];
+
 export const customers: Customer[] = [
     { id: 'CUST001', name: 'Alice Johnson', email: 'alice@example.com', phone: '+8801712345678', totalOrders: 5, totalSpent: 750.25, joinDate: '2023-01-15', address: '123 Main Street', district: 'Dhaka', country: 'Bangladesh' },
     { id: 'CUST002', name: 'Bob Williams', email: 'bob@example.com', phone: '+8801812345679', totalOrders: 2, totalSpent: 125.00, joinDate: '2023-03-22', address: '456 Oak Avenue', district: 'Chittagong', country: 'Bangladesh' },
@@ -690,3 +692,6 @@ export const bdDistricts: string[] = [
 
 
 
+
+
+    
