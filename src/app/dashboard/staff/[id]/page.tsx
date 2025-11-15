@@ -5,7 +5,6 @@ import * as React from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft, MoreVertical, User, Briefcase, DollarSign, BarChart2, CheckCircle, PlusCircle, Activity, TrendingUp } from 'lucide-react';
-import { staff as staticStaff, orders as staticOrders } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -369,5 +368,3 @@ export default function StaffDetailsPage() {
         </div>
     );
 }
-
-    
