@@ -44,7 +44,7 @@ export const expenseCategories: ExpenseCategory[] = [
 ];
 
 export const expenses: Expense[] = [
-    { id: 'EXP001', date: '2024-05-20', category: 'Marketing & Advertising', amount: 5000, notes: 'Facebook boost for Eid campaign', isAdExpense: true, business: 'Fashionary Main', platform: 'Facebook' },
+    { id: 'EXP001', date: '2024-05-20', category: 'Marketing & Advertising', amount: 5000, notes: 'Facebook boost for Eid campaign', isAdExpense: true, businessId: 'BIZ001', business: 'Fashionary Main', platform: 'Facebook' },
     { id: 'EXP002', date: '2024-05-18', category: 'Office Supplies', amount: 1500, notes: 'A4 paper, pens, and folders', isAdExpense: false },
     { id: 'EXP003', date: '2024-05-15', category: 'Salaries & Wages', amount: 150000, notes: 'May 2024 Staff Salaries', isAdExpense: false },
     { id: 'EXP004', date: '2024-05-10', category: 'Utilities (Electricity, Water)', amount: 8500, notes: 'Monthly electricity bill', isAdExpense: false },
@@ -729,7 +729,7 @@ export const staff: StaffMember[] = [
         id: 'STAFF004', 
         name: 'Michael Brown', 
         email: 'michael.brown@fashionary.com', 
-        role: 'Warehouse', 
+        role: 'Packing Assistant', 
         lastLogin: '2024-05-23T08:15:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 35000, frequency: 'Monthly' },
@@ -739,7 +739,7 @@ export const staff: StaffMember[] = [
              { date: '2024-05-01', amount: 35000, notes: 'May Salary' }
         ],
         incomeHistory: [],
-        permissions: defaultPermissions.Warehouse,
+        permissions: defaultPermissions['Packing Assistant'],
     },
     { 
         id: 'STAFF005', 
@@ -822,6 +822,7 @@ export const bdDistricts: string[] = [
 
 
     
+
 
 
 

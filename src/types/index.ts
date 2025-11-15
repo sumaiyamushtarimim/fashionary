@@ -284,6 +284,7 @@ export type Expense = {
     amount: number;
     notes: string;
     isAdExpense: boolean;
+    businessId?: string;
     business?: string;
     platform?: OrderPlatform;
 };

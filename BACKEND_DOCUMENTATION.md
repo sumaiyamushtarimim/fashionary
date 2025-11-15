@@ -147,7 +147,7 @@ model Category {
 model Order {
   id              String         @id @default(cuid())
   customerName    String
-  customerEmail   String
+  customerEmail   String?
   customerPhone   String
   date            DateTime
   status          OrderStatus
@@ -198,7 +198,7 @@ model OrderLog {
 model Customer {
   id          String   @id @default(cuid())
   name        String
-  email       String   @unique
+  email       String?  @unique
   phone       String   @unique
   joinDate    DateTime
   address     String
