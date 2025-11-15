@@ -1,10 +1,9 @@
-import { orders, expenses } from '@/lib/placeholder-data';
-import { Order, Expense } from '@/types';
 
-// In a real app, you'd fetch this from your API
-// e.g. export async function getAnalyticsData() { const res = await fetch('/api/analytics'); return res.json(); }
+import { orders, expenses, products } from '@/lib/placeholder-data';
+import { Order, Expense, Product } from '@/types';
+import { startOfMonth, subMonths, format, getMonth, getYear } from 'date-fns';
 
-export async function getAnalyticsData(): Promise<{
+type AnalyticsData = {
     summary: {
         totalRevenue: number;
         cogs: number;
@@ -15,33 +14,108 @@ export async function getAnalyticsData(): Promise<{
     };
     monthlyBreakdown: { month: string; revenue: number; cogs: number; expenses: number; profit: number; }[];
     expenseBreakdown: { category: string; amount: number; fill: string; }[];
-}> {
-    // This is a mock implementation.
-    // In a real backend, you would calculate this based on orders and expenses from your database.
+};
+
+const chartColors = [
+    'hsl(var(--chart-1))',
+    'hsl(var(--chart-2))',
+    'hsl(var(--chart-3))',
+    'hsl(var(--chart-4))',
+    'hsl(var(--chart-5))',
+];
+
+export async function getAnalyticsData(): Promise<AnalyticsData> {
+    // Summary Calculations
+    const revenueOrders = orders.filter(o => o.status === 'Delivered' || o.status === 'Paid Returned');
+    const totalRevenue = revenueOrders.reduce((sum, order) => sum + order.total, 0);
+    
+    // Assume COGS is 50% of product price for sold items.
+    // In a real app, product cost should be a field in the product data.
+    const totalCogs = revenueOrders.reduce((sum, order) => {
+        const orderCogs = order.products.reduce((productSum, p) => {
+            const product = products.find(prod => prod.id === p.productId);
+            const productCost = product ? product.price * 0.5 : 0; // 50% margin assumption
+            return productSum + (productCost * p.quantity);
+        }, 0);
+        return sum + orderCogs;
+    }, 0);
+    
+    const grossProfit = totalRevenue - totalCogs;
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
     const adExpenses = expenses.filter(e => e.isAdExpense).reduce((sum, expense) => sum + expense.amount, 0);
-    
-    const analyticsData = {
-        summary: {
-            totalRevenue: 450000,
-            cogs: 210000,
-            grossProfit: 240000,
-            expenses: 85000,
-            adExpenses: adExpenses,
-            netProfit: 155000,
-        },
-        monthlyBreakdown: [
-            { month: 'Jan', revenue: 120000, cogs: 55000, expenses: 20000, profit: 45000 },
-            { month: 'Feb', revenue: 150000, cogs: 70000, expenses: 25000, profit: 55000 },
-            { month: 'Mar', revenue: 180000, cogs: 85000, expenses: 40000, profit: 55000 },
-        ],
-        expenseBreakdown: [
-            { category: 'Marketing & Advertising', amount: 25000, fill: 'hsl(var(--chart-1))' },
-            { category: 'Salaries & Wages', amount: 45000, fill: 'hsl(var(--chart-2))'  },
-            { category: 'Office Rent', amount: 10000, fill: 'hsl(var(--chart-3))'  },
-            { category: 'Utilities', amount: 5000, fill: 'hsl(var(--chart-4))'  },
-        ],
+    const netProfit = grossProfit - totalExpenses;
+
+    const summary = {
+        totalRevenue,
+        cogs: totalCogs,
+        grossProfit,
+        expenses: totalExpenses,
+        adExpenses,
+        netProfit,
     };
 
-    return Promise.resolve(analyticsData);
+    // Monthly Breakdown Calculation
+    const monthlyData: Record<string, { revenue: number; cogs: number; expenses: number; }> = {};
+    const now = new Date();
+
+    // Initialize last 12 months
+    for (let i = 0; i < 12; i++) {
+        const monthDate = subMonths(now, i);
+        const monthKey = format(monthDate, 'yyyy-MM');
+        monthlyData[monthKey] = { revenue: 0, cogs: 0, expenses: 0 };
+    }
+
+    // Populate with order data
+    orders.forEach(order => {
+        const orderDate = new Date(order.date);
+        const monthKey = format(orderDate, 'yyyy-MM');
+        if (monthlyData[monthKey] && (order.status === 'Delivered' || order.status === 'Paid Returned')) {
+            monthlyData[monthKey].revenue += order.total;
+             const orderCogs = order.products.reduce((productSum, p) => {
+                const product = products.find(prod => prod.id === p.productId);
+                const productCost = product ? product.price * 0.5 : 0; // 50% margin assumption
+                return productSum + (productCost * p.quantity);
+            }, 0);
+            monthlyData[monthKey].cogs += orderCogs;
+        }
+    });
+
+    // Populate with expense data
+    expenses.forEach(expense => {
+        const expenseDate = new Date(expense.date);
+        const monthKey = format(expenseDate, 'yyyy-MM');
+        if (monthlyData[monthKey]) {
+            monthlyData[monthKey].expenses += expense.amount;
+        }
+    });
+    
+    const monthlyBreakdown = Object.entries(monthlyData).map(([key, data]) => {
+        const grossProfit = data.revenue - data.cogs;
+        return {
+            month: format(new Date(key), 'MMM'),
+            revenue: data.revenue,
+            cogs: data.cogs,
+            expenses: data.expenses,
+            profit: grossProfit - data.expenses,
+        }
+    }).reverse();
+
+
+    // Expense Breakdown Calculation
+    const expenseByCategory: Record<string, number> = {};
+    expenses.forEach(expense => {
+        expenseByCategory[expense.category] = (expenseByCategory[expense.category] || 0) + expense.amount;
+    });
+
+    const expenseBreakdown = Object.entries(expenseByCategory).map(([category, amount], index) => ({
+        category,
+        amount,
+        fill: chartColors[index % chartColors.length],
+    }));
+
+    return Promise.resolve({
+        summary,
+        monthlyBreakdown,
+        expenseBreakdown,
+    });
 }
