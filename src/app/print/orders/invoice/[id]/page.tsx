@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import { Logo } from '@/components/logo';
+import Barcode from 'react-barcode';
 
 export function InvoiceTemplate({ order }: { order: Order }) {
     const subtotal = order.products.reduce((acc, p) => acc + p.price * p.quantity, 0);
@@ -23,7 +24,7 @@ export function InvoiceTemplate({ order }: { order: Order }) {
         <div className="max-w-4xl mx-auto p-8 bg-white text-gray-800 print:shadow-none print:p-8">
             <div className="flex flex-col justify-between h-full min-h-[90vh]">
                 <div>
-                    <header className="flex justify-between items-center pb-6 border-b">
+                    <header className="flex justify-between items-start pb-6 border-b">
                         <div className="flex items-center gap-4">
                             <Logo />
                             <div>
@@ -34,6 +35,9 @@ export function InvoiceTemplate({ order }: { order: Order }) {
                         <div className="text-right">
                             <h2 className="text-3xl font-bold text-gray-400 uppercase">Invoice</h2>
                             <p className="text-sm">#<span className="font-medium text-gray-600">{order.id}</span></p>
+                            <div className="mt-2 flex justify-end">
+                                <Barcode value={order.id} height={30} width={1.2} fontSize={10} margin={0} />
+                            </div>
                         </div>
                     </header>
 
@@ -121,9 +125,9 @@ export function InvoiceTemplate({ order }: { order: Order }) {
                     </section>
                 </div>
 
-                <footer className="mt-8 text-center text-sm text-gray-500 border-t pt-4">
-                    <p>Thank you for your purchase!</p>
-                </footer>
+                <div className="mt-8 border-t pt-4">
+                    <p className="text-center text-sm text-gray-500">Thank you for your purchase!</p>
+                </div>
             </div>
         </div>
     );
