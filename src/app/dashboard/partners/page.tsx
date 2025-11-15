@@ -1,7 +1,7 @@
 
 'use client';
 
-import { MoreHorizontal, PlusCircle } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Handshake, DollarSign } from "lucide-react";
 import React, { useState, useMemo, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -135,6 +135,27 @@ export default function PartnersPage() {
 
     return finalDues;
   }, [allPurchaseOrders]);
+
+   const overviewStats = useMemo(() => {
+    let totalBusiness = 0;
+    let totalDue = 0;
+
+    Object.values(partnerDues).forEach(due => {
+      totalDue += due;
+    });
+
+    allPurchaseOrders.forEach(po => {
+        totalBusiness += po.total;
+        if(po.printingPayment) totalBusiness += (po.printingPayment.cash || 0) + (po.printingPayment.check || 0);
+        if(po.cuttingPayment) totalBusiness += (po.cuttingPayment.cash || 0) + (po.cuttingPayment.check || 0);
+    });
+
+    return {
+        totalBusiness,
+        totalDue
+    };
+  }, [partnerDues, allPurchaseOrders]);
+
 
   const totalSupplierPages = Math.ceil(allSuppliers.length / ITEMS_PER_PAGE);
   const paginatedSuppliers = useMemo(() => {
@@ -356,6 +377,31 @@ export default function PartnersPage() {
         </div>
       </div>
 
+       <div className="grid gap-4 grid-cols-2">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Business</CardTitle>
+                    <Handshake className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">৳{overviewStats.totalBusiness.toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground">Total transaction with all partners</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Due</CardTitle>
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className={cn("text-2xl font-bold", overviewStats.totalDue > 0 && "text-destructive")}>
+                        ৳{overviewStats.totalDue.toLocaleString()}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Total outstanding amount to all partners</p>
+                </CardContent>
+            </Card>
+        </div>
+
       <Tabs defaultValue="suppliers">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="suppliers">Suppliers</TabsTrigger>
@@ -536,4 +582,5 @@ export default function PartnersPage() {
       </Dialog>
     </div>
   );
-}
+
+    
