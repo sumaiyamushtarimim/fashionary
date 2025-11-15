@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { Copy, MoreHorizontal, PlusCircle } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,8 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
 
 type Courier = {
     id: string;
@@ -63,6 +66,7 @@ const courierFields: Record<string, { label: string; placeholder: string; type?:
 
 
 export default function CourierSettingsPage() {
+    const { toast } = useToast();
     const [couriers, setCouriers] = React.useState(initialCourierServices);
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
     const [selectedCourier, setSelectedCourier] = React.useState<Courier | null>(null);
@@ -83,6 +87,15 @@ export default function CourierSettingsPage() {
         setIsDialogOpen(false);
         setSelectedCourier(null);
     }
+    
+    const handleCopyWebhook = () => {
+        const webhookUrl = `https://your-domain.com/api/webhooks/steadfast`;
+        navigator.clipboard.writeText(webhookUrl);
+        toast({
+            title: "Copied to clipboard",
+            description: "Webhook URL has been copied.",
+        });
+    };
 
     const fields = selectedCourier ? courierFields[selectedCourier.id] : [];
 
@@ -168,6 +181,25 @@ export default function CourierSettingsPage() {
                                 <Input id={field.label} placeholder={field.placeholder} type={field.type || 'text'} />
                             </div>
                         ))}
+
+                        {selectedCourier?.id === 'steadfast' && (
+                            <>
+                                <Separator />
+                                 <div className="space-y-2">
+                                    <Label>Webhook URL</Label>
+                                    <p className="text-xs text-muted-foreground">
+                                        Copy this URL and paste it into your Steadfast dashboard to receive automatic status updates.
+                                    </p>
+                                    <div className="flex items-center space-x-2">
+                                        <Input value="https://your-domain.com/api/webhooks/steadfast" readOnly />
+                                        <Button type="button" size="sm" onClick={handleCopyWebhook}>
+                                            <Copy className="h-4 w-4" />
+                                            <span className="sr-only">Copy</span>
+                                        </Button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
@@ -178,3 +210,5 @@ export default function CourierSettingsPage() {
         </div>
     );
 }
+
+    
