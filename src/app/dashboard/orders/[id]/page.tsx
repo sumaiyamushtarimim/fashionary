@@ -313,9 +313,15 @@ export default function OrderDetailsPage() {
     }));
   }, [deliveryReport]);
   
-  const totalParcels = deliveryReport?.totalSummary["Total Parcels"] || 0;
-  const totalDelivered = deliveryReport?.totalSummary["Delivered Parcels"] || 0;
-  const totalCanceled = deliveryReport?.totalSummary["Canceled Parcels"] || 0;
+  const { totalParcels, totalDelivered, totalCanceled } = React.useMemo(() => {
+      return courierStatsData.reduce((acc, courier) => {
+          acc.totalParcels += courier.total;
+          acc.totalDelivered += courier.delivered;
+          acc.totalCanceled += courier.canceled;
+          return acc;
+      }, { totalParcels: 0, totalDelivered: 0, totalCanceled: 0 });
+  }, [courierStatsData]);
+
   const deliveryRatio = totalParcels > 0 ? (totalDelivered / totalParcels) * 100 : 0;
   const cancelRatio = totalParcels > 0 ? (totalCanceled / totalParcels) * 100 : 0;
 

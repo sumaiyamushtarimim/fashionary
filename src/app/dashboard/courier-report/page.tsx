@@ -31,9 +31,15 @@ function ReportDisplay({ report }: { report: DeliveryReport }) {
         })).filter(item => item.total > 0);
     }, [report]);
 
-    const totalParcels = report?.totalSummary?.["Total Parcels"] || 0;
-    const totalDelivered = report?.totalSummary?.["Delivered Parcels"] || 0;
-    const totalCanceled = report?.totalSummary?.["Canceled Parcels"] || 0;
+    const { totalParcels, totalDelivered, totalCanceled } = React.useMemo(() => {
+        return courierStatsData.reduce((acc, courier) => {
+            acc.totalParcels += courier.total;
+            acc.totalDelivered += courier.delivered;
+            acc.totalCanceled += courier.canceled;
+            return acc;
+        }, { totalParcels: 0, totalDelivered: 0, totalCanceled: 0 });
+    }, [courierStatsData]);
+    
     const deliveryRatio = totalParcels > 0 ? (totalDelivered / totalParcels) * 100 : 0;
     const cancelRatio = totalParcels > 0 ? (totalCanceled / totalParcels) * 100 : 0;
 
