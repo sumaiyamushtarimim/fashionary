@@ -6,7 +6,7 @@ import * as React from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft, MoreVertical, User, Briefcase, DollarSign, BarChart2, CheckCircle, PlusCircle, Activity, TrendingUp } from 'lucide-react';
-import { staff, orders, StaffMember, OrderStatus, StaffIncome } from '@/lib/placeholder-data';
+import { staff as staticStaff, orders as staticOrders } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/chart";
 import { Pie, PieChart, Cell } from "recharts";
 import { Separator } from '@/components/ui/separator';
+import { getStaffMemberById } from '@/services/staff';
+import type { StaffMember, OrderStatus, StaffIncome } from '@/types';
 
 const statusColors: Record<OrderStatus, string> = {
     'New': 'bg-blue-500/20 text-blue-700',
@@ -55,41 +57,22 @@ export default function StaffDetailsPage() {
     const params = useParams();
     const staffId = params.id as string;
     const [staffMember, setStaffMember] = React.useState<StaffMember | undefined>(undefined);
-    const [isClient, setIsClient] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(true);
 
     React.useEffect(() => {
-        setIsClient(true);
-        const member = staff.find((s) => s.id === staffId);
-        if (member) {
-            // In a real app, this data would come from an API.
-            // For now, we'll calculate it based on placeholder orders.
-            const createdOrders = orders.filter(o => o.createdBy === member.name);
-            const confirmedOrders = orders.filter(o => o.confirmedBy === member.name);
-
-            const statusBreakdown = { ...member.performance.statusBreakdown };
-            for (const key in statusBreakdown) {
-                statusBreakdown[key as OrderStatus] = 0;
-            }
-
-            [...createdOrders, ...confirmedOrders].forEach(order => {
-                if (statusBreakdown[order.status] !== undefined) {
-                    statusBreakdown[order.status]++;
-                }
+        if (staffId) {
+            setIsLoading(true);
+            getStaffMemberById(staffId).then(data => {
+                setStaffMember(data);
+                setIsLoading(false);
             });
-
-            const updatedMember = {
-                ...member,
-                performance: {
-                    ...member.performance,
-                    ordersCreated: createdOrders.length,
-                    ordersConfirmed: confirmedOrders.length,
-                    statusBreakdown: statusBreakdown,
-                }
-            };
-            setStaffMember(updatedMember);
         }
     }, [staffId]);
     
+    if (isLoading) {
+        return <div className="p-6">Loading staff details...</div>
+    }
+
     if (!staffMember) {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 p-4 lg:gap-6 lg:p-6">
@@ -148,7 +131,7 @@ export default function StaffDetailsPage() {
                         </div>
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">Last Login</span>
-                            <span>{isClient ? new Date(staffMember.lastLogin).toLocaleString() : '...'}</span>
+                            <span>{new Date(staffMember.lastLogin).toLocaleString()}</span>
                         </div>
                     </CardContent>
                 </Card>
@@ -199,16 +182,16 @@ export default function StaffDetailsPage() {
                         <div className="rounded-lg border bg-card p-4 space-y-2">
                              <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Total Earned</span>
-                                <span className="font-medium">৳{isClient ? staffMember.financials.totalEarned.toLocaleString() : '...'}</span>
+                                <span className="font-medium">৳{staffMember.financials.totalEarned.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Total Paid</span>
-                                <span className="font-medium text-green-600">৳{isClient ? staffMember.financials.totalPaid.toLocaleString() : '...'}</span>
+                                <span className="font-medium text-green-600">৳{staffMember.financials.totalPaid.toLocaleString()}</span>
                             </div>
                             <Separator />
                             <div className="flex justify-between font-semibold text-lg">
                                 <span className={cn(staffMember.financials.dueAmount > 0 && "text-destructive")}>Due Amount</span>
-                                <span className={cn(staffMember.financials.dueAmount > 0 && "text-destructive")}>৳{isClient ? staffMember.financials.dueAmount.toLocaleString() : '...'}</span>
+                                <span className={cn(staffMember.financials.dueAmount > 0 && "text-destructive")}>৳{staffMember.financials.dueAmount.toLocaleString()}</span>
                             </div>
                         </div>
                          <Button className="w-full">
@@ -238,7 +221,7 @@ export default function StaffDetailsPage() {
                                     <TableRow key={index}>
                                         <TableCell>{payment.date}</TableCell>
                                         <TableCell>{payment.notes}</TableCell>
-                                        <TableCell className="text-right font-mono">৳{isClient ? payment.amount.toLocaleString() : '...'}</TableCell>
+                                        <TableCell className="text-right font-mono">৳{payment.amount.toLocaleString()}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -277,7 +260,7 @@ export default function StaffDetailsPage() {
                                             <TableCell>
                                                 <Badge variant={income.action === 'Created' ? 'secondary' : 'outline'}>{income.action}</Badge>
                                             </TableCell>
-                                            <TableCell className="text-right font-mono">+৳{isClient ? income.amount.toLocaleString() : '...'}</TableCell>
+                                            <TableCell className="text-right font-mono">+৳{income.amount.toLocaleString()}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -299,7 +282,7 @@ export default function StaffDetailsPage() {
                                         </div>
                                         <Separator className="my-3" />
                                         <div className="flex justify-end items-center">
-                                            <p className="font-semibold font-mono text-lg">+৳{isClient ? income.amount.toLocaleString() : '...'}</p>
+                                            <p className="font-semibold font-mono text-lg">+৳{income.amount.toLocaleString()}</p>
                                         </div>
                                     </CardContent>
                                 </Card>

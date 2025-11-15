@@ -50,9 +50,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DateRangePicker } from '@/components/ui/date-range-picker';
-import { orders, OrderStatus, Order, allStatuses } from "@/lib/placeholder-data";
+import { allStatuses } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import { getOrders } from "@/services/orders";
+import type { Order, OrderStatus } from "@/types";
 
 const mainQuickAccessItems = [
     { href: "/dashboard/orders", icon: ShoppingCart, label: "Orders", color: "text-sky-500", bgColor: "bg-sky-500/10" },
@@ -89,15 +91,25 @@ const statusColors: Record<OrderStatus, string> = {
 
 export default function Dashboard() {
     const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
+    const [allOrders, setAllOrders] = React.useState<Order[]>([]);
+    const [isLoading, setIsLoading] = React.useState(true);
     const router = useRouter();
 
+    React.useEffect(() => {
+        setIsLoading(true);
+        getOrders().then(data => {
+            setAllOrders(data);
+            setIsLoading(false);
+        });
+    }, []);
+
     const filteredOrders = React.useMemo(() => {
-        if (!dateRange?.from) return orders;
-        return orders.filter(order => {
+        if (!dateRange?.from) return allOrders;
+        return allOrders.filter(order => {
             const orderDate = new Date(order.date);
             return isWithinInterval(orderDate, { start: dateRange.from!, end: dateRange.to || dateRange.from });
         });
-    }, [dateRange]);
+    }, [dateRange, allOrders]);
 
 
     const orderStats = React.useMemo(() => {
@@ -204,21 +216,25 @@ export default function Dashboard() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {allStatuses.map((status) => {
-                                const stat = orderStats[status];
-                                if (stat.count === 0) return null;
-                                return (
-                                    <TableRow key={status} onClick={() => handleStatusClick(status)} className="cursor-pointer">
-                                        <TableCell>
-                                            <Badge variant="outline" className={cn(statusColors[status])}>
-                                                {status}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="text-center font-medium">{stat.count}</TableCell>
-                                        <TableCell className="text-right font-mono">৳{stat.total.toLocaleString()}</TableCell>
-                                    </TableRow>
-                                );
-                            })}
+                            {isLoading ? (
+                                <TableRow><TableCell colSpan={3} className="text-center h-24">Loading data...</TableCell></TableRow>
+                            ) : (
+                                allStatuses.map((status) => {
+                                    const stat = orderStats[status];
+                                    if (stat.count === 0) return null;
+                                    return (
+                                        <TableRow key={status} onClick={() => handleStatusClick(status)} className="cursor-pointer">
+                                            <TableCell>
+                                                <Badge variant="outline" className={cn(statusColors[status])}>
+                                                    {status}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-center font-medium">{stat.count}</TableCell>
+                                            <TableCell className="text-right font-mono">৳{stat.total.toLocaleString()}</TableCell>
+                                        </TableRow>
+                                    );
+                                })
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>

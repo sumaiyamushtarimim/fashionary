@@ -39,10 +39,11 @@ import {
     PaginationNext,
     PaginationPrevious,
   } from "@/components/ui/pagination";
-import { purchaseOrders } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { getPurchaseOrders } from "@/services/purchases";
+import type { PurchaseOrder } from "@/types";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -56,17 +57,21 @@ const statusColors = {
 };
 
 export default function PurchasesPage() {
-
+    const [allPurchaseOrders, setAllPurchaseOrders] = useState<PurchaseOrder[]>([]);
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
     const [currentPage, setCurrentPage] = useState(1);
-    const [isClient, setIsClient] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(true);
 
     React.useEffect(() => {
-        setIsClient(true);
+        setIsLoading(true);
+        getPurchaseOrders().then(data => {
+            setAllPurchaseOrders(data);
+            setIsLoading(false);
+        });
     }, []);
 
     const filteredPurchaseOrders = useMemo(() => {
-        return purchaseOrders.filter((po) => {
+        return allPurchaseOrders.filter((po) => {
             const poDate = new Date(po.date);
             const dateMatch = !dateRange?.from || (dateRange?.from && dateRange?.to 
                 ? isWithinInterval(poDate, { start: dateRange.from, end: dateRange.to })
@@ -74,7 +79,7 @@ export default function PurchasesPage() {
 
             return dateMatch;
         });
-    }, [dateRange]);
+    }, [dateRange, allPurchaseOrders]);
 
     const totalPages = Math.ceil(filteredPurchaseOrders.length / ITEMS_PER_PAGE);
     const paginatedPurchaseOrders = useMemo(() => {
@@ -110,7 +115,11 @@ export default function PurchasesPage() {
             <CardTitle>Purchase Orders</CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          {isClient ? (
+          {isLoading ? (
+            <div className="h-48 flex items-center justify-center text-muted-foreground">
+              Loading purchase orders...
+            </div>
+          ) : (
             <>
               {/* Table for larger screens */}
               <div className="hidden sm:block">
@@ -223,10 +232,6 @@ export default function PurchasesPage() {
                 ))}
               </div>
             </>
-          ) : (
-            <div className="h-48 flex items-center justify-center text-muted-foreground">
-              Loading purchase orders...
-            </div>
           )}
         </CardContent>
         <CardFooter>

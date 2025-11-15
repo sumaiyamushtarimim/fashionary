@@ -37,26 +37,40 @@ import {
     PaginationNext,
     PaginationPrevious,
   } from "@/components/ui/pagination";
-import { products, categories } from "@/lib/placeholder-data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getProducts, getCategories } from "@/services/products";
+import type { Product, Category } from "@/types";
+
 
 const ITEMS_PER_PAGE = 10;
 
 export default function ProductsPage() {
+  const [allProducts, setAllProducts] = React.useState<Product[]>([]);
+  const [allCategories, setAllCategories] = React.useState<Category[]>([]);
   const [categoryFilter, setCategoryFilter] = React.useState("all");
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    setIsLoading(true);
+    Promise.all([getProducts(), getCategories()]).then(([productsData, categoriesData]) => {
+      setAllProducts(productsData);
+      setAllCategories(categoriesData);
+      setIsLoading(false);
+    });
+  }, []);
 
   const filteredProducts = React.useMemo(() => {
-    if (categoryFilter === 'all') return products;
-    return products.filter(p => {
-        let currentCategory = categories.find(c => c.id === p.categoryId);
+    if (categoryFilter === 'all') return allProducts;
+    return allProducts.filter(p => {
+        let currentCategory = allCategories.find(c => c.id === p.categoryId);
         while(currentCategory) {
             if (currentCategory.id === categoryFilter) return true;
-            currentCategory = categories.find(c => c.id === currentCategory?.parentId);
+            currentCategory = allCategories.find(c => c.id === currentCategory?.parentId);
         }
         return false;
     });
-  }, [categoryFilter]);
+  }, [categoryFilter, allProducts, allCategories]);
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const paginatedProducts = React.useMemo(() => {
@@ -69,8 +83,8 @@ export default function ProductsPage() {
   }, [categoryFilter]);
 
 
-  const mainCategories = categories.filter(c => !c.parentId);
-  const subCategories = (parentId: string) => categories.filter(c => c.parentId === parentId);
+  const mainCategories = allCategories.filter(c => !c.parentId);
+  const subCategories = (parentId: string) => allCategories.filter(c => c.parentId === parentId);
 
 
   return (
@@ -110,98 +124,104 @@ export default function ProductsPage() {
       </div>
       <Card>
         <CardContent className="pt-6">
-          {/* For larger screens */}
-          <div className="hidden sm:block">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[100px]">
-                    <span className="sr-only">Image</span>
-                  </TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    Inventory
-                  </TableHead>
-                  <TableHead>
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedProducts.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>
-                      <Link href={`/dashboard/products/${product.id}`}>
-                        <Image
-                          alt={product.name}
-                          className="aspect-square rounded-md object-cover"
-                          height="64"
-                          src={product.image.imageUrl}
-                          width="64"
-                          data-ai-hint={product.image.imageHint}
-                        />
-                      </Link>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      <Link href={`/dashboard/products/${product.id}`} className="hover:underline">
-                        {product.name}
-                      </Link>
-                    </TableCell>
-                    <TableCell>৳{product.price.toFixed(2)}</TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {product.inventory}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            aria-haspopup="true"
-                            size="icon"
-                            variant="ghost"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/dashboard/products/${product.id}/edit`}>Edit</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>Delete</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+          {isLoading ? (
+            <div className="h-48 flex items-center justify-center text-muted-foreground">Loading products...</div>
+          ) : (
+            <>
+            {/* For larger screens */}
+            <div className="hidden sm:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[100px]">
+                      <span className="sr-only">Image</span>
+                    </TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Inventory
+                    </TableHead>
+                    <TableHead>
+                      <span className="sr-only">Actions</span>
+                    </TableHead>
                   </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedProducts.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell>
+                        <Link href={`/dashboard/products/${product.id}`}>
+                          <Image
+                            alt={product.name}
+                            className="aspect-square rounded-md object-cover"
+                            height="64"
+                            src={product.image.imageUrl}
+                            width="64"
+                            data-ai-hint={product.image.imageHint}
+                          />
+                        </Link>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <Link href={`/dashboard/products/${product.id}`} className="hover:underline">
+                          {product.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell>৳{product.price.toFixed(2)}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {product.inventory}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              aria-haspopup="true"
+                              size="icon"
+                              variant="ghost"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/dashboard/products/${product.id}/edit`}>Edit</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>Delete</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            
+            {/* For smaller screens */}
+            <div className="sm:hidden grid grid-cols-2 gap-4">
+                {paginatedProducts.map((product) => (
+                  <Link href={`/dashboard/products/${product.id}`} key={product.id} className="block">
+                    <Card className="overflow-hidden h-full">
+                        <CardContent className="p-0">
+                             <Image
+                                alt={product.name}
+                                className="aspect-square w-full object-cover"
+                                height="150"
+                                src={product.image.imageUrl}
+                                width="150"
+                                data-ai-hint={product.image.imageHint}
+                              />
+                              <div className="p-3">
+                                  <h3 className="font-medium truncate">{product.name}</h3>
+                                  <p className="text-sm text-muted-foreground">৳{product.price.toFixed(2)}</p>
+                              </div>
+                        </CardContent>
+                    </Card>
+                  </Link>
                 ))}
-              </TableBody>
-            </Table>
-          </div>
-          
-          {/* For smaller screens */}
-          <div className="sm:hidden grid grid-cols-2 gap-4">
-              {paginatedProducts.map((product) => (
-                <Link href={`/dashboard/products/${product.id}`} key={product.id} className="block">
-                  <Card className="overflow-hidden h-full">
-                      <CardContent className="p-0">
-                           <Image
-                              alt={product.name}
-                              className="aspect-square w-full object-cover"
-                              height="150"
-                              src={product.image.imageUrl}
-                              width="150"
-                              data-ai-hint={product.image.imageHint}
-                            />
-                            <div className="p-3">
-                                <h3 className="font-medium truncate">{product.name}</h3>
-                                <p className="text-sm text-muted-foreground">৳{product.price.toFixed(2)}</p>
-                            </div>
-                      </CardContent>
-                  </Card>
-                </Link>
-              ))}
-          </div>
+            </div>
+            </>
+          )}
 
         </CardContent>
         <CardFooter>

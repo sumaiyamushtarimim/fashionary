@@ -21,12 +21,14 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Check, HardHat, Package, Truck, Minus, Plus, History, FileText, Printer } from "lucide-react";
-import { purchaseOrders, suppliers, vendors, PurchaseOrderLog, PurchaseOrderStatus } from "@/lib/placeholder-data";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getPurchaseOrderById } from "@/services/purchases";
+import { getSuppliers, getVendors } from "@/services/partners";
+import type { PurchaseOrder, PurchaseOrderLog, Supplier, Vendor } from "@/types";
 
 type Payment = {
     cash: number;
@@ -161,9 +163,12 @@ function PurchaseOrderHistory({ logs }: { logs: PurchaseOrderLog[] }) {
 
 export default function PurchaseOrderDetailsPage() {
     const params = useParams();
-    const poId = params.id;
-    const purchaseOrder = purchaseOrders.find(p => p.id === poId);
-    const supplier = suppliers.find(s => s.name === purchaseOrder?.supplier);
+    const poId = params.id as string;
+    
+    const [purchaseOrder, setPurchaseOrder] = useState<PurchaseOrder | undefined>(undefined);
+    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+    const [vendors, setVendors] = useState<Vendor[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const [printingQty, setPrintingQty] = useState<number>(0);
     const [printingCost, setPrintingCost] = useState<number>(0);
@@ -175,6 +180,27 @@ export default function PurchaseOrderDetailsPage() {
 
     const [finalReceivedQty, setFinalReceivedQty] = useState<number>(0);
 
+    React.useEffect(() => {
+        if (poId) {
+            setIsLoading(true);
+            Promise.all([
+                getPurchaseOrderById(poId),
+                getSuppliers(),
+                getVendors()
+            ]).then(([poData, suppliersData, vendorsData]) => {
+                setPurchaseOrder(poData);
+                setSuppliers(suppliersData);
+                setVendors(vendorsData);
+                if (poData) {
+                    setPrintingQty(poData.items);
+                    setCuttingQty(poData.items);
+                    setFinalReceivedQty(poData.items);
+                }
+                setIsLoading(false);
+            });
+        }
+    }, [poId]);
+
     const handlePaymentChange = (setter: React.Dispatch<React.SetStateAction<Payment>>, field: keyof Payment, value: string | number) => {
         setter(prev => ({ ...prev, [field]: value }));
     };
@@ -182,13 +208,11 @@ export default function PurchaseOrderDetailsPage() {
     const printingDue = useMemo(() => calculateDue(printingCost, printingPayment), [printingCost, printingPayment]);
     const cuttingDue = useMemo(() => calculateDue(cuttingCost, cuttingPayment), [cuttingCost, cuttingPayment]);
     
-    React.useEffect(() => {
-        if(purchaseOrder){
-            setPrintingQty(purchaseOrder.items);
-            setCuttingQty(purchaseOrder.items);
-            setFinalReceivedQty(purchaseOrder.items);
-        }
-    }, [purchaseOrder]);
+    const supplier = useMemo(() => suppliers.find(s => s.name === purchaseOrder?.supplier), [suppliers, purchaseOrder]);
+
+    if (isLoading) {
+        return <div className="p-6">Loading Purchase Order...</div>
+    }
 
     if (!purchaseOrder) {
         return (

@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 
-import { customers, orders, Customer, Order, OrderStatus } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -35,6 +34,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
+import { getCustomerById } from '@/services/customers';
+import { getOrdersByCustomer } from '@/services/orders';
+import type { Customer, Order, OrderStatus } from '@/types';
 
 const statusColors: Record<OrderStatus, string> = {
     'New': 'bg-blue-500/20 text-blue-700',
@@ -56,15 +58,27 @@ export default function CustomerDetailsPage() {
   const params = useParams();
   const customerId = params.id as string;
 
-  const customer: Customer | undefined = React.useMemo(
-    () => customers.find((c) => c.id === customerId),
-    [customerId]
-  );
+  const [customer, setCustomer] = React.useState<Customer | undefined>(undefined);
+  const [customerOrders, setCustomerOrders] = React.useState<Order[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
-  const customerOrders: Order[] = React.useMemo(
-    () => orders.filter((o) => o.customerName === customer?.name).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    [customer]
-  );
+  React.useEffect(() => {
+      if (customerId) {
+          setIsLoading(true);
+          getCustomerById(customerId).then(customerData => {
+              setCustomer(customerData);
+              if (customerData) {
+                  getOrdersByCustomer(customerData.name).then(ordersData => {
+                      setCustomerOrders(ordersData);
+                  });
+              }
+          }).finally(() => setIsLoading(false));
+      }
+  }, [customerId]);
+
+  if (isLoading) {
+      return <div className="p-6">Loading customer details...</div>
+  }
 
   if (!customer) {
     return (

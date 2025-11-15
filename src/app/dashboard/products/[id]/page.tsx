@@ -17,12 +17,6 @@ import {
   Package,
 } from 'lucide-react';
 
-import {
-  products as allProducts,
-  categories as allCategories,
-  Product,
-  ProductVariant,
-} from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -43,6 +37,8 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { getProductById, getCategories } from '@/services/products';
+import type { Product, ProductVariant, Category } from '@/types';
 
 interface VariantWithStock extends ProductVariant {
     stock: number;
@@ -52,28 +48,33 @@ export default function ProductDetailsPage() {
   const params = useParams();
   const productId = params.id as string;
 
-  const product: Product | undefined = React.useMemo(
-    () => allProducts.find((p) => p.id === productId),
-    [productId]
-  );
-  
+  const [product, setProduct] = React.useState<Product | undefined>(undefined);
+  const [category, setCategory] = React.useState<Category | null>(null);
   const [variantsWithStock, setVariantsWithStock] = React.useState<VariantWithStock[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
-      if (product?.variants) {
-          const variantsData = product.variants.map(variant => ({
+    if (productId) {
+      setIsLoading(true);
+      Promise.all([getProductById(productId), getCategories()]).then(([productData, categoriesData]) => {
+        setProduct(productData);
+        if (productData) {
+          if (productData.categoryId) {
+            setCategory(categoriesData.find(c => c.id === productData.categoryId) || null);
+          }
+          if (productData.variants) {
+            const variantsData = productData.variants.map(variant => ({
               ...variant,
-              stock: Math.floor(Math.random() * 50)
-          }));
-          setVariantsWithStock(variantsData);
-      }
-  }, [product]);
-
-  const category = React.useMemo(() => {
-    if (!product?.categoryId) return null;
-    return allCategories.find((c) => c.id === product.categoryId);
-  }, [product]);
-
+              stock: Math.floor(Math.random() * 50) // Mock stock
+            }));
+            setVariantsWithStock(variantsData);
+          }
+        }
+        setIsLoading(false);
+      });
+    }
+  }, [productId]);
+  
   const stockStatus = (quantity: number) => {
     if (quantity > 10) return { text: 'In Stock', icon: CheckCircle, color: 'text-green-600' };
     if (quantity > 0) return { text: 'Low Stock', icon: XCircle, color: 'text-yellow-600' };
@@ -81,7 +82,6 @@ export default function ProductDetailsPage() {
   };
 
   const mainImage = product?.image || PlaceHolderImages[0];
-  // Using other placeholder images as gallery images for demo purposes
   const galleryImages = [
       PlaceHolderImages[1],
       PlaceHolderImages[2],
@@ -97,6 +97,9 @@ export default function ProductDetailsPage() {
     }
   }, [product]);
 
+  if (isLoading) {
+      return <div className="p-6">Loading product...</div>
+  }
 
   if (!product) {
     return (

@@ -39,25 +39,30 @@ import {
     PaginationPrevious,
   } from "@/components/ui/pagination";
 import { Separator } from '@/components/ui/separator';
-import { customers, Customer } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { getCustomers } from '@/services/customers';
+import type { Customer } from '@/types';
 
 const ITEMS_PER_PAGE = 10;
 
 export default function CustomersPage() {
+  const [allCustomers, setAllCustomers] = React.useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [currentPage, setCurrentPage] = React.useState(1);
-  const [isClient, setIsClient] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
   const [selectedCustomer, setSelectedCustomer] = React.useState<Customer | null>(null);
 
   React.useEffect(() => {
-    setIsClient(true);
+    getCustomers().then(data => {
+        setAllCustomers(data);
+        setIsLoading(false);
+    });
   }, []);
 
   const handleEditClick = (customer: Customer) => {
@@ -71,13 +76,13 @@ export default function CustomersPage() {
   };
 
   const filteredCustomers = React.useMemo(() => {
-    if (!searchTerm) return customers;
+    if (!searchTerm) return allCustomers;
     const lowercasedSearchTerm = searchTerm.toLowerCase();
-    return customers.filter(customer =>
+    return allCustomers.filter(customer =>
       customer.name.toLowerCase().includes(lowercasedSearchTerm) ||
       customer.phone.toLowerCase().includes(lowercasedSearchTerm)
     );
-  }, [searchTerm]);
+  }, [searchTerm, allCustomers]);
 
   const totalPages = Math.ceil(filteredCustomers.length / ITEMS_PER_PAGE);
   const paginatedCustomers = React.useMemo(() => {
@@ -272,15 +277,15 @@ export default function CustomersPage() {
             </div>
         </CardHeader>
         <CardContent>
-          {isClient ? (
+          {isLoading ? (
+            <div className="h-48 flex items-center justify-center text-muted-foreground">
+              Loading customers...
+            </div>
+          ) : (
             <>
               <div className="hidden sm:block">{renderTable()}</div>
               <div className="sm:hidden">{renderCardList()}</div>
             </>
-          ) : (
-            <div className="h-48 flex items-center justify-center text-muted-foreground">
-              Loading customers...
-            </div>
           )}
         </CardContent>
         <CardFooter>

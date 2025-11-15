@@ -35,7 +35,6 @@ import {
     PaginationNext,
     PaginationPrevious,
   } from "@/components/ui/pagination";
-import { staff, StaffMember, allStatuses } from "@/lib/placeholder-data";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -46,6 +45,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { getStaff } from "@/services/staff";
+import type { StaffMember } from "@/types";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -56,15 +57,20 @@ const paymentTypes: PaymentType[] = ['Salary', 'Commission', 'Both'];
 const staffRoles: StaffRole[] = ['Admin', 'Manager', 'Sales', 'Warehouse'];
 
 export default function StaffPage() {
+    const [allStaff, setAllStaff] = useState<StaffMember[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const [isClient, setIsClient] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(true);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
     const [paymentType, setPaymentType] = useState<PaymentType | undefined>();
 
     React.useEffect(() => {
-        setIsClient(true);
+        setIsLoading(true);
+        getStaff().then(data => {
+            setAllStaff(data);
+            setIsLoading(false);
+        });
     }, []);
 
     const handleEditClick = (member: StaffMember) => {
@@ -80,18 +86,18 @@ export default function StaffPage() {
     };
 
     const totals = React.useMemo(() => {
-        return staff.reduce((acc, member) => {
+        return allStaff.reduce((acc, member) => {
             acc.totalDue += member.financials.dueAmount;
             acc.totalEarned += member.financials.totalEarned;
             return acc;
         }, { totalDue: 0, totalEarned: 0 });
-    }, []);
+    }, [allStaff]);
 
-    const totalPages = Math.ceil(staff.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(allStaff.length / ITEMS_PER_PAGE);
     const paginatedStaff = useMemo(() => {
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        return staff.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-    }, [currentPage]);
+        return allStaff.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [currentPage, allStaff]);
 
     const StaffForm = ({ staffMember, isEdit = false }: { staffMember?: StaffMember | null, isEdit?: boolean }) => {
         const currentPaymentType = paymentType || staffMember?.paymentType;
@@ -253,6 +259,10 @@ export default function StaffPage() {
 
       <Card>
         <CardContent className="pt-6">
+          {isLoading ? (
+            <div className="h-48 flex items-center justify-center text-muted-foreground">Loading staff...</div>
+          ) : (
+          <>
           {/* Table for larger screens */}
           <div className="hidden sm:block">
             <Table>
@@ -281,7 +291,7 @@ export default function StaffPage() {
                       <Badge variant="outline">{member.role}</Badge>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      {isClient ? formatDistanceToNow(new Date(member.lastLogin), { addSuffix: true }) : '...'}
+                      {formatDistanceToNow(new Date(member.lastLogin), { addSuffix: true })}
                     </TableCell>
                     <TableCell className={cn("text-right font-mono", member.financials.dueAmount > 0 ? "text-destructive" : "")}>
                         ৳{member.financials.dueAmount.toFixed(2)}
@@ -355,14 +365,16 @@ export default function StaffPage() {
                   </Card>
               ))}
           </div>
+          </>
+          )}
 
         </CardContent>
         <CardFooter>
             <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
                 <div>
                     Showing <strong>{(currentPage - 1) * ITEMS_PER_PAGE + 1}-
-                    {Math.min(currentPage * ITEMS_PER_PAGE, staff.length)}
-                    </strong> of <strong>{staff.length}</strong> staff members
+                    {Math.min(currentPage * ITEMS_PER_PAGE, allStaff.length)}
+                    </strong> of <strong>{allStaff.length}</strong> staff members
                 </div>
                 {totalPages > 1 && (
                     <Pagination>

@@ -58,10 +58,12 @@ import {
     PaginationNext,
     PaginationPrevious,
   } from "@/components/ui/pagination";
-import { orders, businesses, OrderStatus, OrderProduct, allStatuses } from "@/lib/placeholder-data";
+import { businesses, allStatuses } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { getOrders } from "@/services/orders";
+import type { Order, OrderProduct, OrderStatus } from "@/types";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -147,16 +149,21 @@ export default function OrdersClientPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || "all");
   const [businessFilter, setBusinessFilter] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setIsClient(true);
+    setIsLoading(true);
+    getOrders().then(data => {
+        setAllOrders(data);
+        setIsLoading(false);
+    });
     const statusFromUrl = searchParams.get('status');
     if (statusFromUrl) {
       setStatusFilter(statusFromUrl);
@@ -177,7 +184,7 @@ export default function OrdersClientPage() {
 
   const filteredOrders = useMemo(() => {
     const lowercasedSearchTerm = searchTerm.toLowerCase();
-    return orders.filter((order) => {
+    return allOrders.filter((order) => {
       const statusMatch = statusFilter === "all" || order.status === statusFilter;
       const businessMatch = businessFilter === 'all' || order.businessId === businessFilter;
       
@@ -195,7 +202,7 @@ export default function OrdersClientPage() {
 
       return statusMatch && businessMatch && dateMatch && searchMatch;
     });
-  }, [statusFilter, businessFilter, dateRange, searchTerm]);
+  }, [statusFilter, businessFilter, dateRange, searchTerm, allOrders]);
   
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
   const paginatedOrders = useMemo(() => {
@@ -463,13 +470,13 @@ export default function OrdersClientPage() {
             </div>
         </CardHeader>
         <CardContent>
-           {isClient ? (
+           {isLoading ? (
+              <div className="h-48 flex items-center justify-center text-muted-foreground">Loading orders...</div>
+            ) : (
               <>
                 <div className="hidden sm:block">{renderTable()}</div>
                 <div className="sm:hidden">{renderCardList()}</div>
               </>
-            ) : (
-              <div className="h-48 flex items-center justify-center text-muted-foreground">Loading orders...</div>
             )}
         </CardContent>
         <CardFooter>

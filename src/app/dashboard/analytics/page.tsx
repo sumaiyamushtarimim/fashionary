@@ -29,7 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { businesses, expenseCategories } from '@/lib/placeholder-data';
 import {
     Table,
     TableBody,
@@ -41,28 +40,21 @@ import {
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { getAnalyticsData } from '@/services/analytics';
+import { businesses } from '@/lib/placeholder-data';
+import { Skeleton } from '@/components/ui/skeleton';
 
-
-const analyticsData = {
+type AnalyticsData = {
     summary: {
-        totalRevenue: 450000,
-        cogs: 210000,
-        grossProfit: 240000,
-        expenses: 85000,
-        netProfit: 155000,
-    },
-    monthlyBreakdown: [
-        { month: 'Jan', revenue: 120000, cogs: 55000, expenses: 20000, profit: 45000 },
-        { month: 'Feb', revenue: 150000, cogs: 70000, expenses: 25000, profit: 55000 },
-        { month: 'Mar', revenue: 180000, cogs: 85000, expenses: 40000, profit: 55000 },
-    ],
-    expenseBreakdown: [
-        { category: 'Marketing & Advertising', amount: 25000, fill: 'hsl(var(--chart-1))' },
-        { category: 'Salaries & Wages', amount: 45000, fill: 'hsl(var(--chart-2))'  },
-        { category: 'Office Rent', amount: 10000, fill: 'hsl(var(--chart-3))'  },
-        { category: 'Utilities', amount: 5000, fill: 'hsl(var(--chart-4))'  },
-    ],
-};
+        totalRevenue: number;
+        cogs: number;
+        grossProfit: number;
+        expenses: number;
+        netProfit: number;
+    };
+    monthlyBreakdown: { month: string; revenue: number; cogs: number; expenses: number; profit: number; }[];
+    expenseBreakdown: { category: string; amount: number; fill: string; }[];
+}
 
 const chartConfig: ChartConfig = {
     revenue: { label: 'Revenue', color: 'hsl(var(--chart-2))' },
@@ -70,14 +62,44 @@ const chartConfig: ChartConfig = {
     expenses: { label: 'Expenses', color: 'hsl(var(--chart-5))' },
 };
 
-const expenseChartConfig = analyticsData.expenseBreakdown.reduce((acc, item) => {
-    acc[item.category] = { label: item.category, color: item.fill };
-    return acc;
-}, {} as ChartConfig);
-
 
 export default function AnalyticsPage() {
+    const [analyticsData, setAnalyticsData] = React.useState<AnalyticsData | null>(null);
     const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
+    const [isLoading, setIsLoading] = React.useState(true);
+
+     React.useEffect(() => {
+        setIsLoading(true);
+        getAnalyticsData().then(data => {
+            setAnalyticsData(data);
+            setIsLoading(false);
+        });
+    }, []);
+
+    const expenseChartConfig: ChartConfig = React.useMemo(() => {
+        if (!analyticsData) return {};
+        return analyticsData.expenseBreakdown.reduce((acc, item) => {
+            acc[item.category] = { label: item.category, color: item.fill };
+            return acc;
+        }, {} as ChartConfig);
+    }, [analyticsData]);
+
+    if (isLoading || !analyticsData) {
+        return (
+             <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+                <Skeleton className="h-12 w-1/3" />
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+                    {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-[126px]" />)}
+                </div>
+                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+                    <Skeleton className="lg:col-span-3 h-[400px]" />
+                    <Skeleton className="lg:col-span-2 h-[400px]" />
+                </div>
+                 <Skeleton className="h-[300px]" />
+            </div>
+        )
+    }
+
 
     return (
         <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
