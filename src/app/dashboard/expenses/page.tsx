@@ -235,9 +235,6 @@ export default function ExpensesPage() {
             <p className="text-muted-foreground hidden sm:block">Track and manage all business expenses.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline">
-            Export
-          </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
                 <Button size="sm">
