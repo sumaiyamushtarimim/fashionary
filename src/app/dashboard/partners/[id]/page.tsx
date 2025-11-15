@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { ChevronLeft, Mail, Phone, MapPin, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
 
-import { suppliers, vendors, purchaseOrders, PurchaseOrder, Payment } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -28,6 +27,8 @@ import {
   } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getPartnerById, getPurchaseOrdersByPartner } from '@/services/partners';
+import type { PurchaseOrder, Payment, Supplier, Vendor } from '@/types';
 
 
 const poStatusColors = {
@@ -39,7 +40,7 @@ const poStatusColors = {
     'Cancelled': 'bg-red-500/20 text-red-700',
 };
 
-type Partner = (typeof suppliers)[0] | (typeof vendors)[0];
+type Partner = Supplier | Vendor;
 
 type PaymentWithPO = Payment & {
     poId: string;
@@ -51,43 +52,44 @@ export default function PartnerDetailsPage() {
   const params = useParams();
   const partnerId = params.id as string;
   const [isClient, setIsClient] = React.useState(false);
+  const [partner, setPartner] = React.useState<Partner | undefined>(undefined);
+  const [associatedPOs, setAssociatedPOs] = React.useState<PurchaseOrder[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
     setIsClient(true);
-  }, []);
-
-  const partner: Partner | undefined = React.useMemo(() => 
-    [...suppliers, ...vendors].find((p) => p.id === partnerId),
-    [partnerId]
-  );
-
-  const associatedPOs = React.useMemo(() => 
-    purchaseOrders.filter(po => 
-      po.supplier === partner?.name || 
-      po.printingVendor === partner?.name || 
-      po.cuttingVendor === partner?.name
-    ),
-    [partner]
-  );
+    if (partnerId) {
+        setIsLoading(true);
+        getPartnerById(partnerId).then(partnerData => {
+            setPartner(partnerData);
+            if (partnerData) {
+                getPurchaseOrdersByPartner(partnerData.name).then(poData => {
+                    setAssociatedPOs(poData);
+                });
+            }
+        }).finally(() => setIsLoading(false));
+    }
+  }, [partnerId]);
   
   const financials = React.useMemo(() => {
+    if (!partner) return { totalBusiness: 0, totalPaid: 0, totalDue: 0 };
     let totalBusiness = 0;
     let totalPaid = 0;
 
     associatedPOs.forEach(po => {
-        if (po.supplier === partner?.name) {
+        if (po.supplier === partner.name) {
             totalBusiness += po.total;
             if (po.fabricPayment) {
                 totalPaid += (po.fabricPayment.cash || 0) + (po.fabricPayment.check || 0);
             }
         }
-        if (po.printingVendor === partner?.name && po.printingPayment) {
-             const printingCost = (po.printingPayment.cash || 0) + (po.printingPayment.check || 0); // Assuming payment equals cost for now
+        if ('type' in partner && partner.type === 'Printing' && po.printingVendor === partner.name && po.printingPayment) {
+             const printingCost = (po.printingPayment.cash || 0) + (po.printingPayment.check || 0);
              totalBusiness += printingCost;
              totalPaid += printingCost;
         }
-        if (po.cuttingVendor === partner?.name && po.cuttingPayment) {
-            const cuttingCost = (po.cuttingPayment.cash || 0) + (po.cuttingPayment.check || 0); // Assuming payment equals cost for now
+        if ('type' in partner && partner.type === 'Cutting' && po.cuttingVendor === partner.name && po.cuttingPayment) {
+            const cuttingCost = (po.cuttingPayment.cash || 0) + (po.cuttingPayment.check || 0);
             totalBusiness += cuttingCost;
             totalPaid += cuttingCost;
         }
@@ -101,22 +103,37 @@ export default function PartnerDetailsPage() {
   }, [associatedPOs, partner]);
 
   const paymentHistory: PaymentWithPO[] = React.useMemo(() => {
-    if (!isClient) return [];
+    if (!isClient || !partner) return [];
     const payments: PaymentWithPO[] = [];
     associatedPOs.forEach(po => {
-        if (po.supplier === partner?.name && po.fabricPayment) {
+        if (po.supplier === partner.name && po.fabricPayment) {
             payments.push({ ...po.fabricPayment, poId: po.id, paymentFor: 'Fabric', date: po.date });
         }
-        if (po.printingVendor === partner?.name && po.printingPayment) {
+        if ('type' in partner && partner.type === 'Printing' && po.printingVendor === partner.name && po.printingPayment) {
             payments.push({ ...po.printingPayment, poId: po.id, paymentFor: 'Printing', date: po.date });
         }
-        if (po.cuttingVendor === partner?.name && po.cuttingPayment) {
+        if ('type' in partner && partner.type === 'Cutting' && po.cuttingVendor === partner.name && po.cuttingPayment) {
             payments.push({ ...po.cuttingPayment, poId: po.id, paymentFor: 'Cutting', date: po.date });
         }
     });
     return payments.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [associatedPOs, partner, isClient]);
 
+  if (isLoading) {
+      return (
+          <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+              <Skeleton className="h-10 w-1/4" />
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <Skeleton className="h-48" />
+                  <Skeleton className="lg:col-span-2 h-48" />
+              </div>
+              <div className="grid gap-6 lg:grid-cols-2">
+                  <Skeleton className="h-64" />
+                  <Skeleton className="h-64" />
+              </div>
+          </div>
+      )
+  }
 
   if (!partner) {
     return (
@@ -128,6 +145,8 @@ export default function PartnerDetailsPage() {
       </div>
     );
   }
+
+  const isSupplier = 'address' in partner;
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -141,8 +160,7 @@ export default function PartnerDetailsPage() {
         <div className="flex-1">
           <h1 className="font-headline text-xl font-semibold sm:text-2xl">{partner.name}</h1>
           <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
-            {'type' in partner && <Badge variant="outline">{partner.type}</Badge>}
-            {'address' in partner && <Badge variant="secondary">Supplier</Badge>}
+            {isSupplier ? <Badge variant="secondary">Supplier</Badge> : <Badge variant="outline">{partner.type}</Badge>}
           </div>
         </div>
       </div>
@@ -164,7 +182,7 @@ export default function PartnerDetailsPage() {
                     <Phone className="h-4 w-4 mt-0.5 text-muted-foreground" />
                      <a href={`tel:${partner.phone}`} className="text-primary hover:underline">{partner.phone}</a>
                 </div>
-                {'address' in partner && (
+                {isSupplier && (
                      <div className="flex items-start gap-2">
                         <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
                         <div className="text-muted-foreground">{partner.address}</div>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { MoreHorizontal, PlusCircle, Store } from 'lucide-react';
@@ -31,21 +30,38 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { wooCommerceIntegrations, WooCommerceIntegration, businesses } from '@/lib/placeholder-data';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { getWooCommerceIntegrations } from '@/services/integrations';
+import { getBusinesses } from '@/services/partners';
+import type { WooCommerceIntegration, Business } from '@/types';
 
 export default function WooCommerceIntegrationsPage() {
-    const [integrations, setIntegrations] = React.useState(wooCommerceIntegrations);
+    const [integrations, setIntegrations] = React.useState<WooCommerceIntegration[]>([]);
+    const [businesses, setBusinesses] = React.useState<Business[]>([]);
+    const [isLoading, setIsLoading] = React.useState(true);
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
     const [isClient, setIsClient] = React.useState(false);
 
     React.useEffect(() => {
         setIsClient(true);
+        setIsLoading(true);
+        Promise.all([
+            getWooCommerceIntegrations(),
+            getBusinesses()
+        ]).then(([integrationsData, businessesData]) => {
+            setIntegrations(integrationsData);
+            setBusinesses(businessesData);
+            setIsLoading(false);
+        });
     }, []);
+
+    if(isLoading) {
+        return <div>Loading...</div>
+    }
 
     const renderTable = () => (
         <Table>

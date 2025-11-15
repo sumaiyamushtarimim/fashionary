@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { purchaseOrders, CheckStatus } from "@/lib/placeholder-data";
 import {
   addDays,
   format,
@@ -52,6 +51,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
+import { getPurchaseOrders } from '@/services/purchases';
+import type { PurchaseOrder, CheckStatus } from '@/types';
 
 
 type CheckPayment = {
@@ -121,50 +122,53 @@ type OverviewData = {
 export default function CheckPassingPage() {
   const [isClient, setIsClient] = React.useState(false);
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
+  const [allChecks, setAllChecks] = React.useState<CheckPayment[]>([]);
   const isMobile = useIsMobile();
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
     setIsClient(true);
-  }, []);
-
-  const allChecks = React.useMemo<CheckPayment[]>(() => {
-    const checks: CheckPayment[] = [];
-    purchaseOrders.forEach((po) => {
-      if (po.fabricPayment?.check && po.fabricPayment?.checkDate) {
-        checks.push({
-          id: `${po.id}-fabric`,
-          date: po.fabricPayment.checkDate,
-          amount: po.fabricPayment.check,
-          poId: po.id,
-          vendor: po.supplier,
-          type: 'Fabric',
-          status: po.fabricPayment.checkStatus || 'Pending',
+    setIsLoading(true);
+    getPurchaseOrders().then(purchaseOrders => {
+        const checks: CheckPayment[] = [];
+        purchaseOrders.forEach((po) => {
+          if (po.fabricPayment?.check && po.fabricPayment?.checkDate) {
+            checks.push({
+              id: `${po.id}-fabric`,
+              date: po.fabricPayment.checkDate,
+              amount: po.fabricPayment.check,
+              poId: po.id,
+              vendor: po.supplier,
+              type: 'Fabric',
+              status: po.fabricPayment.checkStatus || 'Pending',
+            });
+          }
+          if (po.printingPayment?.check && po.printingPayment?.checkDate) {
+            checks.push({
+              id: `${po.id}-printing`,
+              date: po.printingPayment.checkDate,
+              amount: po.printingPayment.check,
+              poId: po.id,
+              vendor: po.printingVendor || 'N/A',
+              type: 'Printing',
+              status: po.printingPayment.checkStatus || 'Pending',
+            });
+          }
+          if (po.cuttingPayment?.check && po.cuttingPayment?.checkDate) {
+            checks.push({
+              id: `${po.id}-cutting`,
+              date: po.cuttingPayment.checkDate,
+              amount: po.cuttingPayment.check,
+              poId: po.id,
+              vendor: po.cuttingVendor || 'N/A',
+              type: 'Cutting',
+              status: po.cuttingPayment.checkStatus || 'Pending',
+            });
+          }
         });
-      }
-      if (po.printingPayment?.check && po.printingPayment?.checkDate) {
-        checks.push({
-          id: `${po.id}-printing`,
-          date: po.printingPayment.checkDate,
-          amount: po.printingPayment.check,
-          poId: po.id,
-          vendor: po.printingVendor || 'N/A',
-          type: 'Printing',
-          status: po.printingPayment.checkStatus || 'Pending',
-        });
-      }
-      if (po.cuttingPayment?.check && po.cuttingPayment?.checkDate) {
-        checks.push({
-          id: `${po.id}-cutting`,
-          date: po.cuttingPayment.checkDate,
-          amount: po.cuttingPayment.check,
-          poId: po.id,
-          vendor: po.cuttingVendor || 'N/A',
-          type: 'Cutting',
-          status: po.cuttingPayment.checkStatus || 'Pending',
-        });
-      }
-    });
-    return checks.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        setAllChecks(checks.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+        setIsLoading(false);
+    })
   }, []);
 
   const overviewDays = [
@@ -199,6 +203,18 @@ export default function CheckPassingPage() {
         return dateMatch;
     });
   }, [allChecks, dateRange, isClient]);
+
+  if (isLoading) {
+      return (
+          <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+            <Skeleton className="h-10 w-1/4" />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+                {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-24" />)}
+            </div>
+            <Skeleton className="h-96" />
+          </div>
+      )
+  }
 
 
   return (

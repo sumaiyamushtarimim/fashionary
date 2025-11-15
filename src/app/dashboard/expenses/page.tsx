@@ -56,31 +56,49 @@ import {
     PaginationNext,
     PaginationPrevious,
   } from "@/components/ui/pagination";
-import { expenses, businesses, expenseCategories, Expense, OrderPlatform } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { getExpenses, getExpenseCategories } from "@/services/expenses";
+import { getBusinesses } from "@/services/partners";
+import type { Expense, Business, ExpenseCategory, OrderPlatform } from "@/types";
 
 const ITEMS_PER_PAGE = 10;
 const socialPlatforms: OrderPlatform[] = ['Facebook', 'Instagram', 'TikTok', 'Website'];
 
 
 export default function ExpensesPage() {
+  const [allExpenses, setAllExpenses] = useState<Expense[]>([]);
+  const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
+  const [allExpenseCategories, setAllExpenseCategories] = useState<ExpenseCategory[]>([]);
+
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAdExpense, setIsAdExpense] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setIsClient(true);
+    setIsLoading(true);
+    Promise.all([
+        getExpenses(),
+        getBusinesses(),
+        getExpenseCategories()
+    ]).then(([expensesData, businessesData, categoriesData]) => {
+        setAllExpenses(expensesData);
+        setAllBusinesses(businessesData);
+        setAllExpenseCategories(categoriesData);
+        setIsLoading(false);
+    });
   }, []);
 
   const filteredExpenses = useMemo(() => {
-    return expenses.filter((expense) => {
+    return allExpenses.filter((expense) => {
       const expenseDate = new Date(expense.date);
       const dateMatch = !dateRange?.from || (dateRange?.from && dateRange?.to 
         ? isWithinInterval(expenseDate, { start: dateRange.from, end: dateRange.to })
@@ -88,7 +106,7 @@ export default function ExpensesPage() {
 
       return dateMatch;
     });
-  }, [dateRange]);
+  }, [dateRange, allExpenses]);
 
   const totalPages = Math.ceil(filteredExpenses.length / ITEMS_PER_PAGE);
   const paginatedExpenses = useMemo(() => {
@@ -197,6 +215,18 @@ export default function ExpensesPage() {
     </div>
   );
 
+  if (isLoading) {
+      return (
+          <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+            <div className="flex items-center justify-between">
+                <div className="h-10 w-1/4" />
+                <div className="h-10 w-1/4" />
+            </div>
+            <div className="h-96 w-full" />
+          </div>
+      )
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -236,7 +266,7 @@ export default function ExpensesPage() {
                                     <SelectValue placeholder="Select a category" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {expenseCategories.map(cat => (
+                                    {allExpenseCategories.map(cat => (
                                         <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                                     ))}
                                 </SelectContent>
@@ -275,7 +305,7 @@ export default function ExpensesPage() {
                                         <SelectValue placeholder="Select a business" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {businesses.map(b => (
+                                        {allBusinesses.map(b => (
                                             <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                                         ))}
                                     </SelectContent>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -11,9 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/componentsui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { categories, Category, expenseCategories } from '@/lib/placeholder-data';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,9 +32,11 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getCategories, getExpenseCategories } from '@/services/products';
+import type { Category, ExpenseCategory } from '@/types';
 
-const CategoryRow = ({ category, level = 0 }: { category: Category; level?: number }) => {
-  const subCategories = categories.filter((c) => c.parentId === category.id);
+const CategoryRow = ({ category, allCategories, level = 0 }: { category: Category, allCategories: Category[], level?: number }) => {
+  const subCategories = allCategories.filter((c) => c.parentId === category.id);
 
   return (
     <>
@@ -63,16 +63,37 @@ const CategoryRow = ({ category, level = 0 }: { category: Category; level?: numb
         </TableCell>
       </TableRow>
       {subCategories.map((sub) => (
-        <CategoryRow key={sub.id} category={sub} level={level + 1} />
+        <CategoryRow key={sub.id} category={sub} allCategories={allCategories} level={level + 1} />
       ))}
     </>
   );
 };
 
 export default function CategoriesSettingsPage() {
-  const mainCategories = categories.filter((c) => !c.parentId);
+    const [allCategories, setAllCategories] = React.useState<Category[]>([]);
+    const [allExpenseCategories, setAllExpenseCategories] = React.useState<ExpenseCategory[]>([]);
+    const [isLoading, setIsLoading] = React.useState(true);
+
   const [isProductDialogOpen, setIsProductDialogOpen] = React.useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsLoading(true);
+        Promise.all([
+            getCategories(),
+            getExpenseCategories()
+        ]).then(([categoriesData, expenseCategoriesData]) => {
+            setAllCategories(categoriesData);
+            setAllExpenseCategories(expenseCategoriesData);
+            setIsLoading(false);
+        })
+    }, []);
+
+    if (isLoading) {
+        return <div>Loading...</div>
+    }
+
+  const mainCategories = allCategories.filter((c) => !c.parentId);
 
   return (
     <div className="space-y-6">
@@ -121,7 +142,7 @@ export default function CategoriesSettingsPage() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="none">No Parent</SelectItem>
-                              {categories.map(cat => (
+                              {allCategories.map(cat => (
                                 <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                               ))}
                             </SelectContent>
@@ -147,7 +168,7 @@ export default function CategoriesSettingsPage() {
                     </TableHeader>
                     <TableBody>
                       {mainCategories.map((category) => (
-                        <CategoryRow key={category.id} category={category} />
+                        <CategoryRow key={category.id} category={category} allCategories={allCategories} />
                       ))}
                     </TableBody>
                   </Table>
@@ -198,7 +219,7 @@ export default function CategoriesSettingsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {expenseCategories.map((category) => (
+                      {allExpenseCategories.map((category) => (
                         <TableRow key={category.id}>
                             <TableCell>{category.name}</TableCell>
                              <TableCell>

@@ -51,9 +51,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { inventory, products, inventoryMovements, InventoryItem, ProductVariant, InventoryMovement } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import { getInventory, getInventoryMovements } from "@/services/inventory";
+import { getProducts } from "@/services/products";
+import type { InventoryItem, Product, ProductVariant, InventoryMovement } from "@/types";
 
 
 type DialogState = {
@@ -64,12 +66,28 @@ type DialogState = {
 
 
 export default function InventoryPage() {
+    const [allInventory, setAllInventory] = React.useState<InventoryItem[]>([]);
+    const [allProducts, setAllProducts] = React.useState<Product[]>([]);
+    const [allMovements, setAllMovements] = React.useState<Record<string, InventoryMovement[]>>({});
+    const [isLoading, setIsLoading] = React.useState(true);
+
     const [selectedProduct, setSelectedProduct] = React.useState<string | undefined>(undefined);
     const [selectedVariant, setSelectedVariant] = React.useState<string | undefined>(undefined);
     const [isClient, setIsClient] = React.useState(false);
 
     React.useEffect(() => {
         setIsClient(true);
+        setIsLoading(true);
+        Promise.all([
+            getInventory(),
+            getProducts(),
+            getInventoryMovements()
+        ]).then(([inventoryData, productsData, movementsData]) => {
+            setAllInventory(inventoryData);
+            setAllProducts(productsData);
+            setAllMovements(movementsData);
+            setIsLoading(false);
+        });
     }, []);
 
     const [dialogState, setDialogState] = React.useState<DialogState>({
@@ -99,18 +117,16 @@ export default function InventoryPage() {
 
     const availableVariants = React.useMemo(() => {
         if (!selectedProduct) return [];
-        return products.find(p => p.id === selectedProduct)?.variants || [];
-    }, [selectedProduct]);
+        return allProducts.find(p => p.id === selectedProduct)?.variants || [];
+    }, [selectedProduct, allProducts]);
 
     const currentStock = React.useMemo(() => {
         if (!selectedProduct) return 0;
-        // This logic needs to be more sophisticated in a real app,
-        // probably finding the specific variant's stock.
-        const item = inventory.find(i => i.productId === selectedProduct && (selectedVariant ? i.sku.includes(selectedVariant) : true));
+        const item = allInventory.find(i => i.productId === selectedProduct && (selectedVariant ? i.sku.includes(selectedVariant) : true));
         return item?.quantity || 0;
-    }, [selectedProduct, selectedVariant]);
+    }, [selectedProduct, selectedVariant, allInventory]);
     
-    const movements: InventoryMovement[] = currentItem ? inventoryMovements[currentItem.id] || [] : [];
+    const movements: InventoryMovement[] = currentItem ? allMovements[currentItem.id] || [] : [];
 
     const renderTable = () => (
       <Table>
@@ -128,8 +144,8 @@ export default function InventoryPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {inventory.map((item) => {
-            const product = products.find(p => p.id === item.productId);
+          {allInventory.map((item) => {
+            const product = allProducts.find(p => p.id === item.productId);
             return (
                 <TableRow key={item.id} className={item.quantity <= 10 ? "bg-destructive/10" : ""}>
                     <TableCell className="hidden sm:table-cell">
@@ -191,8 +207,8 @@ export default function InventoryPage() {
 
     const renderCardList = () => (
       <div className="space-y-4">
-        {inventory.map((item) => {
-            const product = products.find(p => p.id === item.productId);
+        {allInventory.map((item) => {
+            const product = allProducts.find(p => p.id === item.productId);
             return (
               <Card key={item.id} className={cn("overflow-hidden", item.quantity <= 10 && "bg-destructive/10")}>
                 <CardContent className="p-4">
@@ -247,6 +263,15 @@ export default function InventoryPage() {
       </div>
     );
 
+    if (isLoading) {
+        return (
+            <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+                <div className="h-10 w-1/4" />
+                <div className="h-96 w-full" />
+            </div>
+        )
+    }
+
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -298,7 +323,7 @@ export default function InventoryPage() {
                                     <SelectValue placeholder="Select a product" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {products.map(product => (
+                                    {allProducts.map(product => (
                                         <SelectItem key={product.id} value={product.id}>
                                             {product.name}
                                         </SelectItem>
@@ -463,7 +488,3 @@ export default function InventoryPage() {
     </div>
   );
 }
-
-
-
-

@@ -36,7 +36,6 @@ import {
     PaginationNext,
     PaginationPrevious,
   } from "@/components/ui/pagination";
-import { suppliers, vendors, purchaseOrders, Supplier, Vendor } from "@/lib/placeholder-data";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
@@ -52,13 +51,19 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
+import { getSuppliers, getVendors, getPurchaseOrdersByPartner } from "@/services/partners";
+import { getPurchaseOrders } from "@/services/purchases";
+import type { Supplier, Vendor, PurchaseOrder } from "@/types";
 
 const ITEMS_PER_PAGE = 5;
 type Partner = Supplier | Vendor;
 
 export default function PartnersPage() {
-  const [isClient, setIsClient] = useState(false);
+  const [allSuppliers, setAllSuppliers] = useState<Supplier[]>([]);
+  const [allVendors, setAllVendors] = useState<Vendor[]>([]);
+  const [allPurchaseOrders, setAllPurchaseOrders] = useState<PurchaseOrder[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
   const [currentSupplierPage, setCurrentSupplierPage] = useState(1);
   const [currentVendorPage, setCurrentVendorPage] = useState(1);
   
@@ -66,9 +71,18 @@ export default function PartnersPage() {
   const [dialogMode, setDialogMode] = useState<'addSupplier' | 'addVendor' | 'editSupplier' | 'editVendor' | null>(null);
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
 
-
   useEffect(() => {
-    setIsClient(true);
+    setIsLoading(true);
+    Promise.all([
+        getSuppliers(),
+        getVendors(),
+        getPurchaseOrders()
+    ]).then(([suppliersData, vendorsData, poData]) => {
+        setAllSuppliers(suppliersData);
+        setAllVendors(vendorsData);
+        setAllPurchaseOrders(poData);
+        setIsLoading(false);
+    });
   }, []);
 
   const openDialog = (mode: typeof dialogMode, partner?: Partner) => {
@@ -84,9 +98,6 @@ export default function PartnersPage() {
   }
 
   const partnerDues = useMemo(() => {
-    if (!isClient) {
-      return {};
-    }
     const partnerFinancials: Record<string, { totalBusiness: number, totalPaid: number }> = {};
 
     const initializePartner = (name: string) => {
@@ -95,7 +106,7 @@ export default function PartnersPage() {
         }
     };
 
-    purchaseOrders.forEach(po => {
+    allPurchaseOrders.forEach(po => {
         if (po.supplier) {
             initializePartner(po.supplier);
             partnerFinancials[po.supplier].totalBusiness += po.total;
@@ -123,19 +134,19 @@ export default function PartnersPage() {
     }
 
     return finalDues;
-  }, [isClient]);
+  }, [allPurchaseOrders]);
 
-  const totalSupplierPages = Math.ceil(suppliers.length / ITEMS_PER_PAGE);
+  const totalSupplierPages = Math.ceil(allSuppliers.length / ITEMS_PER_PAGE);
   const paginatedSuppliers = useMemo(() => {
       const startIndex = (currentSupplierPage - 1) * ITEMS_PER_PAGE;
-      return suppliers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [currentSupplierPage]);
+      return allSuppliers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [currentSupplierPage, allSuppliers]);
 
-  const totalVendorPages = Math.ceil(vendors.length / ITEMS_PER_PAGE);
+  const totalVendorPages = Math.ceil(allVendors.length / ITEMS_PER_PAGE);
   const paginatedVendors = useMemo(() => {
         const startIndex = (currentVendorPage - 1) * ITEMS_PER_PAGE;
-        return vendors.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [currentVendorPage]);
+        return allVendors.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [currentVendorPage, allVendors]);
 
 
   const renderSupplierTable = () => (
@@ -365,7 +376,7 @@ export default function PartnersPage() {
                 </Button>
             </CardHeader>
             <CardContent>
-              {!isClient ? (
+              {isLoading ? (
                 <div className="h-24 text-center flex items-center justify-center text-muted-foreground">Loading...</div>
               ) : (
                 <>
@@ -378,8 +389,8 @@ export default function PartnersPage() {
                 <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
                     <div>
                         Showing <strong>{(currentSupplierPage - 1) * ITEMS_PER_PAGE + 1}-
-                        {Math.min(currentSupplierPage * ITEMS_PER_PAGE, suppliers.length)}
-                        </strong> of <strong>{suppliers.length}</strong> suppliers
+                        {Math.min(currentSupplierPage * ITEMS_PER_PAGE, allSuppliers.length)}
+                        </strong> of <strong>{allSuppliers.length}</strong> suppliers
                     </div>
                     {totalSupplierPages > 1 && (
                         <Pagination>
@@ -420,7 +431,7 @@ export default function PartnersPage() {
                 </Button>
             </CardHeader>
             <CardContent>
-              {!isClient ? (
+              {isLoading ? (
                 <div className="h-24 text-center flex items-center justify-center text-muted-foreground">Loading...</div>
               ) : (
                 <>
@@ -433,8 +444,8 @@ export default function PartnersPage() {
                 <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
                     <div>
                         Showing <strong>{(currentVendorPage - 1) * ITEMS_PER_PAGE + 1}-
-                        {Math.min(currentVendorPage * ITEMS_PER_PAGE, vendors.length)}
-                        </strong> of <strong>{vendors.length}</strong> vendors
+                        {Math.min(currentVendorPage * ITEMS_PER_PAGE, allVendors.length)}
+                        </strong> of <strong>{allVendors.length}</strong> vendors
                     </div>
                     {totalVendorPages > 1 && (
                         <Pagination>

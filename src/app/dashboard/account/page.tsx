@@ -16,12 +16,11 @@ import { Separator } from '@/components/ui/separator';
 import { Save, Edit, X, User, Briefcase, DollarSign, BarChart2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { staff, OrderStatus } from '@/lib/placeholder-data';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
 import { Pie, PieChart, Cell } from 'recharts';
-
-// Mock data for the logged-in staff member
-const loggedInStaff = staff[2]; // Using Emily White as an example
+import { getStaffMemberById } from '@/services/staff';
+import type { StaffMember, OrderStatus } from '@/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const chartColors = [
     'hsl(var(--chart-1))',
@@ -33,19 +32,54 @@ const chartColors = [
 
 export default function AccountPage() {
     const [isEditing, setIsEditing] = React.useState(false);
+    const [loggedInStaff, setLoggedInStaff] = React.useState<StaffMember | undefined>(undefined);
+    const [isLoading, setIsLoading] = React.useState(true);
 
-    const performanceChartData = Object.entries(loggedInStaff.performance.statusBreakdown)
-        .filter(([, value]) => value > 0)
-        .map(([status, value], index) => ({
-            status: status as OrderStatus,
-            value,
-            fill: chartColors[index % chartColors.length]
-        }));
+    React.useEffect(() => {
+        // In a real app, you would get the logged-in user's ID from your auth context
+        const staffId = 'STAFF003'; 
+        getStaffMemberById(staffId).then(data => {
+            setLoggedInStaff(data);
+            setIsLoading(false);
+        });
+    }, []);
+
+    const performanceChartData = React.useMemo(() => {
+        if (!loggedInStaff) return [];
+        return Object.entries(loggedInStaff.performance.statusBreakdown)
+            .filter(([, value]) => value > 0)
+            .map(([status, value], index) => ({
+                status: status as OrderStatus,
+                value,
+                fill: chartColors[index % chartColors.length]
+            }));
+    }, [loggedInStaff]);
     
-    const chartConfig: ChartConfig = performanceChartData.reduce((acc, { status, fill }) => {
-        acc[status] = { label: status, color: fill };
-        return acc;
-    }, {} as ChartConfig);
+    const chartConfig: ChartConfig = React.useMemo(() => {
+        if (!performanceChartData) return {};
+        return performanceChartData.reduce((acc, { status, fill }) => {
+            acc[status] = { label: status, color: fill };
+            return acc;
+        }, {} as ChartConfig);
+    }, [performanceChartData]);
+
+    if (isLoading || !loggedInStaff) {
+        return (
+             <div className="flex-1 space-y-6 p-4 lg:p-6">
+                <Skeleton className="h-12 w-1/3" />
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                    <div className="lg:col-span-2 grid gap-6">
+                        <Skeleton className="h-56" />
+                        <Skeleton className="h-64" />
+                    </div>
+                    <div className="space-y-6">
+                        <Skeleton className="h-48" />
+                        <Skeleton className="h-40" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex-1 space-y-6 p-4 lg:p-6">

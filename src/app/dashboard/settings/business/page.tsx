@@ -1,8 +1,7 @@
-
 'use client';
 
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
-
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -26,9 +25,25 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { businesses } from '@/lib/placeholder-data';
+import { getBusinesses } from '@/services/partners';
+import type { Business } from '@/types';
 
 export default function BusinessSettingsPage() {
+    const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        setIsLoading(true);
+        getBusinesses().then(data => {
+            setAllBusinesses(data);
+            setIsLoading(false);
+        });
+    }, []);
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
     return (
         <div className="space-y-6">
             <div>
@@ -61,7 +76,7 @@ export default function BusinessSettingsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {businesses.map((business) => (
+                            {allBusinesses.map((business) => (
                                 <TableRow key={business.id}>
                                     <TableCell className="font-medium">{business.name}</TableCell>
                                     <TableCell>

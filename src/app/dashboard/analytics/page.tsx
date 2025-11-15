@@ -41,8 +41,9 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig, ChartLe
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { getAnalyticsData } from '@/services/analytics';
-import { businesses } from '@/lib/placeholder-data';
+import { getBusinesses } from '@/services/partners';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { Business } from '@/types';
 
 type AnalyticsData = {
     summary: {
@@ -65,13 +66,18 @@ const chartConfig: ChartConfig = {
 
 export default function AnalyticsPage() {
     const [analyticsData, setAnalyticsData] = React.useState<AnalyticsData | null>(null);
+    const [allBusinesses, setAllBusinesses] = React.useState<Business[]>([]);
     const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
     const [isLoading, setIsLoading] = React.useState(true);
 
      React.useEffect(() => {
         setIsLoading(true);
-        getAnalyticsData().then(data => {
+        Promise.all([
+            getAnalyticsData(),
+            getBusinesses()
+        ]).then(([data, businessesData]) => {
             setAnalyticsData(data);
+            setAllBusinesses(businessesData);
             setIsLoading(false);
         });
     }, []);
@@ -115,7 +121,7 @@ export default function AnalyticsPage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Businesses</SelectItem>
-                            {businesses.map(business => (
+                            {allBusinesses.map(business => (
                                 <SelectItem key={business.id} value={business.id}>{business.name}</SelectItem>
                             ))}
                         </SelectContent>
@@ -290,5 +296,3 @@ export default function AnalyticsPage() {
         </div>
     );
 }
-
-    

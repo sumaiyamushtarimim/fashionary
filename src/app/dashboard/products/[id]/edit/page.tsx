@@ -17,7 +17,6 @@ import {
   Save
 } from 'lucide-react';
 
-import { products, categories, Product, ImagePlaceholder } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -48,6 +47,8 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { getProductById, getProducts, getCategories } from '@/services/products';
+import type { Product, Category, ImagePlaceholder } from '@/types';
 
 
 const attributeSchema = z.object({
@@ -100,13 +101,13 @@ export default function EditProductPage() {
   const router = useRouter();
   const { toast } = useToast();
   const productId = params.id as string;
+  
+  const [product, setProduct] = React.useState<Product | undefined>(undefined);
+  const [allProducts, setAllProducts] = React.useState<Product[]>([]);
+  const [allCategories, setAllCategories] = React.useState<Category[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
   const [popoverOpen, setPopoverOpen] = React.useState(false);
 
-  const product = React.useMemo(
-    () => products.find((p) => p.id === productId),
-    [productId]
-  );
-  
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -134,30 +135,42 @@ export default function EditProductPage() {
   });
 
   React.useEffect(() => {
-    if (product) {
-      form.reset({
-        name: product.name || '',
-        description: product.description || '',
-        productType: product.variants && product.variants.length > 0 ? 'variable' : 'simple',
-        regularPrice: product.price || undefined,
-        salePrice: undefined,
-        sku: (product.variants?.[0]?.sku || '') || '',
-        categoryId: product.categoryId || '',
-        ornaFabric: product.ornaFabric || undefined,
-        jamaFabric: product.jamaFabric || undefined,
-        selowarFabric: product.selowarFabric || undefined,
-        attributes: product.variants ? [{ name: 'Size', options: 'Small, Medium, Large'}] : [],
-        variations: product.variants?.map(v => ({
-            id: v.id,
-            attributes: { Size: v.name.split(',')[0] },
-            sku: v.sku || '',
-            regularPrice: product.price || undefined,
-            salePrice: undefined,
-            image: ''
-        })) || []
-      });
-    }
-  }, [product, form]);
+      setIsLoading(true);
+      Promise.all([
+          getProductById(productId),
+          getProducts(),
+          getCategories()
+      ]).then(([productData, productsData, categoriesData]) => {
+          setProduct(productData);
+          setAllProducts(productsData);
+          setAllCategories(categoriesData);
+
+          if (productData) {
+            form.reset({
+              name: productData.name || '',
+              description: productData.description || '',
+              productType: productData.variants && productData.variants.length > 0 ? 'variable' : 'simple',
+              regularPrice: productData.price || undefined,
+              salePrice: undefined,
+              sku: (productData.variants?.[0]?.sku || '') || '',
+              categoryId: productData.categoryId || '',
+              ornaFabric: productData.ornaFabric || undefined,
+              jamaFabric: productData.jamaFabric || undefined,
+              selowarFabric: productData.selowarFabric || undefined,
+              attributes: productData.variants ? [{ name: 'Size', options: 'Small, Medium, Large'}] : [],
+              variations: productData.variants?.map(v => ({
+                  id: v.id,
+                  attributes: { Size: v.name.split(',')[0] },
+                  sku: v.sku || '',
+                  regularPrice: productData.price || undefined,
+                  salePrice: undefined,
+                  image: ''
+              })) || []
+            });
+          }
+          setIsLoading(false);
+      })
+  }, [productId, form]);
 
   const { fields: attributeFields, append: appendAttribute, remove: removeAttribute } = useFieldArray({
     control: form.control,
@@ -174,13 +187,13 @@ export default function EditProductPage() {
 
   const isThreePieceCategory = React.useMemo(() => {
     if (!selectedCategoryId) return false;
-    let currentCategory = categories.find(c => c.id === selectedCategoryId);
+    let currentCategory = allCategories.find(c => c.id === selectedCategoryId);
     while (currentCategory) {
         if (currentCategory.name === 'Three-Piece') return true;
-        currentCategory = categories.find(c => c.id === currentCategory?.parentId);
+        currentCategory = allCategories.find(c => c.id === currentCategory?.parentId);
     }
     return false;
-  }, [selectedCategoryId]);
+  }, [selectedCategoryId, allCategories]);
 
   function generateVariations() {
     const attributes = form.getValues("attributes");
@@ -217,18 +230,17 @@ export default function EditProductPage() {
   }
 
   const selectedComboProducts = form.watch('comboProducts') || [];
-  const comboProductDetails = products.filter(p => selectedComboProducts.includes(p.id));
+  const comboProductDetails = allProducts.filter(p => selectedComboProducts.includes(p.id));
 
-  const mainCategories = categories.filter(c => !c.parentId);
-  const subCategories = (parentId: string) => categories.filter(c => c.parentId === parentId);
+  const mainCategories = allCategories.filter(c => !c.parentId);
+  const subCategories = (parentId: string) => allCategories.filter(c => c.parentId === parentId);
 
   const existingImages = React.useMemo(() => {
     if (!product) return [];
-    // For demo, we'll use placeholder images.
     return [product.image, ...PlaceHolderImages.slice(1, 4)];
   }, [product]);
 
-  if (!product) {
+  if (isLoading || !product) {
     return <div className="p-6">Loading product...</div>
   }
 
@@ -341,15 +353,15 @@ export default function EditProductPage() {
                                             <FormItem className="flex flex-col"><FormLabel>Select Products</FormLabel>
                                             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}><PopoverTrigger asChild><FormControl><Button variant="outline" role="combobox" className={cn("w-full justify-between", !field.value?.length && "text-muted-foreground")}>{field.value?.length ? `${field.value.length} selected` : "Select products"}<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" /></Button></FormControl></PopoverTrigger>
                                                 <PopoverContent className="w-[--radix-popover-trigger-width] p-0"><Command><CommandInput placeholder="Search product..." /><CommandList><CommandEmpty>No product found.</CommandEmpty><CommandGroup>
-                                                        {products.map((product) => (<CommandItem key={product.id} value={product.name} onSelect={() => { const currentValue = field.value || []; const newValue = currentValue.includes(product.id) ? currentValue.filter((id) => id !== product.id) : [...currentValue, product.id]; field.onChange(newValue);}}>
-                                                                <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary", field.value?.includes(product.id) ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible")}><Check className="h-4 w-4" /></div>{product.name}</CommandItem>))}
+                                                        {allProducts.map((p) => (<CommandItem key={p.id} value={p.name} onSelect={() => { const currentValue = field.value || []; const newValue = currentValue.includes(p.id) ? currentValue.filter((id) => id !== p.id) : [...currentValue, p.id]; field.onChange(newValue);}}>
+                                                                <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary", field.value?.includes(p.id) ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible")}><Check className="h-4 w-4" /></div>{p.name}</CommandItem>))}
                                                         </CommandGroup></CommandList></Command></PopoverContent>
                                             </Popover><FormDescription>These products will be bundled together.</FormDescription><FormMessage />
                                             </FormItem>)} />
                                         <div className="mt-4 space-y-2">
                                             <Label>Selected Products</Label>
                                             {comboProductDetails.length > 0 ? (<div className="rounded-md border"><Table><TableBody>
-                                                        {comboProductDetails.map(product => (<TableRow key={product.id}><TableCell><Image src={product.image.imageUrl} alt={product.name} width={40} height={40} className="rounded-md" /></TableCell><TableCell className="font-medium">{product.name}</TableCell><TableCell className="text-right">৳{product.price.toFixed(2)}</TableCell></TableRow>))}
+                                                        {comboProductDetails.map(p => (<TableRow key={p.id}><TableCell><Image src={p.image.imageUrl} alt={p.name} width={40} height={40} className="rounded-md" /></TableCell><TableCell className="font-medium">{p.name}</TableCell><TableCell className="text-right">৳{p.price.toFixed(2)}</TableCell></TableRow>))}
                                                         </TableBody></Table></div>) : (<div className="text-sm text-muted-foreground text-center py-4">No products selected.</div>)}
                                         </div>
                                 </CardContent>
