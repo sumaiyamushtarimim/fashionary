@@ -63,7 +63,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { orders as placeholderOrders, products as allProducts, OrderStatus, OrderLog, businesses, Business, OrderPlatform, OrderProduct } from '@/lib/placeholder-data';
+import { allStatuses, Business, OrderPlatform, OrderProduct, OrderLog, Order as OrderType } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
 import {
     Select,
@@ -78,9 +78,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import { getOrderById } from '@/services/orders';
+import { getProducts } from '@/services/products';
+import { getBusinesses } from '@/services/partners';
+import type { Product } from '@/types';
 
 
-const statusColors: Record<OrderStatus, string> = {
+const statusColors: Record<OrderType['status'], string> = {
     'New': 'bg-blue-500/20 text-blue-700',
     'Confirmed': 'bg-sky-500/20 text-sky-700',
     'Canceled': 'bg-red-500/20 text-red-700',
@@ -111,12 +115,6 @@ const statusIcons: Record<string, React.ElementType> = {
     'Notes updated': FileText, // For our new log type
 };
 
-
-const allStatuses: OrderStatus[] = [
-    'New', 'Confirmed', 'Canceled', 'Hold', 'Packing', 'Packing Hold', 
-    'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 
-    'Partially Delivered', 'Partially Returned'
-];
 
 const allPlatforms: OrderPlatform[] = ['TikTok', 'Messenger', 'Facebook', 'Instagram', 'Website'];
 
@@ -207,12 +205,15 @@ const cancelRatio = totalParcels > 0 ? (totalCanceled / totalParcels) * 100 : 0;
 
 export default function OrderDetailsPage() {
   const params = useParams();
-  const orderId = params.id;
+  const orderId = params.id as string;
   
-  const [orders, setOrders] = React.useState(placeholderOrders);
-  const [isEditing, setIsEditing] = React.useState(false);
-  const order = orders.find((o) => o.id === orderId);
+  const [order, setOrder] = React.useState<OrderType | undefined>(undefined);
+  const [allProducts, setAllProducts] = React.useState<Product[]>([]);
+  const [businesses, setBusinesses] = React.useState<Business[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
+  const [isEditing, setIsEditing] = React.useState(false);
+  
   const [editedProducts, setEditedProducts] = React.useState<OrderProduct[]>([]);
   const [editedShipping, setEditedShipping] = React.useState(0);
 
@@ -223,15 +224,28 @@ export default function OrderDetailsPage() {
   const [platform, setPlatform] = React.useState<OrderPlatform | undefined>(undefined);
 
   React.useEffect(() => {
-    if (order) {
-        setCustomerNote(order.customerNote);
-        setOfficeNote(order.officeNote);
-        setBusinessId(order.businessId);
-        setPlatform(order.platform);
-        setEditedProducts(JSON.parse(JSON.stringify(order.products))); // Deep copy
-        setEditedShipping(5.0); // This should probably come from the order itself.
+    if (orderId) {
+        setIsLoading(true);
+        Promise.all([
+            getOrderById(orderId),
+            getProducts(),
+            getBusinesses()
+        ]).then(([orderData, productsData, businessesData]) => {
+            if (orderData) {
+                setOrder(orderData);
+                setCustomerNote(orderData.customerNote);
+                setOfficeNote(orderData.officeNote);
+                setBusinessId(orderData.businessId);
+                setPlatform(orderData.platform);
+                setEditedProducts(JSON.parse(JSON.stringify(orderData.products)));
+                setEditedShipping(5.0); // This should come from orderData in a real app
+            }
+            setAllProducts(productsData);
+            setBusinesses(businessesData);
+            setIsLoading(false);
+        });
     }
-  }, [order]);
+  }, [orderId]);
   
   const handleEditToggle = () => {
     if (isEditing) { // Cancel logic
@@ -246,13 +260,15 @@ export default function OrderDetailsPage() {
   const handleSaveChanges = () => {
     if(!order) return;
 
-    setOrders(prevOrders => 
-        prevOrders.map(o => 
-            o.id === orderId 
-            ? { ...o, businessId, platform, products: editedProducts, total: total }
-            : o
-        )
-    );
+    // This would be an API call in a real app
+    // setOrders(prevOrders => 
+    //     prevOrders.map(o => 
+    //         o.id === orderId 
+    //         ? { ...o, businessId, platform, products: editedProducts, total: total }
+    //         : o
+    //     )
+    // );
+    console.log("Saving changes...", { businessId, platform, products: editedProducts, total });
     setIsEditing(false);
   }
 
@@ -264,14 +280,10 @@ export default function OrderDetailsPage() {
         description: 'Notes updated.',
         user: 'Admin'
     };
-
-    setOrders(prevOrders => 
-        prevOrders.map(o => 
-            o.id === orderId 
-            ? { ...o, customerNote, officeNote, logs: [...o.logs, newLog] }
-            : o
-        )
-    );
+    
+    // This would be an API call in a real app
+    // setOrder(prevOrder => prevOrder ? {...prevOrder, customerNote, officeNote, logs: [...prevOrder.logs, newLog]} : undefined);
+    console.log("Saving notes...", { customerNote, officeNote });
   };
 
   const handleProductQuantityChange = (productId: string, quantity: number) => {
@@ -301,26 +313,6 @@ export default function OrderDetailsPage() {
       });
   };
 
-  if (!order) {
-    return (
-      <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 justify-center items-center">
-        <p>Order not found.</p>
-        <Button asChild>
-          <Link href="/dashboard/orders">Go Back to Orders</Link>
-        </Button>
-      </div>
-    );
-  }
-
-  const productsToShow = isEditing ? editedProducts : order.products;
-  const subtotal = productsToShow.reduce(
-    (acc, product) => acc + product.price * product.quantity,
-    0
-  );
-  const shipping = isEditing ? editedShipping : 5.0; // Placeholder
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
-
   const mergedNote = React.useMemo(() => {
     if (!sendToCourier) return null;
     
@@ -334,7 +326,31 @@ export default function OrderDetailsPage() {
     return parts.join('\n\n');
   }, [sendToCourier, customerNote, officeNote]);
   
+  if (isLoading) {
+    return <div className="p-6">Loading order details...</div>;
+  }
+
+  if (!order) {
+    return (
+      <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 justify-center items-center">
+        <p>Order not found.</p>
+        <Button asChild>
+          <Link href="/dashboard/orders">Go Back to Orders</Link>
+        </Button>
+      </div>
+    );
+  }
+  
   const whatsappMessage = `Hello ${order.customerName}, regarding your order ${order.id}:\n- Total: ৳${order.total.toFixed(2)}\n- Status: ${order.status}\n\nWe will update you shortly. Thank you!`;
+
+  const productsToShow = isEditing ? editedProducts : order.products;
+  const subtotal = productsToShow.reduce(
+    (acc, product) => acc + product.price * product.quantity,
+    0
+  );
+  const shipping = isEditing ? editedShipping : 5.0; // Placeholder
+  const tax = subtotal * 0.08;
+  const total = subtotal + shipping + tax;
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -747,4 +763,3 @@ export default function OrderDetailsPage() {
   );
 }
 
-    

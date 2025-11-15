@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,8 +32,11 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { PlusCircle, Trash2, Store, Globe, Save } from "lucide-react";
-import { products, businesses, OrderPlatform, OrderProduct, PaymentMethod, bdDistricts } from "@/lib/placeholder-data";
+import { OrderPlatform, PaymentMethod, bdDistricts } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
+import { getProducts } from "@/services/products";
+import { getBusinesses } from "@/services/partners";
+import type { Product, Business, OrderProduct } from "@/types";
 
 type OrderItem = {
     id: string;
@@ -48,6 +51,10 @@ const allPlatforms: OrderPlatform[] = ['TikTok', 'Messenger', 'Facebook', 'Insta
 const allPaymentMethods: PaymentMethod[] = ['Cash on Delivery', 'bKash', 'Nagad'];
 
 export default function NewOrderPage() {
+    const [allProducts, setAllProducts] = useState<Product[]>([]);
+    const [businesses, setBusinesses] = useState<Business[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
     const [customerAddress, setCustomerAddress] = useState('');
@@ -64,6 +71,18 @@ export default function NewOrderPage() {
     const [businessId, setBusinessId] = useState<string>('');
     const [platform, setPlatform] = useState<OrderPlatform>();
 
+    useEffect(() => {
+        setIsLoading(true);
+        Promise.all([
+            getProducts(),
+            getBusinesses()
+        ]).then(([productsData, businessesData]) => {
+            setAllProducts(productsData);
+            setBusinesses(businessesData);
+            setIsLoading(false);
+        });
+    }, []);
+
     const subtotal = useMemo(() => {
         return orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
     }, [orderItems]);
@@ -73,7 +92,7 @@ export default function NewOrderPage() {
     const dueAmount = useMemo(() => total - paidAmount, [total, paidAmount]);
 
     const handleAddItem = () => {
-        const defaultProduct = products[0];
+        const defaultProduct = allProducts[0];
         if (!defaultProduct) return;
         setOrderItems(prev => [
             ...prev,
@@ -92,7 +111,7 @@ export default function NewOrderPage() {
         setOrderItems(prev => prev.map(item => {
             if (item.id === itemId) {
                 if (field === 'productId') {
-                    const newProduct = products.find(p => p.id === value);
+                    const newProduct = allProducts.find(p => p.id === value);
                     if (!newProduct) return item;
                     return { ...item, productId: newProduct.id, name: newProduct.name, price: newProduct.price, image: newProduct.image };
                 }
@@ -147,7 +166,7 @@ export default function NewOrderPage() {
                                                         <SelectValue placeholder="Select a product" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {products.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                                                        {allProducts.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                                                     </SelectContent>
                                                 </Select>
                                             </TableCell>

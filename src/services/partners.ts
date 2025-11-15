@@ -1,5 +1,5 @@
-import { suppliers, vendors, purchaseOrders } from '@/lib/placeholder-data';
-import { Supplier, Vendor, PurchaseOrder } from '@/types';
+import { suppliers, vendors, purchaseOrders, businesses } from '@/lib/placeholder-data';
+import { Supplier, Vendor, PurchaseOrder, Business } from '@/types';
 
 type Partner = Supplier | Vendor;
 
@@ -28,4 +28,8 @@ export async function getSuppliers(): Promise<Supplier[]> {
 
 export async function getVendors(): Promise<Vendor[]> {
     return Promise.resolve(vendors);
+}
+
+export async function getBusinesses(): Promise<Business[]> {
+    return Promise.resolve(businesses);
 }
