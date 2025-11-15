@@ -36,19 +36,20 @@ export type OrderStatus =
   | 'Confirmed'
   | 'Canceled'
   | 'Hold'
-  | 'Packing'
+  | 'In-Courier'
   | 'Packing Hold'
   | 'RTS (Ready to Ship)'
   | 'Shipped'
   | 'Delivered'
   | 'Returned'
   | 'Partially Delivered'
-  | 'Partially Returned';
+  | 'Paid Returned'
+  | 'Partial';
 
 export const allStatuses: OrderStatus[] = [
-    'New', 'Confirmed', 'Canceled', 'Hold', 'Packing', 'Packing Hold', 
+    'New', 'Confirmed', 'Canceled', 'Hold', 'In-Courier', 'Packing Hold', 
     'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 
-    'Partially Delivered', 'Partially Returned'
+    'Partially Delivered', 'Paid Returned', 'Partial'
 ];
 
 export type OrderPlatform = 'TikTok' | 'Messenger' | 'Facebook' | 'Instagram' | 'Website';

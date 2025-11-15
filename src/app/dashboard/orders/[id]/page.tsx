@@ -27,6 +27,7 @@ import {
   TrendingUp,
   TrendingDown,
   ArrowRight,
+  PackageSearch,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import * as React from 'react';
@@ -94,14 +95,15 @@ const statusColors: Record<OrderType['status'], string> = {
     'Confirmed': 'bg-sky-500/20 text-sky-700',
     'Canceled': 'bg-red-500/20 text-red-700',
     'Hold': 'bg-yellow-500/20 text-yellow-700',
-    'Packing': 'bg-indigo-500/20 text-indigo-700',
+    'In-Courier': 'bg-orange-500/20 text-orange-700',
     'Packing Hold': 'bg-orange-500/20 text-orange-700',
     'RTS (Ready to Ship)': 'bg-purple-500/20 text-purple-700',
     'Shipped': 'bg-cyan-500/20 text-cyan-700',
     'Delivered': 'bg-green-500/20 text-green-700',
     'Returned': 'bg-gray-500/20 text-gray-700',
     'Partially Delivered': 'bg-teal-500/20 text-teal-700',
-    'Partially Returned': 'bg-amber-500/20 text-amber-700',
+    'Paid Returned': 'bg-amber-500/20 text-amber-700',
+    'Partial': 'bg-fuchsia-500/20 text-fuchsia-700',
 };
 
 const statusIcons: Record<string, React.ElementType> = {
@@ -109,14 +111,15 @@ const statusIcons: Record<string, React.ElementType> = {
     'Confirmed': CheckCircle,
     'Canceled': XCircle,
     'Hold': History,
-    'Packing': Package,
+    'In-Courier': Truck,
     'Packing Hold': History,
-    'RTS (Ready to Ship)': Package,
+    'RTS (Ready to Ship)': PackageSearch,
     'Shipped': Truck,
     'Delivered': CheckCircle,
     'Returned': History,
     'Partially Delivered': Truck,
-    'Partially Returned': History,
+    'Paid Returned': History,
+    'Partial': Truck,
     'Notes updated': FileText, // For our new log type
 };
 

@@ -152,7 +152,6 @@ export const orders: Order[] = [
     logs: [
         { status: 'Delivered', timestamp: '2024-05-23T14:30:00Z', description: 'Package delivered to customer.', user: 'System' },
         { status: 'Shipped', timestamp: '2024-05-21T10:00:00Z', description: 'Package has been shipped.', user: 'Jane Doe' },
-        { status: 'Packing', timestamp: '2024-05-20T16:00:00Z', description: 'Items are being packed.', user: 'John Smith' },
         { status: 'Confirmed', timestamp: '2024-05-20T11:00:00Z', description: 'Order has been confirmed.', user: 'Jane Doe' },
         { status: 'New', timestamp: '2024-05-20T09:05:00Z', description: 'Order was placed.', user: 'Alice Johnson' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
@@ -176,13 +175,12 @@ export const orders: Order[] = [
     customerEmail: 'bob@example.com', 
     customerPhone: '+8801812345679',
     date: '2024-05-21', 
-    status: 'Packing', 
+    status: 'Confirmed', 
     total: 25.00, 
     products: [
         { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: products[0].price }
     ],
     logs: [
-        { status: 'Packing', timestamp: '2024-05-22T11:00:00Z', description: 'Items are being packed.', user: 'John Smith' },
         { status: 'Confirmed', timestamp: '2024-05-21T18:00:00Z', description: 'Order has been confirmed.', user: 'System' },
         { status: 'New', timestamp: '2024-05-21T14:20:00Z', description: 'Order was placed.', user: 'Bob Williams' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
@@ -241,7 +239,6 @@ export const orders: Order[] = [
     ],
     logs: [
         { status: 'Shipped', timestamp: '2024-05-24T09:00:00Z', description: 'Package has been shipped.', user: 'Jane Doe' },
-        { status: 'Packing', timestamp: '2024-05-23T12:00:00Z', description: 'Items are being packed.', user: 'John Smith' },
         { status: 'Confirmed', timestamp: '2024-05-22T16:30:00Z', description: 'Order has been confirmed.', user: 'Jane Doe' },
         { status: 'New', timestamp: '2024-05-22T13:45:00Z', description: 'Order was placed.', user: 'Diana Prince' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
@@ -421,14 +418,14 @@ export const orders: Order[] = [
     customerEmail: 'lena@example.com',
     customerPhone: '+8801882345689',
     date: '2024-05-17',
-    status: 'Partially Returned',
+    status: 'Paid Returned',
     total: 220.49,
     products: [
         { productId: 'PROD003', name: 'Cotton Three-Piece', image: products[2].image, quantity: 1, price: 120.50 },
         { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: 79.99 },
          { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: 25.00 }
     ],
-    logs: [{ status: 'Partially Returned', timestamp: '2024-05-24T10:00:00Z', description: 'Customer returned the jeans.', user: 'System' }],
+    logs: [{ status: 'Paid Returned', timestamp: '2024-05-24T10:00:00Z', description: 'Customer returned the jeans.', user: 'System' }],
     customerNote: 'Keeping the three-piece and t-shirt, but returning the jeans.',
     officeNote: 'Partial return processed for denim jeans.',
     createdBy: 'System',
@@ -442,9 +439,9 @@ export const orders: Order[] = [
 ];
 
 export const allStatuses: OrderStatus[] = [
-    'New', 'Confirmed', 'Canceled', 'Hold', 'Packing', 'Packing Hold', 
+    'New', 'Confirmed', 'Canceled', 'Hold', 'In-Courier', 'Packing Hold', 
     'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 
-    'Partially Delivered', 'Partially Returned'
+    'Partially Delivered', 'Paid Returned', 'Partial'
 ];
 
 export const courierServices: CourierService[] = ['Pathao', 'RedX', 'Steadfast'];
@@ -573,7 +570,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-23T10:00:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 50000, frequency: 'Monthly' },
-        performance: { ordersCreated: 0, ordersConfirmed: 3, statusBreakdown: { 'New': 0, 'Confirmed': 3, 'Canceled': 0, 'Hold': 0, 'Packing': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 2, 'Delivered': 1, 'Returned': 0, 'Partially Delivered': 0, 'Partially Returned': 0 } },
+        performance: { ordersCreated: 0, ordersConfirmed: 3, statusBreakdown: { 'New': 0, 'Confirmed': 3, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 2, 'Delivered': 1, 'Returned': 0, 'Partially Delivered': 0, 'Paid Returned': 0, 'Partial': 0 } },
         financials: { totalEarned: 50000, totalPaid: 50000, dueAmount: 0 },
         paymentHistory: [
             { date: '2024-05-01', amount: 50000, notes: 'May Salary' }
@@ -588,7 +585,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-23T09:30:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 60000, frequency: 'Monthly' },
-        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Canceled': 0, 'Hold': 0, 'Packing': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Partially Delivered': 0, 'Partially Returned': 0 } },
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Partially Delivered': 0, 'Paid Returned': 0, 'Partial': 0 } },
         financials: { totalEarned: 60000, totalPaid: 55000, dueAmount: 5000 },
         paymentHistory: [
             { date: '2024-05-01', amount: 55000, notes: 'May Salary (Partial)' }
@@ -604,7 +601,7 @@ export const staff: StaffMember[] = [
         paymentType: 'Both',
         salaryDetails: { amount: 20000, frequency: 'Monthly' },
         commissionDetails: { onOrderCreate: 50, onOrderConfirm: 100 },
-        performance: { ordersCreated: 5, ordersConfirmed: 1, statusBreakdown: { 'New': 1, 'Confirmed': 1, 'Canceled': 0, 'Hold': 0, 'Packing': 1, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 1, 'Delivered': 1, 'Returned': 0, 'Partially Delivered': 0, 'Partially Returned': 0 } },
+        performance: { ordersCreated: 5, ordersConfirmed: 1, statusBreakdown: { 'New': 1, 'Confirmed': 1, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 1, 'Delivered': 1, 'Returned': 0, 'Partially Delivered': 0, 'Paid Returned': 0, 'Partial': 0 } },
         financials: { totalEarned: 20350, totalPaid: 20200, dueAmount: 150 },
         paymentHistory: [
              { date: '2024-05-01', amount: 20000, notes: 'May Salary' },
@@ -627,7 +624,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-23T08:15:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 35000, frequency: 'Monthly' },
-        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Canceled': 0, 'Hold': 0, 'Packing': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Partially Delivered': 0, 'Partially Returned': 0 } },
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Partially Delivered': 0, 'Paid Returned': 0, 'Partial': 0 } },
         financials: { totalEarned: 35000, totalPaid: 35000, dueAmount: 0 },
         paymentHistory: [
              { date: '2024-05-01', amount: 35000, notes: 'May Salary' }

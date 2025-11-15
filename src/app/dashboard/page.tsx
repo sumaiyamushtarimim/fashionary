@@ -78,14 +78,15 @@ const statusColors: Record<OrderStatus, string> = {
     'Confirmed': 'bg-sky-500/20 text-sky-700',
     'Canceled': 'bg-red-500/20 text-red-700',
     'Hold': 'bg-yellow-500/20 text-yellow-700',
-    'Packing': 'bg-indigo-500/20 text-indigo-700',
+    'In-Courier': 'bg-orange-500/20 text-orange-700',
     'Packing Hold': 'bg-orange-500/20 text-orange-700',
     'RTS (Ready to Ship)': 'bg-purple-500/20 text-purple-700',
     'Shipped': 'bg-cyan-500/20 text-cyan-700',
     'Delivered': 'bg-green-500/20 text-green-700',
     'Returned': 'bg-gray-500/20 text-gray-700',
     'Partially Delivered': 'bg-teal-500/20 text-teal-700',
-    'Partially Returned': 'bg-amber-500/20 text-amber-700',
+    'Paid Returned': 'bg-amber-500/20 text-amber-700',
+    'Partial': 'bg-fuchsia-500/20 text-fuchsia-700',
 };
 
 
