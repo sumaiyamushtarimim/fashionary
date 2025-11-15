@@ -2,7 +2,7 @@
 
 'use client';
 
-import { MoreHorizontal, PlusCircle, History, ArrowRight } from "lucide-react";
+import { MoreHorizontal, PlusCircle, History, ArrowRight, Minus, Plus, Package, Warehouse, HardHat } from "lucide-react";
 import * as React from "react";
 import Link from 'next/link';
 import Image from 'next/image';
@@ -53,14 +53,15 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
-import { getInventory, getInventoryMovements } from "@/services/inventory";
+import { getInventory, getInventoryMovements, getStockLocations } from "@/services/inventory";
 import { getProducts } from "@/services/products";
-import type { InventoryItem, Product, ProductVariant, InventoryMovement } from "@/types";
+import type { InventoryItem, Product, ProductVariant, InventoryMovement, StockLocation } from "@/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 type DialogState = {
     isOpen: boolean;
-    mode: 'adjust' | 'viewMovement' | null;
+    mode: 'movement' | 'viewMovement' | null;
     selectedItem: InventoryItem | null;
 };
 
@@ -69,6 +70,7 @@ export default function InventoryPage() {
     const [allInventory, setAllInventory] = React.useState<InventoryItem[]>([]);
     const [allProducts, setAllProducts] = React.useState<Product[]>([]);
     const [allMovements, setAllMovements] = React.useState<Record<string, InventoryMovement[]>>({});
+    const [allLocations, setAllLocations] = React.useState<StockLocation[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
 
     const [selectedProduct, setSelectedProduct] = React.useState<string | undefined>(undefined);
@@ -81,11 +83,13 @@ export default function InventoryPage() {
         Promise.all([
             getInventory(),
             getProducts(),
-            getInventoryMovements()
-        ]).then(([inventoryData, productsData, movementsData]) => {
+            getInventoryMovements(),
+            getStockLocations()
+        ]).then(([inventoryData, productsData, movementsData, locationsData]) => {
             setAllInventory(inventoryData);
             setAllProducts(productsData);
             setAllMovements(movementsData);
+            setAllLocations(locationsData);
             setIsLoading(false);
         });
     }, []);
@@ -96,7 +100,7 @@ export default function InventoryPage() {
         selectedItem: null,
     });
 
-    const openDialog = (mode: 'adjust' | 'viewMovement', item?: InventoryItem) => {
+    const openDialog = (mode: 'movement' | 'viewMovement', item?: InventoryItem) => {
         setDialogState({ isOpen: true, mode, selectedItem: item || null });
         if (item) {
             setSelectedProduct(item.productId);
@@ -122,6 +126,7 @@ export default function InventoryPage() {
 
     const currentStock = React.useMemo(() => {
         if (!selectedProduct) return 0;
+        // In a real app, you'd also filter by location here
         const item = allInventory.find(i => i.productId === selectedProduct && (selectedVariant ? i.sku.includes(selectedVariant) : true));
         return item?.quantity || 0;
     }, [selectedProduct, selectedVariant, allInventory]);
@@ -135,9 +140,8 @@ export default function InventoryPage() {
             <TableHead className="w-[80px] hidden sm:table-cell">Image</TableHead>
             <TableHead>Product</TableHead>
             <TableHead className="hidden sm:table-cell">SKU</TableHead>
-            <TableHead className="hidden md:table-cell">Lot (FIFO)</TableHead>
+            <TableHead className="hidden md:table-cell">Location</TableHead>
             <TableHead className="text-right">Quantity</TableHead>
-            <TableHead className="hidden lg:table-cell">Location</TableHead>
             <TableHead>
               <span className="sr-only">Actions</span>
             </TableHead>
@@ -162,10 +166,7 @@ export default function InventoryPage() {
                   <TableCell className="font-medium">{item.productName}</TableCell>
                   <TableCell className="hidden sm:table-cell">{item.sku}</TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <div className="flex flex-col">
-                        <span>{item.lotNumber}</span>
-                        <span className="text-xs text-muted-foreground">{item.receivedDate}</span>
-                    </div>
+                    <Badge variant="outline">{item.locationName}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -178,7 +179,6 @@ export default function InventoryPage() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="hidden lg:table-cell">{item.location}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -194,7 +194,7 @@ export default function InventoryPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => openDialog('viewMovement', item)}>View Movement</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openDialog('adjust', item)}>Adjust Quantity</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openDialog('movement', item)}>Adjust/Transfer Stock</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -238,14 +238,14 @@ export default function InventoryPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem onClick={() => openDialog('viewMovement', item)}>View Movement</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => openDialog('adjust', item)}>Adjust Quantity</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openDialog('movement', item)}>Adjust/Transfer Stock</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
                        <div className="flex justify-between items-end">
                             <div>
                                 <p className="text-xs text-muted-foreground">Lot: {item.lotNumber}</p>
-                                <p className="text-xs text-muted-foreground">Location: {item.location}</p>
+                                <Badge variant="outline" className="mt-1">{item.locationName}</Badge>
                             </div>
                             <div className="text-right">
                                 <p className="font-semibold text-lg">{item.quantity} <span className="text-sm text-muted-foreground">units</span></p>
@@ -278,14 +278,14 @@ export default function InventoryPage() {
       <div className="flex items-center">
         <div className="flex-1">
             <h1 className="font-headline text-2xl font-bold">Inventory</h1>
-            <p className="text-muted-foreground hidden sm:block">Track stock levels and movements.</p>
+            <p className="text-muted-foreground hidden sm:block">Track stock levels and movements across all locations.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline">
             Export
           </Button>
-           <Button size="sm" onClick={() => openDialog('adjust')}>
-                Adjust Stock
+           <Button size="sm" onClick={() => openDialog('movement')}>
+                Stock Movement
             </Button>
         </div>
       </div>
@@ -306,81 +306,140 @@ export default function InventoryPage() {
 
       <Dialog open={dialogState.isOpen} onOpenChange={closeDialog}>
         <DialogContent className={cn("sm:max-w-xl", dialogState.mode === 'viewMovement' && 'sm:max-w-3xl')}>
-            {dialogState.mode === 'adjust' && (
-                <>
-                <DialogHeader>
-                    <DialogTitle>Adjust Stock</DialogTitle>
-                    <DialogDescription>
-                        Make changes to inventory quantities. Select a product and specify the adjustment.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-6 py-4">
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="grid gap-3">
-                            <Label htmlFor="product">Product</Label>
-                            <Select onValueChange={setSelectedProduct} value={selectedProduct} disabled={!!dialogState.selectedItem}>
-                                <SelectTrigger id="product">
-                                    <SelectValue placeholder="Select a product" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {allProducts.map(product => (
-                                        <SelectItem key={product.id} value={product.id}>
-                                            {product.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        {availableVariants.length > 0 && (
-                            <div className="grid gap-3">
-                                <Label htmlFor="variant">Variant</Label>
-                                <Select onValueChange={setSelectedVariant} value={selectedVariant} disabled={!!dialogState.selectedItem}>
-                                    <SelectTrigger id="variant">
-                                        <SelectValue placeholder="Select a variant" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {availableVariants.map(variant => (
-                                            <SelectItem key={variant.id} value={variant.id}>
-                                                {variant.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+            {dialogState.mode === 'movement' && (
+                <Tabs defaultValue="receive" className="w-full">
+                    <DialogHeader>
+                        <DialogTitle>Stock Movement</DialogTitle>
+                        <DialogDescription>Receive, adjust, or transfer inventory.</DialogDescription>
+                    </DialogHeader>
+                    <TabsList className="grid w-full grid-cols-3 mt-4">
+                        <TabsTrigger value="receive">Receive</TabsTrigger>
+                        <TabsTrigger value="adjust">Adjust</TabsTrigger>
+                        <TabsTrigger value="transfer">Transfer</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="receive">
+                        <div className="grid gap-6 py-4">
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid gap-3">
+                                    <Label htmlFor="product">Product</Label>
+                                    <Select onValueChange={setSelectedProduct} value={selectedProduct}>
+                                        <SelectTrigger id="product"><SelectValue placeholder="Select a product" /></SelectTrigger>
+                                        <SelectContent>{allProducts.map(product => (<SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>))}</SelectContent>
+                                    </Select>
+                                </div>
+                                {availableVariants.length > 0 && (
+                                    <div className="grid gap-3">
+                                        <Label htmlFor="variant">Variant</Label>
+                                        <Select onValueChange={setSelectedVariant} value={selectedVariant}>
+                                            <SelectTrigger id="variant"><SelectValue placeholder="Select a variant" /></SelectTrigger>
+                                            <SelectContent>{availableVariants.map(variant => (<SelectItem key={variant.id} value={variant.id}>{variant.name}</SelectItem>))}</SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
-                    {selectedProduct && <p className="text-sm text-muted-foreground -mt-2">Current stock: {currentStock} units</p>}
-                    <div className="grid gap-3">
-                        <Label>Adjustment Type</Label>
-                        <RadioGroup defaultValue="add" className="flex gap-4">
-                            <Label htmlFor="add" className="flex items-center gap-2 cursor-pointer text-sm font-normal">
-                                <RadioGroupItem value="add" id="add" />
-                                Add
-                            </Label>
-                             <Label htmlFor="remove" className="flex items-center gap-2 cursor-pointer text-sm font-normal">
-                                <RadioGroupItem value="remove" id="remove" />
-                                Remove
-                            </Label>
-                             <Label htmlFor="set" className="flex items-center gap-2 cursor-pointer text-sm font-normal">
-                                <RadioGroupItem value="set" id="set" />
-                                Set New Quantity
-                            </Label>
-                        </RadioGroup>
-                    </div>
-                     <div className="grid gap-3">
-                        <Label htmlFor="quantity">Quantity</Label>
-                        <Input id="quantity" type="number" placeholder="e.g., 10" />
-                    </div>
-                    <div className="grid gap-3">
-                        <Label htmlFor="notes">Reason / Note</Label>
-                        <Textarea id="notes" placeholder="e.g., Damaged goods, stock count correction" />
-                    </div>
-                </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={closeDialog}>Cancel</Button>
-                    <Button type="submit">Save Adjustment</Button>
-                </DialogFooter>
-                </>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid gap-3">
+                                    <Label htmlFor="quantity">Quantity</Label>
+                                    <Input id="quantity" type="number" placeholder="e.g., 100" />
+                                </div>
+                                <div className="grid gap-3">
+                                    <Label htmlFor="location-receive">Location</Label>
+                                    <Input id="location-receive" value="Godown" disabled />
+                                    <p className="text-xs text-muted-foreground -mt-2">New stock is always received in Godown.</p>
+                                </div>
+                            </div>
+                            <div className="grid gap-3">
+                                <Label htmlFor="ref">Reference / PO Number</Label>
+                                <Input id="ref" placeholder="e.g., PO-2024-007" />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={closeDialog}>Cancel</Button>
+                            <Button type="submit">Receive Stock</Button>
+                        </DialogFooter>
+                    </TabsContent>
+                    <TabsContent value="adjust">
+                         <div className="grid gap-6 py-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                               <div className="grid gap-3">
+                                    <Label htmlFor="product-adj">Product</Label>
+                                    <Select onValueChange={setSelectedProduct} value={selectedProduct} disabled={!!dialogState.selectedItem}>
+                                        <SelectTrigger id="product-adj"><SelectValue placeholder="Select a product" /></SelectTrigger>
+                                        <SelectContent>{allProducts.map(product => (<SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>))}</SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid gap-3">
+                                    <Label htmlFor="location-adj">Location</Label>
+                                    <Select><SelectTrigger id="location-adj"><SelectValue placeholder="Select location" /></SelectTrigger>
+                                        <SelectContent>{allLocations.map(loc => (<SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>))}</SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            <p className="text-sm text-muted-foreground -mt-2">Current stock: {currentStock} units</p>
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid gap-3">
+                                    <Label>Adjustment Type</Label>
+                                    <RadioGroup defaultValue="add" className="flex gap-4 items-center">
+                                        <Label htmlFor="add" className="flex items-center gap-2 cursor-pointer text-sm font-normal"><RadioGroupItem value="add" id="add" />Add</Label>
+                                        <Label htmlFor="remove" className="flex items-center gap-2 cursor-pointer text-sm font-normal"><RadioGroupItem value="remove" id="remove" />Remove</Label>
+                                    </RadioGroup>
+                                </div>
+                                <div className="grid gap-3">
+                                    <Label htmlFor="quantity-adj">Quantity</Label>
+                                    <Input id="quantity-adj" type="number" placeholder="e.g., 10" />
+                                </div>
+                            </div>
+                            <div className="grid gap-3">
+                                <Label htmlFor="notes-adj">Reason / Note</Label>
+                                <Textarea id="notes-adj" placeholder="e.g., Damaged goods, stock count correction" />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={closeDialog}>Cancel</Button>
+                            <Button type="submit">Save Adjustment</Button>
+                        </DialogFooter>
+                    </TabsContent>
+                    <TabsContent value="transfer">
+                         <div className="grid gap-6 py-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                               <div className="grid gap-3">
+                                    <Label htmlFor="product-trans">Product</Label>
+                                    <Select onValueChange={setSelectedProduct} value={selectedProduct} disabled={!!dialogState.selectedItem}>
+                                        <SelectTrigger id="product-trans"><SelectValue placeholder="Select a product" /></SelectTrigger>
+                                        <SelectContent>{allProducts.map(product => (<SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>))}</SelectContent>
+                                    </Select>
+                                </div>
+                                 <div className="grid gap-3">
+                                    <Label htmlFor="quantity-trans">Quantity to Transfer</Label>
+                                    <Input id="quantity-trans" type="number" placeholder="e.g., 5" />
+                                </div>
+                            </div>
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                               <div className="grid gap-3">
+                                    <Label htmlFor="from-loc">From Location</Label>
+                                    <Select><SelectTrigger id="from-loc"><SelectValue placeholder="Select source" /></SelectTrigger>
+                                        <SelectContent>{allLocations.map(loc => (<SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>))}</SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid gap-3">
+                                    <Label htmlFor="to-loc">To Location</Label>
+                                     <Select><SelectTrigger id="to-loc"><SelectValue placeholder="Select destination" /></SelectTrigger>
+                                        <SelectContent>{allLocations.map(loc => (<SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>))}</SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                             <p className="text-sm text-muted-foreground -mt-2">Available to transfer from source: {currentStock} units</p>
+                            <div className="grid gap-3">
+                                <Label htmlFor="notes-trans">Reason / Note for Transfer</Label>
+                                <Textarea id="notes-trans" placeholder="e.g., Showroom restock" />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={closeDialog}>Cancel</Button>
+                            <Button type="submit">Complete Transfer</Button>
+                        </DialogFooter>
+                    </TabsContent>
+                </Tabs>
             )}
 
             {dialogState.mode === 'viewMovement' && currentItem && (

@@ -126,15 +126,33 @@ export type Customer = {
   country: string;
 };
 
+export type StockLocation = {
+    id: string;
+    name: string;
+};
+
+export type InventoryMovementType = 'Received' | 'Sold' | 'Adjusted' | 'Returned' | 'Transfer';
+
+export type StockTransfer = {
+    id: string;
+    fromLocationId: string;
+    toLocationId: string;
+    notes?: string;
+    user: string;
+    date: string;
+};
+
 export type InventoryMovement = {
     id: string;
     date: string;
-    type: 'Received' | 'Sold' | 'Adjusted' | 'Returned';
+    type: InventoryMovementType;
     quantityChange: number; // Positive for additions, negative for subtractions
     balance: number;
     notes: string;
     user: string;
-    reference: string; // e.g., Order ID, PO ID
+    reference: string; // e.g., Order ID, PO ID, Transfer ID
+    fromLocationId?: string;
+    toLocationId?: string;
 };
 
 
@@ -144,7 +162,8 @@ export type InventoryItem = {
   productName: string;
   sku: string;
   quantity: number;
-  location: string;
+  locationId: string;
+  locationName: string;
   lotNumber: string;
   receivedDate: string;
   variants?: ProductVariant[];
@@ -282,7 +301,7 @@ export type Expense = {
     date: string;
     category: string;
     amount: number;
-    notes: string;
+    notes?: string;
     isAdExpense: boolean;
     businessId?: string;
     business?: string;

@@ -10,6 +10,7 @@ import {
   BellRing,
   Radar,
   FileSearch,
+  Warehouse,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -33,6 +34,12 @@ const settingsLinks = [
     title: 'Categories',
     description: 'Organize your products and expenses.',
     icon: LayoutGrid,
+  },
+  {
+    href: '/dashboard/settings/locations',
+    title: 'Locations',
+    description: 'Manage your stock locations and warehouses.',
+    icon: Warehouse,
   },
   {
     href: '/dashboard/settings/notifications',
@@ -101,5 +108,3 @@ export default function SettingsDashboardPage() {
     </div>
   );
 }
-
-    

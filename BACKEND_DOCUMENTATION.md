@@ -99,6 +99,14 @@ enum StaffRole {
   Custom
 }
 
+enum InventoryMovementType {
+  Received
+  Sold
+  Adjusted
+  Returned
+  Transfer
+}
+
 // MODELS //
 
 model Product {
@@ -119,6 +127,7 @@ model Product {
   variants         ProductVariant[]
   orderItems       OrderProduct[]
   purchaseOrderItems PurchaseOrderItem[]
+  inventoryItems   InventoryItem[]
 }
 
 model ProductVariant {
@@ -129,7 +138,8 @@ model ProductVariant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product          Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  inventoryItems   InventoryItem[]
 }
 
 model Category {
@@ -350,6 +360,66 @@ model Business {
   expenses Expense[]
 }
 
+model StockLocation {
+  id   String @id @default(cuid())
+  name String @unique
+  
+  inventoryItems   InventoryItem[]
+  transfersFrom    StockTransfer[] @relation("FromLocation")
+  transfersTo      StockTransfer[] @relation("ToLocation")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model InventoryItem {
+  id             String @id @default(cuid())
+  productId      String
+  variantId      String?
+  locationId     String
+  quantity       Int
+  lotNumber      String // For FIFO tracking
+  receivedDate   DateTime
+  
+  product        Product       @relation(fields: [productId], references: [id])
+  variant        ProductVariant? @relation(fields: [variantId], references: [id])
+  location       StockLocation @relation(fields: [locationId], references: [id])
+  
+  movements      InventoryMovement[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@unique([productId, variantId, locationId, lotNumber])
+}
+
+model InventoryMovement {
+  id              String                @id @default(cuid())
+  inventoryItemId String
+  type            InventoryMovementType
+  quantityChange  Int // Positive for additions, negative for subtractions
+  balance         Int
+  notes           String?
+  user            String // Staff name or ID
+  reference       String? // e.g., Order ID, PO ID, Transfer ID
+  timestamp       DateTime              @default(now())
+
+  inventoryItem   InventoryItem         @relation(fields: [inventoryItemId], references: [id])
+  stockTransfer   StockTransfer?        @relation(fields: [reference], references: [id])
+}
+
+model StockTransfer {
+  id              String    @id @default(cuid())
+  fromLocationId  String
+  toLocationId    String
+  user            String // Staff name or ID
+  notes           String?
+  transferDate    DateTime  @default(now())
+  
+  fromLocation    StockLocation @relation("FromLocation", fields: [fromLocationId], references: [id])
+  toLocation      StockLocation @relation("ToLocation", fields: [toLocationId], references: [id])
+  movements       InventoryMovement[]
+}
 ```
 
 ## 2. Building the API Endpoints

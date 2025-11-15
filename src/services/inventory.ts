@@ -1,5 +1,5 @@
-import { inventory, inventoryMovements } from '@/lib/placeholder-data';
-import { InventoryItem, InventoryMovement } from '@/types';
+import { inventory, inventoryMovements, stockLocations } from '@/lib/placeholder-data';
+import { InventoryItem, InventoryMovement, StockLocation } from '@/types';
 
 // In a real app, you'd fetch this from your API
 
@@ -11,6 +11,10 @@ export async function getInventory(): Promise<InventoryItem[]> {
 
 export async function getInventoryMovements(): Promise<Record<string, InventoryMovement[]>> {
     return Promise.resolve(inventoryMovements);
+}
+
+export async function getStockLocations(): Promise<StockLocation[]> {
+    return Promise.resolve(stockLocations);
 }
 
 // Add other functions like updateInventory, etc.

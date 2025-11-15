@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from 'next/link';
@@ -14,6 +15,7 @@ import {
   BellRing,
   Radar,
   FileSearch,
+  Warehouse,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -33,6 +35,7 @@ const settingsNav = [
   { href: '/dashboard/settings/general', label: 'General', icon: Settings },
   { href: '/dashboard/settings/business', label: 'Business', icon: Store },
   { href: '/dashboard/settings/categories', label: 'Categories', icon: LayoutGrid },
+  { href: '/dashboard/settings/locations', label: 'Locations', icon: Warehouse },
   { href: '/dashboard/settings/notifications', label: 'Notifications', icon: BellRing },
   { href: '/dashboard/settings/integrations', label: 'WooCommerce', icon: Plug },
   { href: '/dashboard/settings/courier', label: 'Courier', icon: Truck },
