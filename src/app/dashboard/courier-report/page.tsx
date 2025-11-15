@@ -13,7 +13,7 @@ import { getDeliveryReport, type DeliveryReport, type CourierSummary } from '@/s
 
 function ReportSkeleton() {
     return (
-        <div className="space-y-4 mt-6">
+        <div className="space-y-4 mt-6 max-w-2xl mx-auto">
             <Skeleton className="h-44 w-full" />
             <Skeleton className="h-32 w-full" />
         </div>
@@ -44,7 +44,7 @@ function ReportDisplay({ report }: { report: DeliveryReport }) {
     const cancelRatio = totalParcels > 0 ? (totalCanceled / totalParcels) * 100 : 0;
 
     return (
-        <div className="mt-6 space-y-6">
+        <div className="mt-6 space-y-6 max-w-2xl mx-auto">
             <Card>
                 <CardHeader>
                     <CardTitle>Courier Delivery Report</CardTitle>
@@ -144,7 +144,7 @@ export default function CourierReportPage() {
                 </div>
             </div>
 
-            <Card>
+            <Card className="max-w-2xl mx-auto w-full">
                 <CardHeader>
                     <CardTitle>Search by Phone Number</CardTitle>
                 </CardHeader>

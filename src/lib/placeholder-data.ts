@@ -141,7 +141,7 @@ export const orders: Order[] = [
     id: 'ORD-2024-001', 
     customerName: 'Alice Johnson', 
     customerEmail: 'alice@example.com', 
-    customerPhone: '+8801712345678',
+    customerPhone: '01321907699',
     date: '2024-05-20', 
     status: 'Delivered', 
     total: 104.99, 
@@ -175,7 +175,7 @@ export const orders: Order[] = [
     id: 'ORD-2024-002', 
     customerName: 'Bob Williams', 
     customerEmail: 'bob@example.com', 
-    customerPhone: '+8801812345679',
+    customerPhone: '01516774099',
     date: '2024-05-21', 
     status: 'Confirmed', 
     total: 25.00, 
@@ -205,7 +205,7 @@ export const orders: Order[] = [
     id: 'ORD-2024-003', 
     customerName: 'Charlie Brown', 
     customerEmail: 'charlie@example.com', 
-    customerPhone: '+8801912345680',
+    customerPhone: '01601701567',
     date: '2024-05-22', 
     status: 'New', 
     total: 200.49,
@@ -235,7 +235,7 @@ export const orders: Order[] = [
     id: 'ORD-2024-004', 
     customerName: 'Diana Prince', 
     customerEmail: 'diana@example.com', 
-    customerPhone: '+8801612345681',
+    customerPhone: '01742059053',
     date: '2024-05-22', 
     status: 'Shipped', 
     total: 350.00, 
@@ -462,10 +462,10 @@ export const allStatuses: OrderStatus[] = [
 export const courierServices: CourierService[] = ['Pathao', 'RedX', 'Steadfast'];
 
 export const customers: Customer[] = [
-    { id: 'CUST001', name: 'Alice Johnson', email: 'alice@example.com', phone: '+8801712345678', totalOrders: 5, totalSpent: 750.25, joinDate: '2023-01-15', address: '123 Main Street', district: 'Dhaka', country: 'Bangladesh' },
-    { id: 'CUST002', name: 'Bob Williams', email: 'bob@example.com', phone: '+8801812345679', totalOrders: 2, totalSpent: 125.00, joinDate: '2023-03-22', address: '456 Oak Avenue', district: 'Chittagong', country: 'Bangladesh' },
-    { id: 'CUST003', name: 'Charlie Brown', email: 'charlie@example.com', phone: '+8801912345680', totalOrders: 8, totalSpent: 1200.50, joinDate: '2022-11-30', address: '789 Pine Lane', district: 'Sylhet', country: 'Bangladesh' },
-    { id: 'CUST004', name: 'Diana Prince', email: 'diana@example.com', phone: '+8801612345681', totalOrders: 3, totalSpent: 450.00, joinDate: '2023-08-10', address: '101 Maple Drive', district: 'Khulna', country: 'Bangladesh' },
+    { id: 'CUST001', name: 'Alice Johnson', email: 'alice@example.com', phone: '01321907699', totalOrders: 5, totalSpent: 750.25, joinDate: '2023-01-15', address: '123 Main Street', district: 'Dhaka', country: 'Bangladesh' },
+    { id: 'CUST002', name: 'Bob Williams', email: 'bob@example.com', phone: '01516774099', totalOrders: 2, totalSpent: 125.00, joinDate: '2023-03-22', address: '456 Oak Avenue', district: 'Chittagong', country: 'Bangladesh' },
+    { id: 'CUST003', name: 'Charlie Brown', email: 'charlie@example.com', phone: '01601701567', totalOrders: 8, totalSpent: 1200.50, joinDate: '2022-11-30', address: '789 Pine Lane', district: 'Sylhet', country: 'Bangladesh' },
+    { id: 'CUST004', name: 'Diana Prince', email: 'diana@example.com', phone: '01742059053', totalOrders: 3, totalSpent: 450.00, joinDate: '2023-08-10', address: '101 Maple Drive', district: 'Khulna', country: 'Bangladesh' },
     { id: 'CUST005', name: 'Ethan Hunt', email: 'ethan@example.com', phone: '+8801512345682', totalOrders: 1, totalSpent: 95.00, joinDate: '2024-02-28', address: '212 Birch Street', district: 'Rajshahi', country: 'Bangladesh' },
 ];
 
