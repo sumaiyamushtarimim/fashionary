@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -37,6 +38,7 @@ import { cn } from '@/lib/utils';
 import { getCustomerById } from '@/services/customers';
 import { getOrdersByCustomer } from '@/services/orders';
 import type { Customer, Order, OrderStatus } from '@/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const statusColors: Record<OrderStatus, string> = {
     'New': 'bg-blue-500/20 text-blue-700',
@@ -64,19 +66,28 @@ export default function CustomerDetailsPage() {
   React.useEffect(() => {
       if (customerId) {
           setIsLoading(true);
-          getCustomerById(customerId).then(customerData => {
+          Promise.all([
+              getCustomerById(customerId),
+              getOrdersByCustomer(customerId)
+          ]).then(([customerData, ordersData]) => {
               setCustomer(customerData);
-              if (customerData) {
-                  getOrdersByCustomer(customerData.name).then(ordersData => {
-                      setCustomerOrders(ordersData);
-                  });
-              }
+              setCustomerOrders(ordersData);
           }).finally(() => setIsLoading(false));
       }
   }, [customerId]);
 
   if (isLoading) {
-      return <div className="p-6">Loading customer details...</div>
+      return (
+         <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+            <Skeleton className="h-10 w-1/2" />
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <Skeleton className="h-48 lg:col-span-1" />
+                <Skeleton className="h-32" />
+                <Skeleton className="h-32" />
+            </div>
+            <Skeleton className="h-64" />
+        </div>
+      );
   }
 
   if (!customer) {
@@ -227,3 +238,5 @@ export default function CustomerDetailsPage() {
     </div>
   );
 }
+
+    

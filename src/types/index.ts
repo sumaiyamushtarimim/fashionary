@@ -1,4 +1,5 @@
 
+
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 
 export type Category = {
@@ -254,10 +255,5 @@ export type WooCommerceIntegration = {
     businessId: string;
     businessName: string;
 };
-
-    
-
-    
-
 
     

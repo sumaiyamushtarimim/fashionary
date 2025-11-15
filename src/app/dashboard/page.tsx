@@ -79,12 +79,10 @@ const statusColors: Record<OrderStatus, string> = {
     'Canceled': 'bg-red-500/20 text-red-700',
     'Hold': 'bg-yellow-500/20 text-yellow-700',
     'In-Courier': 'bg-orange-500/20 text-orange-700',
-    'Packing Hold': 'bg-orange-500/20 text-orange-700',
     'RTS (Ready to Ship)': 'bg-purple-500/20 text-purple-700',
     'Shipped': 'bg-cyan-500/20 text-cyan-700',
     'Delivered': 'bg-green-500/20 text-green-700',
     'Returned': 'bg-gray-500/20 text-gray-700',
-    'Partially Delivered': 'bg-teal-500/20 text-teal-700',
     'Paid Returned': 'bg-amber-500/20 text-amber-700',
     'Partial': 'bg-fuchsia-500/20 text-fuchsia-700',
 };
@@ -222,7 +220,7 @@ export default function Dashboard() {
                             ) : (
                                 allStatuses.map((status) => {
                                     const stat = orderStats[status];
-                                    if (stat.count === 0) return null;
+                                    if (!stat || stat.count === 0) return null;
                                     return (
                                         <TableRow key={status} onClick={() => handleStatusClick(status)} className="cursor-pointer">
                                             <TableCell>
@@ -245,3 +243,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
+    

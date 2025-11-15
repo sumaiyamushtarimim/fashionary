@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -29,6 +28,7 @@ import { Pie, PieChart, Cell } from "recharts";
 import { Separator } from '@/components/ui/separator';
 import { getStaffMemberById } from '@/services/staff';
 import type { StaffMember, OrderStatus, StaffIncome } from '@/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const statusColors: Record<OrderStatus, string> = {
     'New': 'bg-blue-500/20 text-blue-700',
@@ -36,12 +36,10 @@ const statusColors: Record<OrderStatus, string> = {
     'Canceled': 'bg-red-500/20 text-red-700',
     'Hold': 'bg-yellow-500/20 text-yellow-700',
     'In-Courier': 'bg-orange-500/20 text-orange-700',
-    'Packing Hold': 'bg-orange-500/20 text-orange-700',
     'RTS (Ready to Ship)': 'bg-purple-500/20 text-purple-700',
     'Shipped': 'bg-cyan-500/20 text-cyan-700',
     'Delivered': 'bg-green-500/20 text-green-700',
     'Returned': 'bg-gray-500/20 text-gray-700',
-    'Partially Delivered': 'bg-teal-500/20 text-teal-700',
     'Paid Returned': 'bg-amber-500/20 text-amber-700',
     'Partial': 'bg-fuchsia-500/20 text-fuchsia-700',
 };
@@ -71,7 +69,21 @@ export default function StaffDetailsPage() {
     }, [staffId]);
     
     if (isLoading) {
-        return <div className="p-6">Loading staff details...</div>
+        return (
+            <div className="flex flex-1 flex-col gap-6 p-4 lg:gap-8 lg:p-6">
+                <Skeleton className="h-10 w-1/2" />
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <Skeleton className="h-48" />
+                    <Skeleton className="h-48" />
+                    <Skeleton className="h-48" />
+                </div>
+                <div className="grid gap-6 md:grid-cols-2">
+                    <Skeleton className="h-64" />
+                    <Skeleton className="h-64" />
+                </div>
+                <Skeleton className="h-80" />
+            </div>
+        );
     }
 
     if (!staffMember) {

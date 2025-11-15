@@ -1,3 +1,4 @@
+
 import { orders, allStatuses } from '@/lib/placeholder-data';
 import { Order, OrderStatus } from '@/types';
 
@@ -7,7 +8,8 @@ import { Order, OrderStatus } from '@/types';
 export async function getOrders(): Promise<Order[]> {
   // Simulate a network delay
   await new Promise(resolve => setTimeout(resolve, 500));
-  return Promise.resolve(orders);
+  const sortedOrders = orders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  return Promise.resolve(sortedOrders);
 }
 
 export async function getOrderById(id: string): Promise<Order | undefined> {
@@ -17,8 +19,8 @@ export async function getOrderById(id: string): Promise<Order | undefined> {
   return Promise.resolve(order);
 }
 
-export async function getOrdersByCustomer(customerName: string): Promise<Order[]> {
-    const customerOrders = orders.filter((o) => o.customerName === customerName).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+export async function getOrdersByCustomer(customerPhone: string): Promise<Order[]> {
+    const customerOrders = orders.filter((o) => o.customerPhone === customerPhone).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     return Promise.resolve(customerOrders);
 }
 
@@ -27,3 +29,5 @@ export async function getStatuses(): Promise<OrderStatus[]> {
 }
 
 // Add other functions like createOrder, updateOrder, etc.
+
+    

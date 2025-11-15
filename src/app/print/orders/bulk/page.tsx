@@ -23,18 +23,17 @@ export default function BulkPrintPage() {
     React.useEffect(() => {
         setIsLoading(true);
         const fetchOrders = async () => {
-            const fetchedOrders = await Promise.all(
-                orderIds.map(id => getOrderById(id))
-            );
-            setOrders(fetchedOrders.filter((o): o is Order => !!o));
+            if (orderIds.length > 0) {
+                const fetchedOrders = await Promise.all(
+                    orderIds.map(id => getOrderById(id))
+                );
+                setOrders(fetchedOrders.filter((o): o is Order => !!o));
+            }
             setIsLoading(false);
         };
+        
+        fetchOrders();
 
-        if (orderIds.length > 0) {
-            fetchOrders();
-        } else {
-            setIsLoading(false);
-        }
     }, [orderIdsParam]);
 
     if (isLoading) {
@@ -107,3 +106,4 @@ export default function BulkPrintPage() {
     );
 }
 
+    

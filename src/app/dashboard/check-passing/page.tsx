@@ -349,79 +349,79 @@ export default function CheckPassingPage() {
             </div>
 
             {/* Card list for smaller screens */}
-            <div className="sm:hidden space-y-4">
-                 {isClient && upcomingChecks.length > 0 ? (
-                    upcomingChecks.map((check) => {
-                        const checkDate = new Date(check.date);
-                        const isTodayCheck = isToday(checkDate);
-                        const isTomorrowCheck = isTomorrow(checkDate);
-                        return (
-                            <Card key={check.id} className={cn(isTodayCheck && "bg-primary/10")}>
-                                <CardContent className="p-4">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <p className="font-semibold">{check.vendor}</p>
-                                            <p className="text-sm">
-                                                PO: <Button variant="link" asChild className="p-0 h-auto text-sm">
-                                                        <Link href={`/dashboard/purchases/${check.poId}`}>{check.poId}</Link>
+             {isClient && (
+                <div className="sm:hidden space-y-4">
+                    {upcomingChecks.length > 0 ? (
+                        upcomingChecks.map((check) => {
+                            const checkDate = new Date(check.date);
+                            const isTodayCheck = isToday(checkDate);
+                            const isTomorrowCheck = isTomorrow(checkDate);
+                            return (
+                                <Card key={check.id} className={cn(isTodayCheck && "bg-primary/10")}>
+                                    <CardContent className="p-4">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <p className="font-semibold">{check.vendor}</p>
+                                                <p className="text-sm">
+                                                    PO: <Button variant="link" asChild className="p-0 h-auto text-sm">
+                                                            <Link href={`/dashboard/purchases/${check.poId}`}>{check.poId}</Link>
+                                                        </Button>
+                                                </p>
+                                                <div className="mt-2">
+                                                    <Badge variant="outline">{check.type}</Badge>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-semibold font-mono">৳{check.amount.toFixed(2)}</p>
+                                                <div className="mt-2">
+                                                    <Badge variant="outline" className={cn(statusColors[check.status])}>{check.status}</Badge>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <Separator className="my-3" />
+                                        <div className="flex justify-between items-center text-sm">
+                                            <div className="flex flex-col">
+                                                <span className="text-muted-foreground">{format(checkDate, "MMMM d, yyyy")}</span>
+                                                {(isTodayCheck || isTomorrowCheck) && (
+                                                    <Badge variant={isTodayCheck ? "destructive" : "secondary"} className="w-fit mt-1">
+                                                        {isTodayCheck ? "Today" : "Tomorrow"}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                    aria-haspopup="true"
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    >
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                    <span className="sr-only">Toggle menu</span>
                                                     </Button>
-                                            </p>
-                                            <div className="mt-2">
-                                                <Badge variant="outline">{check.type}</Badge>
-                                            </div>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>Update Status</DropdownMenuLabel>
+                                                    <DropdownMenuItem>Mark as Passed</DropdownMenuItem>
+                                                    <DropdownMenuItem>Mark as Bounced</DropdownMenuItem>
+                                                    <DropdownMenuItem>Mark as Cancelled</DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="font-semibold font-mono">৳{check.amount.toFixed(2)}</p>
-                                            <div className="mt-2">
-                                                <Badge variant="outline" className={cn(statusColors[check.status])}>{check.status}</Badge>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <Separator className="my-3" />
-                                    <div className="flex justify-between items-center text-sm">
-                                        <div className="flex flex-col">
-                                            <span className="text-muted-foreground">{format(checkDate, "MMMM d, yyyy")}</span>
-                                             {(isTodayCheck || isTomorrowCheck) && (
-                                                <Badge variant={isTodayCheck ? "destructive" : "secondary"} className="w-fit mt-1">
-                                                    {isTodayCheck ? "Today" : "Tomorrow"}
-                                                </Badge>
-                                             )}
-                                        </div>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button
-                                                aria-haspopup="true"
-                                                size="icon"
-                                                variant="ghost"
-                                                >
-                                                <MoreHorizontal className="h-4 w-4" />
-                                                <span className="sr-only">Toggle menu</span>
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuLabel>Update Status</DropdownMenuLabel>
-                                                <DropdownMenuItem>Mark as Passed</DropdownMenuItem>
-                                                <DropdownMenuItem>Mark as Bounced</DropdownMenuItem>
-                                                <DropdownMenuItem>Mark as Cancelled</DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )
-                    })
-                ) : isClient && upcomingChecks.length === 0 ? (
-                    <div className="h-24 text-center text-muted-foreground flex items-center justify-center">
-                        No upcoming checks found.
-                    </div>
-                ) : (
-                    <div className="h-24 text-center text-muted-foreground flex items-center justify-center">
-                        Loading checks...
-                    </div>
-                )}
-            </div>
+                                    </CardContent>
+                                </Card>
+                            )
+                        })
+                    ) : (
+                        <div className="h-24 text-center text-muted-foreground flex items-center justify-center">
+                            No upcoming checks found.
+                        </div>
+                    )}
+                </div>
+            )}
         </CardContent>
       </Card>
     </div>
   );
 }
+
+    
