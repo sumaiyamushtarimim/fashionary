@@ -211,38 +211,65 @@ export default function OrdersClientPage() {
     let headers: string[] = [];
     let rows: string[][] = [];
 
-    if (format === 'steadfast') {
-        headers = ['Invoice', 'Name', 'Address', 'Phone', 'Amount', 'Note', 'Lot', 'Delivery Type', 'Contact Name', 'Contact Phone'];
-        rows = ordersToExport.map(order => {
-            const business = businesses.find(b => b.id === order.businessId);
-            const dueAmount = order.total - order.paidAmount;
-            const lot = order.products.reduce((acc, p) => acc + p.quantity, 0);
+    switch (format) {
+        case 'steadfast':
+            headers = ['Invoice', 'Name', 'Address', 'Phone', 'Amount', 'Note', 'Lot', 'Delivery Type', 'Contact Name', 'Contact Phone'];
+            rows = ordersToExport.map(order => {
+                const business = businesses.find(b => b.id === order.businessId);
+                const dueAmount = order.total - order.paidAmount;
+                const lot = order.products.reduce((acc, p) => acc + p.quantity, 0);
 
-            return [
-                order.id,
-                order.customerName,
-                order.shippingAddress.address.replace(/,/g, ''), // Remove commas from address
-                order.customerPhone,
-                dueAmount.toString(),
-                order.officeNote?.replace(/,/g, '') || '',
-                lot.toString(),
-                'Home',
-                business?.name || '',
-                '01234567890' // Placeholder for business phone
-            ];
-        });
-    } else { // 'all', 'pathao', 'redx' will use the full export for now
-        const allHeaders = [...new Set(ordersToExport.flatMap(obj => Object.keys(obj)))];
-        headers = allHeaders;
-        rows = ordersToExport.map(order => {
-            return allHeaders.map(header => {
-                const value = (order as any)[header];
-                if (typeof value === 'object' && value !== null) {
-                    return JSON.stringify(value).replace(/,/g, ';');
-                }
-                return String(value).replace(/,/g, '');
+                return [
+                    order.id,
+                    order.customerName,
+                    order.shippingAddress.address.replace(/,/g, ''),
+                    order.customerPhone,
+                    dueAmount.toString(),
+                    order.officeNote?.replace(/,/g, '') || '',
+                    lot.toString(),
+                    'Home',
+                    business?.name || '',
+                    '01234567890' // Placeholder for business phone
+                ];
             });
-        });
+            break;
+        
+        case 'redx':
+            headers = ['CustomerName(*)', 'CustomerPhone(*)', 'CustomerAddress(*)', 'AltPhone', 'CustomerArea (*)', 'Category', 'InvoiceID', 'Weight(*)', 'Cash(*)', 'SellingPrice(*)', 'PaidReturnCharge', 'Instructions'];
+            rows = ordersToExport.map(order => {
+                 const dueAmount = order.total - order.paidAmount;
+                 return [
+                    order.customerName,
+                    order.customerPhone,
+                    order.shippingAddress.address.replace(/,/g, ''),
+                    '', // AltPhone
+                    order.shippingAddress.district,
+                    'Same Day', // Category
+                    order.id,
+                    '0.5', // Weight
+                    dueAmount.toString(), // Cash
+                    order.total.toString(), // SellingPrice
+                    '60', // PaidReturnCharge (placeholder shipping)
+                    order.officeNote?.replace(/,/g, '') || '', // Instructions
+                 ];
+            });
+            break;
+            
+        case 'all':
+        case 'pathao': // Pathao and 'all' will use full export for now
+        default:
+            const allHeaders = [...new Set(ordersToExport.flatMap(obj => Object.keys(obj)))];
+            headers = allHeaders;
+            rows = ordersToExport.map(order => {
+                return allHeaders.map(header => {
+                    const value = (order as any)[header];
+                    if (typeof value === 'object' && value !== null) {
+                        return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
+                    }
+                    return `"${String(value).replace(/"/g, '""')}"`;
+                });
+            });
+            break;
     }
     
     csvContent += headers.join(",") + "\r\n";
@@ -673,6 +700,3 @@ export default function OrdersClientPage() {
     </div>
   );
 }
-
-
-    
