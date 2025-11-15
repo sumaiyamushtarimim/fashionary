@@ -150,10 +150,11 @@ export const orders: Order[] = [
         { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: products[0].price }
     ],
     logs: [
-        { status: 'Delivered', timestamp: '2024-05-23T14:30:00Z', description: 'Package delivered to customer.', user: 'System' },
-        { status: 'Shipped', timestamp: '2024-05-21T10:00:00Z', description: 'Package has been shipped.', user: 'Jane Doe' },
-        { status: 'Confirmed', timestamp: '2024-05-20T11:00:00Z', description: 'Order has been confirmed.', user: 'Jane Doe' },
-        { status: 'New', timestamp: '2024-05-20T09:05:00Z', description: 'Order was placed.', user: 'Alice Johnson' },
+        { title: 'Delivered', timestamp: '2024-05-23T14:30:00Z', description: 'Package delivered to customer.', user: 'System' },
+        { title: 'Sent to Pathao', timestamp: '2024-05-22T11:00:00Z', description: 'Order sent to courier for delivery.', user: 'Jane Doe' },
+        { title: 'Shipped', timestamp: '2024-05-21T10:00:00Z', description: 'Package has been shipped.', user: 'Jane Doe' },
+        { title: 'Confirmed', timestamp: '2024-05-20T11:00:00Z', description: 'Order has been confirmed.', user: 'Jane Doe' },
+        { title: 'New', timestamp: '2024-05-20T09:05:00Z', description: 'Order was placed.', user: 'Alice Johnson' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
     customerNote: 'Please deliver after 5 PM. Ring the bell twice.',
     officeNote: 'Customer called to confirm the delivery time. Seems important.',
@@ -181,8 +182,8 @@ export const orders: Order[] = [
         { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: products[0].price }
     ],
     logs: [
-        { status: 'Confirmed', timestamp: '2024-05-21T18:00:00Z', description: 'Order has been confirmed.', user: 'System' },
-        { status: 'New', timestamp: '2024-05-21T14:20:00Z', description: 'Order was placed.', user: 'Bob Williams' },
+        { title: 'Confirmed', timestamp: '2024-05-21T18:00:00Z', description: 'Order has been confirmed.', user: 'System' },
+        { title: 'New', timestamp: '2024-05-21T14:20:00Z', description: 'Order was placed.', user: 'Bob Williams' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
     customerNote: '',
     officeNote: 'Standard packing. No special instructions.',
@@ -211,7 +212,8 @@ export const orders: Order[] = [
         { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price }
     ],
     logs: [
-        { status: 'New', timestamp: '2024-05-22T08:00:00Z', description: 'Order was placed.', user: 'Charlie Brown' },
+        { title: 'Order Edited', timestamp: '2024-05-22T09:30:00Z', description: 'Added Slim Fit Denim Jeans to the order.', user: 'Jane Doe' },
+        { title: 'New', timestamp: '2024-05-22T08:00:00Z', description: 'Order was placed.', user: 'Charlie Brown' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
     customerNote: 'Gift wrap this order, please. It is for a birthday.',
     officeNote: '',
@@ -238,9 +240,9 @@ export const orders: Order[] = [
         { productId: 'PROD004', name: 'Leather Biker Jacket', image: products[3].image, quantity: 1, price: products[3].price }
     ],
     logs: [
-        { status: 'Shipped', timestamp: '2024-05-24T09:00:00Z', description: 'Package has been shipped.', user: 'Jane Doe' },
-        { status: 'Confirmed', timestamp: '2024-05-22T16:30:00Z', description: 'Order has been confirmed.', user: 'Jane Doe' },
-        { status: 'New', timestamp: '2024-05-22T13:45:00Z', description: 'Order was placed.', user: 'Diana Prince' },
+        { title: 'Shipped', timestamp: '2024-05-24T09:00:00Z', description: 'Package has been shipped.', user: 'Jane Doe' },
+        { title: 'Confirmed', timestamp: '2024-05-22T16:30:00Z', description: 'Order has been confirmed.', user: 'Jane Doe' },
+        { title: 'New', timestamp: '2024-05-22T13:45:00Z', description: 'Order was placed.', user: 'Diana Prince' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
     customerNote: '',
     officeNote: '',
@@ -268,8 +270,9 @@ export const orders: Order[] = [
         { productId: 'PROD003', name: 'Cotton Three-Piece', image: products[2].image, quantity: 1, price: products[2].price }
     ],
     logs: [
-        { status: 'Confirmed', timestamp: '2024-05-23T11:00:00Z', description: 'Order has been confirmed.', user: 'System' },
-        { status: 'New', timestamp: '2024-05-23T10:10:00Z', description: 'Order was placed.', user: 'Ethan Hunt' },
+        { title: 'Notes updated', timestamp: '2024-05-23T11:05:00Z', description: 'Office note added.', user: 'Jane Doe' },
+        { title: 'Confirmed', timestamp: '2024-05-23T11:00:00Z', description: 'Order has been confirmed.', user: 'System' },
+        { title: 'New', timestamp: '2024-05-23T10:10:00Z', description: 'Order was placed.', user: 'Ethan Hunt' },
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
     customerNote: 'Is it possible to get faster delivery?',
     officeNote: 'Follow up with customer about expedited shipping options.',
@@ -295,8 +298,8 @@ export const orders: Order[] = [
     total: 95.00,
     products: [{ productId: 'PROD005', name: 'Linen Three-Piece', image: products[4].image, quantity: 1, price: products[4].price }],
     logs: [
-        { status: 'Canceled', timestamp: '2024-05-24T15:00:00Z', description: 'Customer requested cancellation.', user: 'Jane Doe' },
-        { status: 'New', timestamp: '2024-05-24T11:20:00Z', description: 'Order was placed.', user: 'Fiona Glenanne' }
+        { title: 'Canceled', timestamp: '2024-05-24T15:00:00Z', description: 'Customer requested cancellation.', user: 'Jane Doe' },
+        { title: 'New', timestamp: '2024-05-24T11:20:00Z', description: 'Order was placed.', user: 'Fiona Glenanne' }
     ],
     customerNote: 'Changed my mind, please cancel.',
     officeNote: 'Cancellation confirmed by phone.',
@@ -316,7 +319,7 @@ export const orders: Order[] = [
     status: 'Hold',
     total: 79.99,
     products: [{ productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price }],
-    logs: [{ status: 'Hold', timestamp: '2024-05-25T10:00:00Z', description: 'Payment verification pending.', user: 'System' }],
+    logs: [{ title: 'Hold', timestamp: '2024-05-25T10:00:00Z', description: 'Payment verification pending.', user: 'System' }],
     customerNote: 'Paid via bKash, transaction ID is XXXXX.',
     officeNote: 'Awaiting payment confirmation from accounts.',
     createdBy: 'System',
@@ -332,10 +335,10 @@ export const orders: Order[] = [
     customerEmail: 'hannah@example.com',
     customerPhone: '+8801112345685',
     date: '2024-05-26',
-    status: 'Packing Hold',
+    status: 'In-Courier',
     total: 25.00,
     products: [{ productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: products[0].price }],
-    logs: [{ status: 'Packing Hold', timestamp: '2024-05-26T18:00:00Z', description: 'Item out of stock. Awaiting new shipment.', user: 'John Smith' }],
+    logs: [{ title: 'In-Courier', timestamp: '2024-05-26T18:00:00Z', description: 'Item out of stock. Awaiting new shipment.', user: 'John Smith' }],
     customerNote: '',
     officeNote: 'PROD001 in white, medium is out of stock. PO-2024-007 should arrive soon.',
     createdBy: 'Emily White',
@@ -355,7 +358,7 @@ export const orders: Order[] = [
     status: 'RTS (Ready to Ship)',
     total: 350.00,
     products: [{ productId: 'PROD004', name: 'Leather Biker Jacket', image: products[3].image, quantity: 1, price: products[3].price }],
-    logs: [{ status: 'RTS (Ready to Ship)', timestamp: '2024-05-27T17:00:00Z', description: 'Package packed and ready for courier pickup.', user: 'John Smith' }],
+    logs: [{ title: 'RTS (Ready to Ship)', timestamp: '2024-05-27T17:00:00Z', description: 'Package packed and ready for courier pickup.', user: 'John Smith' }],
     customerNote: 'Please ensure good packaging.',
     officeNote: 'Packed with extra bubble wrap.',
     createdBy: 'System',
@@ -376,8 +379,8 @@ export const orders: Order[] = [
     total: 79.99,
     products: [{ productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price }],
     logs: [
-        { status: 'Returned', timestamp: '2024-05-28T13:00:00Z', description: 'Item returned by customer. Reason: Wrong size.', user: 'System' },
-        { status: 'Delivered', timestamp: '2024-05-22T11:00:00Z', description: 'Package delivered.', user: 'System' }
+        { title: 'Returned', timestamp: '2024-05-28T13:00:00Z', description: 'Item returned by customer. Reason: Wrong size.', user: 'System' },
+        { title: 'Delivered', timestamp: '2024-05-22T11:00:00Z', description: 'Package delivered.', user: 'System' }
     ],
     customerNote: 'The size is too small, I would like to return it.',
     officeNote: 'Return initiated. Refund processed.',
@@ -395,13 +398,13 @@ export const orders: Order[] = [
     customerEmail: 'kara@example.com',
     customerPhone: '+8801992345688',
     date: '2024-05-18',
-    status: 'Partially Delivered',
+    status: 'Partial',
     total: 145.50,
     products: [
         { productId: 'PROD003', name: 'Cotton Three-Piece', image: products[2].image, quantity: 1, price: 120.50 },
         { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: 25.00 }
     ],
-    logs: [{ status: 'Partially Delivered', timestamp: '2024-05-21T16:00:00Z', description: 'One item delivered, another pending.', user: 'System' }],
+    logs: [{ title: 'Partial', timestamp: '2024-05-21T16:00:00Z', description: 'One item delivered, another pending.', user: 'System' }],
     customerNote: 'Received only the T-shirt.',
     officeNote: 'Three-piece is on backorder. Sent T-shirt first.',
     createdBy: 'Emily White',
@@ -425,7 +428,7 @@ export const orders: Order[] = [
         { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: 79.99 },
          { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: 25.00 }
     ],
-    logs: [{ status: 'Paid Returned', timestamp: '2024-05-24T10:00:00Z', description: 'Customer returned the jeans.', user: 'System' }],
+    logs: [{ title: 'Paid Returned', timestamp: '2024-05-24T10:00:00Z', description: 'Customer returned the jeans.', user: 'System' }],
     customerNote: 'Keeping the three-piece and t-shirt, but returning the jeans.',
     officeNote: 'Partial return processed for denim jeans.',
     createdBy: 'System',
@@ -439,9 +442,9 @@ export const orders: Order[] = [
 ];
 
 export const allStatuses: OrderStatus[] = [
-    'New', 'Confirmed', 'Canceled', 'Hold', 'In-Courier', 'Packing Hold', 
+    'New', 'Confirmed', 'Canceled', 'Hold', 'In-Courier', 
     'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 
-    'Partially Delivered', 'Paid Returned', 'Partial'
+    'Paid Returned', 'Partial'
 ];
 
 export const courierServices: CourierService[] = ['Pathao', 'RedX', 'Steadfast'];
@@ -570,7 +573,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-23T10:00:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 50000, frequency: 'Monthly' },
-        performance: { ordersCreated: 0, ordersConfirmed: 3, statusBreakdown: { 'New': 0, 'Confirmed': 3, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 2, 'Delivered': 1, 'Returned': 0, 'Partially Delivered': 0, 'Paid Returned': 0, 'Partial': 0 } },
+        performance: { ordersCreated: 0, ordersConfirmed: 3, statusBreakdown: { 'New': 0, 'Confirmed': 3, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 2, 'Delivered': 1, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
         financials: { totalEarned: 50000, totalPaid: 50000, dueAmount: 0 },
         paymentHistory: [
             { date: '2024-05-01', amount: 50000, notes: 'May Salary' }
@@ -585,7 +588,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-23T09:30:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 60000, frequency: 'Monthly' },
-        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Partially Delivered': 0, 'Paid Returned': 0, 'Partial': 0 } },
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
         financials: { totalEarned: 60000, totalPaid: 55000, dueAmount: 5000 },
         paymentHistory: [
             { date: '2024-05-01', amount: 55000, notes: 'May Salary (Partial)' }
@@ -601,7 +604,7 @@ export const staff: StaffMember[] = [
         paymentType: 'Both',
         salaryDetails: { amount: 20000, frequency: 'Monthly' },
         commissionDetails: { onOrderCreate: 50, onOrderConfirm: 100 },
-        performance: { ordersCreated: 5, ordersConfirmed: 1, statusBreakdown: { 'New': 1, 'Confirmed': 1, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 1, 'Delivered': 1, 'Returned': 0, 'Partially Delivered': 0, 'Paid Returned': 0, 'Partial': 0 } },
+        performance: { ordersCreated: 5, ordersConfirmed: 1, statusBreakdown: { 'New': 1, 'Confirmed': 1, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 1, 'Delivered': 1, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
         financials: { totalEarned: 20350, totalPaid: 20200, dueAmount: 150 },
         paymentHistory: [
              { date: '2024-05-01', amount: 20000, notes: 'May Salary' },
@@ -624,7 +627,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-23T08:15:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 35000, frequency: 'Monthly' },
-        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'Packing Hold': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Partially Delivered': 0, 'Paid Returned': 0, 'Partial': 0 } },
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
         financials: { totalEarned: 35000, totalPaid: 35000, dueAmount: 0 },
         paymentHistory: [
              { date: '2024-05-01', amount: 35000, notes: 'May Salary' }
@@ -692,3 +695,4 @@ export const bdDistricts: string[] = [
 
 
     
+

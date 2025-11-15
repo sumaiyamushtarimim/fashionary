@@ -124,6 +124,8 @@ const statusIcons: Record<string, React.ElementType> = {
     'Partial': Truck,
     'Paid Returned': History,
     'Notes updated': FileText, 
+    'Order Edited': Edit,
+    'Sent to Pathao': Truck,
 };
 
 
@@ -158,7 +160,7 @@ function OrderHistory({ logs }: { logs: OrderLog[] }) {
                     {isClient ? (
                         <ul className="space-y-6">
                             {sortedLogs.map((log, index) => {
-                                const Icon = statusIcons[log.status] || History;
+                                const Icon = statusIcons[log.title] || History;
                                 const isLast = index === 0;
                                 return (
                                     <li key={`${log.timestamp}-${index}`} className="relative flex items-start gap-4">
@@ -169,7 +171,7 @@ function OrderHistory({ logs }: { logs: OrderLog[] }) {
                                             <Icon className={cn("h-4 w-4", isLast ? "text-primary" : "text-muted-foreground")} />
                                         </div>
                                         <div className="flex-1 pt-1">
-                                            <p className={cn("font-medium", isLast ? "text-foreground" : "text-muted-foreground")}>{log.status}</p>
+                                            <p className={cn("font-medium", isLast ? "text-foreground" : "text-muted-foreground")}>{log.title}</p>
                                             <p className="text-sm text-muted-foreground">{log.description}</p>
                                             <div className="text-xs text-muted-foreground mt-1">
                                                 <span>{format(new Date(log.timestamp), "MMM d, yyyy, h:mm a")}</span>
@@ -784,6 +786,7 @@ export default function OrderDetailsPage() {
     
 
     
+
 
 
 

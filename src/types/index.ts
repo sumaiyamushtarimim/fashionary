@@ -68,7 +68,7 @@ export type OrderProduct = {
 };
 
 export type OrderLog = {
-    status: OrderStatus;
+    title: string;
     timestamp: string;
     description: string;
     user: string;
