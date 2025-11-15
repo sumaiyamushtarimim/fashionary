@@ -3,9 +3,9 @@
 'use client';
 
 import { useState, useMemo, useEffect } from "react";
-import { MoreHorizontal, PlusCircle } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Wallet } from "lucide-react";
 import { DateRange } from "react-day-picker";
-import { format, isWithinInterval } from "date-fns";
+import { format, isWithinInterval, addDays } from "date-fns";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,6 +65,7 @@ import { Separator } from "@/components/ui/separator";
 import { getExpenses, getExpenseCategories } from "@/services/expenses";
 import { getBusinesses } from "@/services/partners";
 import type { Expense, Business, ExpenseCategory, OrderPlatform } from "@/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ITEMS_PER_PAGE = 10;
 const socialPlatforms: OrderPlatform[] = ['Facebook', 'Instagram', 'TikTok', 'Website'];
@@ -76,6 +77,7 @@ export default function ExpensesPage() {
   const [allExpenseCategories, setAllExpenseCategories] = useState<ExpenseCategory[]>([]);
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAdExpense, setIsAdExpense] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -104,9 +106,16 @@ export default function ExpensesPage() {
         ? isWithinInterval(expenseDate, { start: dateRange.from, end: dateRange.to })
         : isWithinInterval(expenseDate, { start: dateRange.from, end: addDays(dateRange.from, 1) }));
 
-      return dateMatch;
+      const categoryMatch = categoryFilter === 'all' || expense.category === categoryFilter;
+
+      return dateMatch && categoryMatch;
     });
-  }, [dateRange, allExpenses]);
+  }, [dateRange, allExpenses, categoryFilter]);
+
+  const totalFilteredExpense = useMemo(() => {
+    return filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+  }, [filteredExpenses]);
+
 
   const totalPages = Math.ceil(filteredExpenses.length / ITEMS_PER_PAGE);
   const paginatedExpenses = useMemo(() => {
@@ -116,7 +125,7 @@ export default function ExpensesPage() {
 
   useEffect(() => {
       setCurrentPage(1);
-  }, [dateRange]);
+  }, [dateRange, categoryFilter]);
 
   const renderTable = () => (
      <Table>
@@ -219,10 +228,11 @@ export default function ExpensesPage() {
       return (
           <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
             <div className="flex items-center justify-between">
-                <div className="h-10 w-1/4" />
-                <div className="h-10 w-1/4" />
+                <Skeleton className="h-10 w-1/4" />
+                <Skeleton className="h-10 w-1/4" />
             </div>
-            <div className="h-96 w-full" />
+             <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-96 w-full" />
           </div>
       )
   }
@@ -235,6 +245,17 @@ export default function ExpensesPage() {
             <p className="text-muted-foreground hidden sm:block">Track and manage all business expenses.</p>
         </div>
         <div className="flex items-center gap-2">
+           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {allExpenseCategories.map(cat => (
+                        <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
             <DateRangePicker date={dateRange} onDateChange={setDateRange} />
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -333,6 +354,24 @@ export default function ExpensesPage() {
           </Dialog>
         </div>
       </div>
+
+       <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                    Total Expenses {categoryFilter !== 'all' ? `(${categoryFilter})` : ''}
+                </CardTitle>
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">৳{totalFilteredExpense.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">
+                    {dateRange?.from 
+                        ? `From ${format(dateRange.from, "LLL dd, y")}${dateRange.to ? ` to ${format(dateRange.to, "LLL dd, y")}`: ''}`
+                        : "For all time"
+                    }
+                </p>
+            </CardContent>
+        </Card>
       
       <Card>
         <CardHeader>
@@ -345,11 +384,15 @@ export default function ExpensesPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-            {isClient ? (
+            {isClient && paginatedExpenses.length > 0 ? (
                 <>
                     <div className="hidden sm:block">{renderTable()}</div>
                     <div className="sm:hidden">{renderCardList()}</div>
                 </>
+            ) : isClient ? (
+                <div className="h-48 flex items-center justify-center text-muted-foreground">
+                    No expenses found for the selected filters.
+                </div>
             ) : (
                  <div className="h-48 flex items-center justify-center text-muted-foreground">Loading expenses...</div>
             )}
@@ -357,7 +400,7 @@ export default function ExpensesPage() {
         <CardFooter>
           <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
                 <div>
-                    Showing <strong>{(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+                    Showing <strong>{paginatedExpenses.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}-
                     {Math.min(currentPage * ITEMS_PER_PAGE, filteredExpenses.length)}
                     </strong> of <strong>{filteredExpenses.length}</strong> expenses
                 </div>
