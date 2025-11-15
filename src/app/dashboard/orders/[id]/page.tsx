@@ -148,7 +148,7 @@ function OrderHistory({ logs }: { logs: OrderLog[] }) {
     const sortedLogs = React.useMemo(() => logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()), [logs]);
 
     return (
-        <Card>
+        <Card className="lg:col-span-2 xl:col-span-1">
             <CardHeader>
                 <CardTitle>Order History</CardTitle>
             </CardHeader>
@@ -682,84 +682,85 @@ export default function OrderDetailsPage() {
                     )}
                 </CardContent>
               </Card>
-              
-               <Card>
-                    <CardHeader><CardTitle>Order Source</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
-                            <FormField control={form.control} name="businessId" render={({ field }) => (
-                            <FormItem><FormLabel>Business</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a business" /></SelectTrigger></FormControl>
-                                    <SelectContent>{businesses.map(b => (<SelectItem key={b.id} value={b.id}><div className="flex items-center gap-2"><Store className="h-4 w-4 text-muted-foreground" /><span>{b.name}</span></div></SelectItem>))}</SelectContent>
-                                </Select>
-                            </FormItem>
-                        )}/>
-                        <FormField control={form.control} name="platform" render={({ field }) => (
-                            <FormItem><FormLabel>Platform</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a platform" /></SelectTrigger></FormControl>
-                                    <SelectContent>{allPlatforms.map(p => (<SelectItem key={p} value={p}><div className="flex items-center gap-2"><Globe className="h-4 w-4 text-muted-foreground" /><span>{p}</span></div></SelectItem>))}</SelectContent>
-                                </Select>
-                            </FormItem>
-                        )}/>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader><CardTitle>Notes</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
-                        <FormField control={form.control} name="customerNote" render={({ field }) => (<FormItem><FormLabel>Customer Note</FormLabel><FormControl><Textarea placeholder="No customer note provided." {...field} readOnly={!isEditing}/></FormControl></FormItem>)} />
-                        <FormField control={form.control} name="officeNote" render={({ field }) => (<FormItem><FormLabel>Office Note</FormLabel><FormControl><Textarea placeholder="Add an internal note..." {...field} readOnly={!isEditing}/></FormControl></FormItem>)} />
-                    </CardContent>
-                </Card>
-
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Courier Management</CardTitle>
-                        <CardDescription>Send this order to a courier service for delivery.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                         <div className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="courier">Courier Service</Label>
-                                <Select value={selectedCourier} onValueChange={setSelectedCourier}>
-                                    <SelectTrigger id="courier">
-                                        <SelectValue placeholder="Select a courier" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {courierServices.map(c => (
-                                            <SelectItem key={c} value={c}>{c}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            {selectedCourier && (
-                                 <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button className="w-full" type="button">
-                                            <Truck className="mr-2 h-4 w-4" /> Send to {selectedCourier}
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Confirm Order Dispatch</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                This will send the order details for <strong>{order.id}</strong> to <strong>{selectedCourier}</strong> for delivery. Are you sure you want to proceed?
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction>Confirm & Send</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            )}
-                         </div>
-                    </CardContent>
-                </Card>
-              <OrderHistory logs={order.logs} />
+              <Card>
+                <CardHeader>
+                    <CardTitle>Order Source</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <FormField control={form.control} name="businessId" render={({ field }) => (
+                        <FormItem><FormLabel>Business</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Select a business" /></SelectTrigger></FormControl>
+                                <SelectContent>{businesses.map(b => (<SelectItem key={b.id} value={b.id}><div className="flex items-center gap-2"><Store className="h-4 w-4 text-muted-foreground" /><span>{b.name}</span></div></SelectItem>))}</SelectContent>
+                            </Select>
+                        </FormItem>
+                    )}/>
+                    <FormField control={form.control} name="platform" render={({ field }) => (
+                        <FormItem><FormLabel>Platform</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Select a platform" /></SelectTrigger></FormControl>
+                                <SelectContent>{allPlatforms.map(p => (<SelectItem key={p} value={p}><div className="flex items-center gap-2"><Globe className="h-4 w-4 text-muted-foreground" /><span>{p}</span></div></SelectItem>))}</SelectContent>
+                            </Select>
+                        </FormItem>
+                    )}/>
+                </CardContent>
+            </Card>
             </div>
           </div>
+           <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 mt-4">
+              <OrderHistory logs={order.logs} />
+              <Card>
+                <CardHeader>
+                    <CardTitle>Courier Management</CardTitle>
+                    <CardDescription>Send this order to a courier service for delivery.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                        <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="courier">Courier Service</Label>
+                            <Select value={selectedCourier} onValueChange={setSelectedCourier}>
+                                <SelectTrigger id="courier">
+                                    <SelectValue placeholder="Select a courier" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {courierServices.map(c => (
+                                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        {selectedCourier && (
+                                <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button className="w-full" type="button">
+                                        <Truck className="mr-2 h-4 w-4" /> Send to {selectedCourier}
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Confirm Order Dispatch</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This will send the order details for <strong>{order.id}</strong> to <strong>{selectedCourier}</strong> for delivery. Are you sure you want to proceed?
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction>Confirm & Send</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        )}
+                        </div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader><CardTitle>Notes</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                    <FormField control={form.control} name="customerNote" render={({ field }) => (<FormItem><FormLabel>Customer Note</FormLabel><FormControl><Textarea placeholder="No customer note provided." {...field} readOnly={!isEditing}/></FormControl></FormItem>)} />
+                    <FormField control={form.control} name="officeNote" render={({ field }) => (<FormItem><FormLabel>Office Note</FormLabel><FormControl><Textarea placeholder="Add an internal note..." {...field} readOnly={!isEditing}/></FormControl></FormItem>)} />
+                </CardContent>
+            </Card>
+           </div>
         </div>
       </form>
     </Form>
@@ -773,5 +774,6 @@ export default function OrderDetailsPage() {
     
 
     
+
 
 
