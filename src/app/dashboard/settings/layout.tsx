@@ -13,6 +13,7 @@ import {
   Mail,
   BellRing,
   Radar,
+  FileSearch,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';

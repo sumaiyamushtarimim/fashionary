@@ -20,6 +20,7 @@ import {
   Wallet,
   BarChartHorizontal,
   Archive,
+  FileSearch,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +38,9 @@ import { cn } from "@/lib/utils";
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 
+// In a real app, this would be fetched from a settings service
+const isCourierReportEnabled = true; 
+
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
   { href: "/dashboard/orders", icon: ShoppingCart, label: "Orders" },
@@ -47,6 +51,7 @@ const navItems = [
   { href: "/dashboard/expenses", icon: Wallet, label: "Expenses" },
   { href: "/dashboard/check-passing", icon: Landmark, label: "Check Passing"},
   { href: "/dashboard/partners", icon: Handshake, label: "Partners" },
+  ...(isCourierReportEnabled ? [{ href: "/dashboard/courier-report", icon: FileSearch, label: "Courier Report" }] : []),
   { href: "/dashboard/analytics", icon: BarChartHorizontal, label: "Analytics" },
   { href: "/dashboard/staff", icon: User, label: "Staff" },
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },

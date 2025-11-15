@@ -9,6 +9,7 @@ import {
   Mail,
   BellRing,
   Radar,
+  FileSearch,
 } from 'lucide-react';
 import Link from 'next/link';
 
