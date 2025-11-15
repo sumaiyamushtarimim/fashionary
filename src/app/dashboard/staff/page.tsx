@@ -38,7 +38,7 @@ import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -56,7 +56,7 @@ type StaffRole = 'Admin' | 'Manager' | 'Sales' | 'Warehouse' | 'Custom';
 const paymentTypes: PaymentType[] = ['Salary', 'Commission', 'Both'];
 const staffRoles: StaffRole[] = ['Admin', 'Manager', 'Sales', 'Warehouse', 'Custom'];
 const permissionModules: (keyof StaffMember['permissions'])[] = ['orders', 'products', 'customers', 'purchases', 'staff', 'settings', 'analytics'];
-const permissionActions: (keyof StaffMember['permissions']['orders'])[] = ['create', 'read', 'update', 'delete'];
+const permissionActions: (keyof Permission)[] = ['create', 'read', 'update', 'delete'];
 
 export default function StaffPage() {
     const [allStaff, setAllStaff] = useState<StaffMember[]>([]);
@@ -66,7 +66,7 @@ export default function StaffPage() {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         setIsLoading(true);
         getStaff().then(data => {
             setAllStaff(data);
@@ -113,11 +113,11 @@ export default function StaffPage() {
         }
     );
 
-    const handlePermissionChange = (module: keyof StaffMember['permissions'], action: keyof StaffMember['permissions']['orders'], value: boolean) => {
+    const handlePermissionChange = (module: keyof StaffMember['permissions'], action: keyof Permission, value: boolean) => {
         setPermissions(prev => ({
             ...prev,
             [module]: {
-                ...prev[module],
+                ...(prev[module] as Permission),
                 [action]: value,
             },
         }));
@@ -167,7 +167,7 @@ export default function StaffPage() {
                                                     <div key={action} className="flex items-center space-x-2">
                                                         <Checkbox 
                                                             id={`${module}-${action}`} 
-                                                            checked={permissions[module][action]}
+                                                            checked={permissions[module]?.[action] || false}
                                                             onCheckedChange={(checked) => handlePermissionChange(module, action, !!checked)}
                                                         />
                                                         <label
@@ -489,3 +489,5 @@ export default function StaffPage() {
     </div>
   );
 }
+
+    

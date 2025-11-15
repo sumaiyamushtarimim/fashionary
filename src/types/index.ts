@@ -281,3 +281,5 @@ export type WooCommerceIntegration = {
     businessId: string;
     businessName: string;
 };
+
+    
