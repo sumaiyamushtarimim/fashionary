@@ -35,10 +35,11 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
-import React from "react";
+import React, { Suspense } from "react";
 import { Badge } from "@/components/ui/badge";
 import { UserButton, ClerkLoaded, ClerkLoading } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageLoader } from "@/components/ui/page-loader";
 
 // In a real app, this would be fetched from a settings service
 const isCourierReportEnabled = true; 
@@ -180,6 +181,9 @@ export default function DashboardLayout({
       </div>
       <div className="flex flex-col">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-muted px-4 lg:h-[60px] lg:px-6">
+           <Suspense fallback={null}>
+              <PageLoader />
+           </Suspense>
           <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="shrink-0 md:hidden">
