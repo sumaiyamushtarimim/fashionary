@@ -94,7 +94,7 @@ export default function SingleStickerPage() {
     }
 
     return (
-        <div className="bg-gray-100 min-h-screen">
+        <div className="bg-gray-100 min-h-screen print:bg-white">
             <div className="p-4 bg-white shadow-md no-print sticky top-0 z-10 flex items-center justify-between">
                 <h1 className="text-lg font-bold">Sticker Preview</h1>
                 <Button onClick={() => window.print()}>

@@ -20,7 +20,7 @@ export function InvoiceTemplate({ order }: { order: Order }) {
     const total = subtotal + shipping + tax;
 
     return (
-        <div className="max-w-4xl mx-auto p-8 bg-white text-gray-800">
+        <div className="max-w-4xl mx-auto p-8 bg-white text-gray-800 print:shadow-none print:p-8">
             <header className="flex justify-between items-center pb-6 border-b">
                 <div className="flex items-center gap-4">
                     <Logo />
@@ -145,7 +145,7 @@ export default function SingleInvoicePage() {
 
     if (isLoading) {
         return (
-            <div className="max-w-4xl mx-auto p-8">
+            <div className="max-w-4xl mx-auto p-8 bg-gray-100">
                 <Skeleton className="h-24 w-full mb-8" />
                 <Skeleton className="h-16 w-1/2 mb-8" />
                 <Skeleton className="h-48 w-full mb-8" />
@@ -159,7 +159,7 @@ export default function SingleInvoicePage() {
     }
 
     return (
-        <div className="bg-gray-100 min-h-screen">
+        <div className="bg-gray-100 min-h-screen print:bg-white">
              <div className="p-4 bg-white shadow-md no-print sticky top-0 z-10 flex items-center justify-between">
                 <h1 className="text-lg font-bold">Invoice Preview</h1>
                 <Button onClick={() => window.print()}>
@@ -167,7 +167,9 @@ export default function SingleInvoicePage() {
                     Print Invoice
                 </Button>
             </div>
-            <InvoiceTemplate order={order} />
+            <div className="print:p-0">
+                <InvoiceTemplate order={order} />
+            </div>
         </div>
     );
 }

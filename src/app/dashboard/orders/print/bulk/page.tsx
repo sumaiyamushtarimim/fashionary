@@ -9,6 +9,7 @@ import { InvoiceTemplate } from '../invoice/[id]/page';
 import { StickerTemplate } from '../sticker/[id]/page';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function BulkPrintPage() {
     const searchParams = useSearchParams();
@@ -32,10 +33,19 @@ export default function BulkPrintPage() {
         } else {
             setIsLoading(false);
         }
-    }, [searchParams]);
+    }, [searchParams, orderIds]);
 
     if (isLoading) {
-        return <div className="p-10 text-center">Loading orders...</div>;
+        return (
+            <div className="p-10 text-center">
+                <p>Loading {orderIds.length} orders...</p>
+                <div className="mt-4 space-y-4">
+                    {[...Array(Math.min(orderIds.length, 3))].map((_, i) => (
+                        <Skeleton key={i} className="h-48 w-full max-w-4xl mx-auto" />
+                    ))}
+                </div>
+            </div>
+        )
     }
 
     if (orders.length === 0) {
@@ -56,9 +66,9 @@ export default function BulkPrintPage() {
 
             <div className="p-4 print:p-0">
                 {printType === 'invoice' && (
-                    <div className="space-y-4">
+                    <div className="space-y-4 print:space-y-0">
                         {orders.map(order => (
-                            <div key={order.id} className="bg-white shadow-lg print:shadow-none page-break">
+                            <div key={order.id} className="bg-white shadow-lg print:shadow-none print:border-b page-break">
                                 <InvoiceTemplate order={order} />
                             </div>
                         ))}
@@ -68,7 +78,7 @@ export default function BulkPrintPage() {
                 {printType === 'sticker' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 print:grid-cols-2 print:gap-0">
                          {orders.map(order => (
-                            <div key={order.id} className="flex justify-center items-start page-break">
+                            <div key={order.id} className="flex justify-center items-start bg-white shadow-lg print:shadow-none page-break">
                                 <StickerTemplate order={order} />
                             </div>
                         ))}
@@ -78,8 +88,10 @@ export default function BulkPrintPage() {
              <style jsx global>{`
                 @media print {
                     .page-break {
-                        page-break-inside: avoid;
                         page-break-after: always;
+                    }
+                    body {
+                        -webkit-print-color-adjust: exact;
                     }
                 }
             `}</style>
