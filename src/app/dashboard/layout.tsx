@@ -37,6 +37,7 @@ import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import React from "react";
 import { Badge } from "@/components/ui/badge";
+import { UserButton } from "@clerk/nextjs";
 
 // In a real app, this would be fetched from a settings service
 const isCourierReportEnabled = true; 
@@ -236,26 +237,7 @@ export default function DashboardLayout({
                 </DropdownMenuFooter>
             </DropdownMenuContent>
           </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full">
-                <User className="h-5 w-5" />
-                <span className="sr-only">Toggle user menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard/account">My Profile</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/">Logout</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <UserButton afterSignOutUrl="/" />
         </header>
         <main className="flex flex-1 flex-col bg-background">
           {children}
