@@ -2,7 +2,7 @@
 
 'use client';
 
-import { MoreHorizontal, PlusCircle, History, ArrowRight, Minus, Plus, Package, Warehouse, HardHat } from "lucide-react";
+import { MoreHorizontal, PlusCircle, History, ArrowRight, Minus, Plus, Package, Warehouse, HardHat, CircleDollarSign, TrendingUp, BarChart } from "lucide-react";
 import * as React from "react";
 import Link from 'next/link';
 import Image from 'next/image';
@@ -57,6 +57,7 @@ import { getInventory, getInventoryMovements, getStockLocations } from "@/servic
 import { getProducts } from "@/services/products";
 import type { InventoryItem, Product, ProductVariant, InventoryMovement, StockLocation } from "@/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 type DialogState = {
@@ -76,6 +77,7 @@ export default function InventoryPage() {
     const [selectedProduct, setSelectedProduct] = React.useState<string | undefined>(undefined);
     const [selectedVariant, setSelectedVariant] = React.useState<string | undefined>(undefined);
     const [isClient, setIsClient] = React.useState(false);
+    const [locationFilter, setLocationFilter] = React.useState<string>('all');
 
     React.useEffect(() => {
         setIsClient(true);
@@ -93,6 +95,32 @@ export default function InventoryPage() {
             setIsLoading(false);
         });
     }, []);
+
+    const overviewStats = React.useMemo(() => {
+        const filteredInventory = locationFilter === 'all'
+            ? allInventory
+            : allInventory.filter(item => item.locationId === locationFilter);
+
+        let totalItems = 0;
+        let totalCostValue = 0;
+        let totalSaleValue = 0;
+
+        filteredInventory.forEach(item => {
+            const product = allProducts.find(p => p.id === item.productId);
+            if (product) {
+                totalItems += item.quantity;
+                // Assuming cost is 50% of the sale price for this calculation
+                const costPrice = product.price * 0.5;
+                totalCostValue += item.quantity * costPrice;
+                totalSaleValue += item.quantity * product.price;
+            }
+        });
+        
+        const potentialProfit = totalSaleValue - totalCostValue;
+
+        return { totalItems, totalCostValue, totalSaleValue, potentialProfit };
+
+    }, [allInventory, allProducts, locationFilter]);
 
     const [dialogState, setDialogState] = React.useState<DialogState>({
         isOpen: false,
@@ -266,8 +294,11 @@ export default function InventoryPage() {
     if (isLoading) {
         return (
             <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-                <div className="h-10 w-1/4" />
-                <div className="h-96 w-full" />
+                <Skeleton className="h-10 w-1/4" />
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+                    {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24" />)}
+                </div>
+                <Skeleton className="h-96 w-full" />
             </div>
         )
     }
@@ -289,6 +320,66 @@ export default function InventoryPage() {
             </Button>
         </div>
       </div>
+
+       <div className="space-y-4">
+        <div className="flex items-center gap-4">
+            <h2 className="text-lg font-semibold font-headline">Overview</h2>
+            <Select value={locationFilter} onValueChange={setLocationFilter}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select Location" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Locations</SelectItem>
+                    {allLocations.map(loc => (
+                        <SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Items</CardTitle>
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{overviewStats.totalItems.toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground">units in stock</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Stock Value (Cost)</CardTitle>
+                    <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">৳{overviewStats.totalCostValue.toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground">Estimated cost price</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Stock Value (Sale)</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">৳{overviewStats.totalSaleValue.toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground">Total retail value</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Potential Profit</CardTitle>
+                    <BarChart className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">৳{overviewStats.potentialProfit.toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground">Estimated profit from current stock</p>
+                </CardContent>
+            </Card>
+        </div>
+      </div>
+
       <Card>
         <CardContent className="pt-6">
           {isClient ? (
