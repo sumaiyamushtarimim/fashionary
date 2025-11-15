@@ -216,7 +216,7 @@ export default function Dashboard() {
                     ) : (
                         <>
                             {/* For larger screens */}
-                            <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                 {statusEntries.map(({ status, count, total }) => (
                                     <Card key={status} onClick={() => handleStatusClick(status)} className="cursor-pointer hover:bg-muted/50 transition-colors">
                                         <CardHeader className="pb-2">
