@@ -6,7 +6,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { MoreHorizontal, PlusCircle, Truck, Printer, File as FileIcon } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Truck, Printer, File as FileIcon, Download } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { format, isWithinInterval } from "date-fns";
 
@@ -197,6 +197,69 @@ export default function OrdersClientPage() {
       setStatusFilter(statusFromUrl);
     }
   }, [searchParams]);
+  
+  const handleExport = (format: 'all' | 'steadfast' | 'pathao' | 'redx') => {
+    const ordersToExport = selectedOrders.length > 0
+        ? allOrders.filter(order => selectedOrders.includes(order.id))
+        : filteredOrders;
+
+    if (ordersToExport.length === 0) {
+        alert("No orders to export.");
+        return;
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8,";
+    let headers: string[] = [];
+    let rows: string[][] = [];
+
+    if (format === 'steadfast') {
+        headers = ['Invoice', 'Name', 'Address', 'Phone', 'Amount', 'Note', 'Lot', 'Delivery Type', 'Contact Name', 'Contact Phone'];
+        rows = ordersToExport.map(order => {
+            const business = businesses.find(b => b.id === order.businessId);
+            const dueAmount = order.total - order.paidAmount;
+            const lot = order.products.reduce((acc, p) => acc + p.quantity, 0);
+
+            return [
+                order.id,
+                order.customerName,
+                order.shippingAddress.address.replace(/,/g, ''), // Remove commas from address
+                order.customerPhone,
+                dueAmount.toString(),
+                order.officeNote?.replace(/,/g, '') || '',
+                lot.toString(),
+                'Home',
+                business?.name || '',
+                '01234567890' // Placeholder for business phone
+            ];
+        });
+    } else { // 'all', 'pathao', 'redx' will use the full export for now
+        const allHeaders = [...new Set(ordersToExport.flatMap(obj => Object.keys(obj)))];
+        headers = allHeaders;
+        rows = ordersToExport.map(order => {
+            return allHeaders.map(header => {
+                const value = (order as any)[header];
+                if (typeof value === 'object' && value !== null) {
+                    return JSON.stringify(value).replace(/,/g, ';');
+                }
+                return String(value).replace(/,/g, '');
+            });
+        });
+    }
+    
+    csvContent += headers.join(",") + "\r\n";
+    rows.forEach(rowArray => {
+        let row = rowArray.join(",");
+        csvContent += row + "\r\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `orders_export_${format}_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleBulkPrint = (type: 'invoice' | 'sticker') => {
     if (selectedOrders.length === 0) return;
@@ -456,9 +519,23 @@ export default function OrdersClientPage() {
         
         <div className="hidden sm:flex items-center gap-2 justify-end">
             <DateRangePicker date={dateRange} onDateChange={setDateRange} placeholder="Filter by date" />
-            <Button size="sm" variant="outline" className="hidden sm:inline-flex">
-                Export
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline">
+                    <Download className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Export</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>Export Options</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleExport('all')}>All Orders</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('steadfast')}>Steadfast Format</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('pathao')}>Pathao Format</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('redx')}>RedX Format</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Button size="sm" asChild>
                 <Link href="/dashboard/orders/new">
                     <PlusCircle className="h-4 w-4 sm:mr-2" />
@@ -600,3 +677,4 @@ export default function OrdersClientPage() {
     </div>
   );
 }
+
