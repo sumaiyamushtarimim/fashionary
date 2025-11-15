@@ -283,7 +283,7 @@ export default function InventoryPage() {
         return (
             <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                 <Skeleton className="h-10 w-1/4" />
-                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+                <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
                     {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24" />)}
                 </div>
                 <Skeleton className="h-96 w-full" />
@@ -324,7 +324,7 @@ export default function InventoryPage() {
                 </SelectContent>
             </Select>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Items</CardTitle>
