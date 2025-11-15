@@ -682,44 +682,36 @@ export default function OrderDetailsPage() {
                     )}
                 </CardContent>
               </Card>
-               <Tabs defaultValue="source" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="source"><BookUser className="sm:mr-2 h-4 w-4"/> <span className="hidden sm:inline">Source</span></TabsTrigger>
-                    <TabsTrigger value="notes"><StickyNote className="sm:mr-2 h-4 w-4"/> <span className="hidden sm:inline">Notes</span></TabsTrigger>
-                </TabsList>
-                <TabsContent value="source">
-                    <Card className="rounded-t-none">
-                        <CardHeader><CardTitle>Order Source</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                             <FormField control={form.control} name="businessId" render={({ field }) => (
-                                <FormItem><FormLabel>Business</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
-                                        <FormControl><SelectTrigger><SelectValue placeholder="Select a business" /></SelectTrigger></FormControl>
-                                        <SelectContent>{businesses.map(b => (<SelectItem key={b.id} value={b.id}><div className="flex items-center gap-2"><Store className="h-4 w-4 text-muted-foreground" /><span>{b.name}</span></div></SelectItem>))}</SelectContent>
-                                    </Select>
-                                </FormItem>
-                            )}/>
-                            <FormField control={form.control} name="platform" render={({ field }) => (
-                                <FormItem><FormLabel>Platform</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
-                                        <FormControl><SelectTrigger><SelectValue placeholder="Select a platform" /></SelectTrigger></FormControl>
-                                        <SelectContent>{allPlatforms.map(p => (<SelectItem key={p} value={p}><div className="flex items-center gap-2"><Globe className="h-4 w-4 text-muted-foreground" /><span>{p}</span></div></SelectItem>))}</SelectContent>
-                                    </Select>
-                                </FormItem>
-                            )}/>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-                <TabsContent value="notes">
-                     <Card className="rounded-t-none">
-                        <CardHeader><CardTitle>Notes</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                            <FormField control={form.control} name="customerNote" render={({ field }) => (<FormItem><FormLabel>Customer Note</FormLabel><FormControl><Textarea placeholder="No customer note provided." {...field} readOnly={!isEditing}/></FormControl></FormItem>)} />
-                            <FormField control={form.control} name="officeNote" render={({ field }) => (<FormItem><FormLabel>Office Note</FormLabel><FormControl><Textarea placeholder="Add an internal note..." {...field} readOnly={!isEditing}/></FormControl></FormItem>)} />
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-               </Tabs>
+              
+               <Card>
+                    <CardHeader><CardTitle>Order Source</CardTitle></CardHeader>
+                    <CardContent className="space-y-4">
+                            <FormField control={form.control} name="businessId" render={({ field }) => (
+                            <FormItem><FormLabel>Business</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a business" /></SelectTrigger></FormControl>
+                                    <SelectContent>{businesses.map(b => (<SelectItem key={b.id} value={b.id}><div className="flex items-center gap-2"><Store className="h-4 w-4 text-muted-foreground" /><span>{b.name}</span></div></SelectItem>))}</SelectContent>
+                                </Select>
+                            </FormItem>
+                        )}/>
+                        <FormField control={form.control} name="platform" render={({ field }) => (
+                            <FormItem><FormLabel>Platform</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a platform" /></SelectTrigger></FormControl>
+                                    <SelectContent>{allPlatforms.map(p => (<SelectItem key={p} value={p}><div className="flex items-center gap-2"><Globe className="h-4 w-4 text-muted-foreground" /><span>{p}</span></div></SelectItem>))}</SelectContent>
+                                </Select>
+                            </FormItem>
+                        )}/>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader><CardTitle>Notes</CardTitle></CardHeader>
+                    <CardContent className="space-y-4">
+                        <FormField control={form.control} name="customerNote" render={({ field }) => (<FormItem><FormLabel>Customer Note</FormLabel><FormControl><Textarea placeholder="No customer note provided." {...field} readOnly={!isEditing}/></FormControl></FormItem>)} />
+                        <FormField control={form.control} name="officeNote" render={({ field }) => (<FormItem><FormLabel>Office Note</FormLabel><FormControl><Textarea placeholder="Add an internal note..." {...field} readOnly={!isEditing}/></FormControl></FormItem>)} />
+                    </CardContent>
+                </Card>
 
                  <Card>
                     <CardHeader>
@@ -781,4 +773,3 @@ export default function OrderDetailsPage() {
     
 
     
-
