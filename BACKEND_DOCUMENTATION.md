@@ -24,27 +24,332 @@ Your first step should be to set up the database and model the schemas.
 1.  **Review Data Models:** Before starting, thoroughly review the TypeScript types defined in **`src/types/index.ts`**. These types (e.g., `Order`, `Product`, `Customer`) should be the "single source of truth" for your database schema.
 2.  **Schema Definition with Prisma:** Use the types in `src/types/index.ts` to create your `schema.prisma` file. This will ensure that your database models and API responses are perfectly aligned with what the frontend expects.
 
-**Example `schema.prisma` (partial):**
+### Example `schema.prisma`
+
+Below is a comprehensive Prisma schema to get you started. It is based on the data structures in `src/types/index.ts`.
+
 ```prisma
 // schema.prisma
 
+datasource db {
+  provider = "postgresql" // or "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ENUMS //
+
+enum OrderStatus {
+  New
+  Confirmed
+  Canceled
+  Hold
+  InCourier     @map("In-Courier")
+  ReadyToShip   @map("RTS (Ready to Ship)")
+  Shipped
+  Delivered
+  Returned
+  PaidReturned  @map("Paid Returned")
+  Partial
+}
+
+enum PurchaseOrderStatus {
+  Draft
+  FabricOrdered
+  Printing
+  Cutting
+  Received
+  Cancelled
+}
+
+enum PaymentMethod {
+  CashOnDelivery
+  bKash
+  Nagad
+}
+
+enum OrderPlatform {
+  TikTok
+  Messenger
+  Facebook
+  Instagram
+  Website
+}
+
+enum CheckStatus {
+  Pending
+  Passed
+  Bounced
+  Cancelled
+}
+
+enum StaffRole {
+  Admin
+  Manager
+  PackingAssistant
+  Moderator
+  Seller
+  CallAssistant
+  CallCentreManager
+  CourierManager
+  CourierCallAssistant
+  Custom
+}
+
+// MODELS //
+
 model Product {
-  id          String @id @default(cuid())
-  name        String
-  description String
-  price       Float
-  inventory   Int
-  // ... other fields corresponding to the Product type
+  id               String           @id @default(cuid())
+  name             String
+  description      String?
+  price            Float
+  inventory        Int
+  image            Json? // Assuming ImagePlaceholder structure is stored as JSON
+  categoryId       String?
+  ornaFabric       Float?
+  jamaFabric       Float?
+  selowarFabric    Float?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  category         Category?        @relation(fields: [categoryId], references: [id])
+  variants         ProductVariant[]
+  orderItems       OrderProduct[]
+  purchaseOrderItems PurchaseOrderItem[]
+}
+
+model ProductVariant {
+  id        String   @id @default(cuid())
+  name      String
+  sku       String   @unique
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  parentId  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  parent    Category? @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children  Category[] @relation("CategoryHierarchy")
+  products  Product[]
 }
 
 model Order {
-  id              String   @id @default(cuid())
+  id              String         @id @default(cuid())
   customerName    String
   customerEmail   String
   customerPhone   String
   date            DateTime
-  // ... other fields
+  status          OrderStatus
+  total           Float
+  shipping        Float?
+  customerNote    String?
+  officeNote      String?
+  createdBy       String? // Staff name or ID
+  confirmedBy     String? // Staff name or ID
+  businessId      String?
+  platform        OrderPlatform?
+  paymentMethod   PaymentMethod
+  paidAmount      Float
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  shippingAddress Json // Store address object as JSON
+  products        OrderProduct[]
+  logs            OrderLog[]
+  customer        Customer?      @relation(fields: [customerPhone], references: [phone])
+  business        Business?      @relation(fields: [businessId], references: [id])
 }
+
+model OrderProduct {
+  id        String   @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model OrderLog {
+  id          String   @id @default(cuid())
+  orderId     String
+  title       String
+  description String
+  user        String
+  timestamp   DateTime @default(now())
+
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Customer {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  phone       String   @unique
+  joinDate    DateTime
+  address     String
+  district    String
+  country     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders      Order[]
+}
+
+model PurchaseOrder {
+  id              String              @id @default(cuid())
+  supplierId      String
+  date            DateTime
+  status          PurchaseOrderStatus
+  total           Float
+  itemsCount      Int                 @map("items")
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  supplier        Supplier            @relation(fields: [supplierId], references: [id])
+  items           PurchaseOrderItem[]
+  logs            PurchaseOrderLog[]
+  payments        PurchasePayment[]
+}
+
+model PurchaseOrderItem {
+  id        String   @id @default(cuid())
+  poId      String
+  productId String
+  quantity  Int
+  unitCost  Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  purchaseOrder PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
+  product       Product       @relation(fields: [productId], references: [id])
+}
+
+model PurchaseOrderLog {
+  id          String   @id @default(cuid())
+  poId        String
+  status      PurchaseOrderStatus
+  description String
+  user        String
+  timestamp   DateTime @default(now())
+
+  purchaseOrder PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
+}
+
+// Payment for a specific part of a PO
+model PurchasePayment {
+  id          String      @id @default(cuid())
+  poId        String
+  vendorId    String?
+  paymentFor  String // e.g., "Fabric", "Printing", "Cutting"
+  cash        Float
+  check       Float
+  checkDate   DateTime?
+  checkStatus CheckStatus?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  purchaseOrder PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
+  vendor        Vendor?         @relation(fields: [vendorId], references: [id])
+}
+
+model Supplier {
+  id            String          @id @default(cuid())
+  name          String          @unique
+  contactPerson String
+  email         String
+  phone         String
+  address       String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  purchaseOrders  PurchaseOrder[]
+}
+
+model Vendor {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  type          String // "Printing" or "Cutting"
+  contactPerson String
+  email         String
+  phone         String
+  rate          String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  payments      PurchasePayment[]
+}
+
+model StaffMember {
+  id              String   @id @default(cuid())
+  clerkId         String   @unique // From Clerk Auth
+  name            String
+  email           String   @unique
+  role            StaffRole
+  lastLogin       DateTime
+  paymentType     String // Salary, Commission, Both
+  salaryAmount    Float?
+  salaryFrequency String? // Daily, Weekly, Monthly
+  commissionCreate Float?
+  commissionConfirm Float?
+  permissions     Json // Store permission object as JSON
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships for tracking earnings and payments would be more complex
+  // and might involve separate tables for income and payment history.
+}
+
+model Expense {
+  id        String    @id @default(cuid())
+  date      DateTime
+  amount    Float
+  notes     String?
+  isAdExpense Boolean   @default(false)
+  platform  OrderPlatform?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  categoryId String
+  category  ExpenseCategory @relation(fields: [categoryId], references: [id])
+  
+  businessId String?
+  business  Business? @relation(fields: [businessId], references: [id])
+}
+
+model ExpenseCategory {
+  id     String   @id @default(cuid())
+  name   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  expenses Expense[]
+}
+
+model Business {
+  id     String   @id @default(cuid())
+  name   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  orders   Order[]
+  expenses Expense[]
+}
+
 ```
 
 ## 2. Building the API Endpoints
