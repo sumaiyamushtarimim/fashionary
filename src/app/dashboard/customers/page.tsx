@@ -2,18 +2,20 @@
 'use client';
 
 import * as React from 'react';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Users, Repeat } from 'lucide-react';
 import Link from 'next/link';
+import { DateRange } from "react-day-picker";
+import { isWithinInterval, startOfDay, endOfDay } from "date-fns";
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription
 } from '@/components/ui/card';
 import {
   DropdownMenu,
@@ -44,14 +46,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { getCustomers } from '@/services/customers';
-import type { Customer } from '@/types';
+import { getOrders } from '@/services/orders';
+import type { Customer, Order } from '@/types';
 
 const ITEMS_PER_PAGE = 10;
 
 export default function CustomersPage() {
   const [allCustomers, setAllCustomers] = React.useState<Customer[]>([]);
+  const [allOrders, setAllOrders] = React.useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
   const [currentPage, setCurrentPage] = React.useState(1);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
@@ -59,11 +65,44 @@ export default function CustomersPage() {
   const [selectedCustomer, setSelectedCustomer] = React.useState<Customer | null>(null);
 
   React.useEffect(() => {
-    getCustomers().then(data => {
-        setAllCustomers(data);
+    Promise.all([
+        getCustomers(),
+        getOrders()
+    ]).then(([customersData, ordersData]) => {
+        setAllCustomers(customersData);
+        setAllOrders(ordersData);
         setIsLoading(false);
     });
   }, []);
+
+  const overviewStats = React.useMemo(() => {
+    const targetCustomers = dateRange?.from
+        ? allCustomers.filter(c => {
+            const joinDate = new Date(c.joinDate);
+            return isWithinInterval(joinDate, { start: startOfDay(dateRange.from!), end: endOfDay(dateRange.to || dateRange.from!) });
+        })
+        : allCustomers;
+    
+    const targetOrders = dateRange?.from
+        ? allOrders.filter(o => {
+            const orderDate = new Date(o.date);
+             return isWithinInterval(orderDate, { start: startOfDay(dateRange.from!), end: endOfDay(dateRange.to || dateRange.from!) });
+        })
+        : allOrders;
+
+    const ordersByCustomer = targetOrders.reduce((acc, order) => {
+        acc[order.customerPhone] = (acc[order.customerPhone] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+
+    const repeatCustomers = Object.values(ordersByCustomer).filter(count => count > 1).length;
+
+    return {
+        totalCustomers: targetCustomers.length,
+        repeatCustomers
+    }
+  }, [allCustomers, allOrders, dateRange]);
+
 
   const handleEditClick = (customer: Customer) => {
     setSelectedCustomer(customer);
@@ -226,6 +265,7 @@ export default function CustomersPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+            <DateRangePicker date={dateRange} onDateChange={setDateRange} />
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
                     <Button size="sm">
@@ -263,6 +303,35 @@ export default function CustomersPage() {
             </Dialog>
         </div>
       </div>
+        <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                        {dateRange?.from ? 'New Customers' : 'Total Customers'}
+                    </CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{overviewStats.totalCustomers.toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground">
+                       {dateRange?.from ? 'Customers who joined in this period' : 'All customers in the system'}
+                    </p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Repeat Customers</CardTitle>
+                    <Repeat className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{overviewStats.repeatCustomers.toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground">
+                        {dateRange?.from ? 'Customers with 2+ orders in this period' : 'Customers with 2+ orders lifetime'}
+                    </p>
+                </CardContent>
+            </Card>
+        </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Customer List</CardTitle>
@@ -350,5 +419,3 @@ export default function CustomersPage() {
     </div>
   );
 }
-
-    
