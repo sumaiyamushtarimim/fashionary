@@ -110,7 +110,7 @@ export default function CourierSettingsPage() {
 
     const fields = selectedCourier ? courierFields[selectedCourier.id] : [];
     const authToken = `Bearer ${generateRandomString(32)}`;
-    const callbackUrl = `https://your-domain.com/api/webhooks/steadfast/${generateRandomString(12)}`;
+    const callbackUrl = `https://your-domain.com/api/webhooks/${selectedCourier?.id}/${generateRandomString(12)}`;
 
     return (
         <div className="space-y-6">
@@ -188,11 +188,11 @@ export default function CourierSettingsPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
-                        {selectedCourier?.id === 'pathao' && (
+                        {(selectedCourier?.id === 'pathao' || selectedCourier?.id === 'redx') && (
                             <div className="space-y-2">
-                                <Label htmlFor="pathao-env">Environment</Label>
+                                <Label htmlFor="environment">Environment</Label>
                                 <Select defaultValue="sandbox">
-                                    <SelectTrigger id="pathao-env">
+                                    <SelectTrigger id="environment">
                                         <SelectValue placeholder="Select environment" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -209,13 +209,13 @@ export default function CourierSettingsPage() {
                             </div>
                         ))}
 
-                        {selectedCourier?.id === 'steadfast' && (
+                        {(selectedCourier?.id === 'steadfast' || selectedCourier?.id === 'redx') && (
                             <>
                                 <Separator />
                                 <div className="space-y-2">
                                     <Label>Authorization Token (Bearer)</Label>
                                     <p className="text-xs text-muted-foreground">
-                                        Use this token in your Steadfast webhook settings for secure communication.
+                                        Use this token in your {selectedCourier.name} webhook settings for secure communication.
                                     </p>
                                     <div className="flex items-center space-x-2">
                                         <Input value={authToken} readOnly />
@@ -229,7 +229,7 @@ export default function CourierSettingsPage() {
                                  <div className="space-y-2">
                                     <Label>Callback URL</Label>
                                     <p className="text-xs text-muted-foreground">
-                                        Paste this URL into your Steadfast dashboard to receive automatic status updates.
+                                        Paste this URL into your {selectedCourier.name} dashboard to receive automatic status updates.
                                     </p>
                                     <div className="flex items-center space-x-2">
                                         <Input value={callbackUrl} readOnly />
