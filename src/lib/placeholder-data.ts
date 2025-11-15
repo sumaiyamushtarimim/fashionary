@@ -577,7 +577,10 @@ export const purchaseOrders: PurchaseOrder[] = [
     },
 ];
 
-const defaultPermissions: { [key in StaffRole]: StaffMember['permissions'] } = {
+const falsePermission: Permission = { create: false, read: false, update: false, delete: false };
+const readOnlyPermission: Permission = { create: false, read: true, update: false, delete: false };
+
+export const defaultPermissions: { [key in StaffRole]: StaffMember['permissions'] } = {
     Admin: {
         orders: { create: true, read: true, update: true, delete: true },
         products: { create: true, read: true, update: true, delete: true },
@@ -606,62 +609,61 @@ const defaultPermissions: { [key in StaffRole]: StaffMember['permissions'] } = {
         settings: { create: false, read: true, update: false, delete: false },
         analytics: { create: false, read: true, update: false, delete: false },
     },
-    Sales: {
-        orders: { create: true, read: true, update: true, delete: false },
-        products: { create: false, read: true, update: false, delete: false },
-        inventory: { create: false, read: false, update: false, delete: false },
-        customers: { create: true, read: true, update: false, delete: false },
-        purchases: { create: false, read: false, update: false, delete: false },
-        expenses: { create: false, read: false, update: false, delete: false },
-        checkPassing: { create: false, read: false, update: false, delete: false },
-        partners: { create: false, read: false, update: false, delete: false },
-        courierReport: { create: false, read: false, update: false, delete: false },
-        staff: { create: false, read: false, update: false, delete: false },
-        settings: { create: false, read: false, update: false, delete: false },
-        analytics: { create: false, read: false, update: false, delete: false },
-    },
-    Warehouse: {
-        orders: { create: false, read: true, update: true, delete: false },
-        products: { create: false, read: true, update: false, delete: false },
-        inventory: { create: true, read: true, update: true, delete: false },
-        customers: { create: false, read: false, update: false, delete: false },
-        purchases: { create: false, read: true, update: true, delete: false },
-        expenses: { create: false, read: false, update: false, delete: false },
-        checkPassing: { create: false, read: false, update: false, delete: false },
-        partners: { create: false, read: false, update: false, delete: false },
-        courierReport: { create: false, read: false, update: false, delete: false },
-        staff: { create: false, read: false, update: false, delete: false },
-        settings: { create: false, read: false, update: false, delete: false },
-        analytics: { create: false, read: false, update: false, delete: false },
-    },
     'Packing Assistant': {
         orders: { create: false, read: true, update: true, delete: false },
         products: { create: false, read: true, update: false, delete: false },
-        inventory: { create: false, read: false, update: false, delete: false },
-        customers: { create: false, read: false, update: false, delete: false },
-        purchases: { create: false, read: false, update: false, delete: false },
-        expenses: { create: false, read: false, update: false, delete: false },
-        checkPassing: { create: false, read: false, update: false, delete: false },
-        partners: { create: false, read: false, update: false, delete: false },
-        courierReport: { create: false, read: false, update: false, delete: false },
-        staff: { create: false, read: false, update: false, delete: false },
-        settings: { create: false, read: false, update: false, delete: false },
-        analytics: { create: false, read: false, update: false, delete: false },
+        inventory: falsePermission, customers: falsePermission, purchases: falsePermission,
+        expenses: falsePermission, checkPassing: falsePermission, partners: falsePermission,
+        courierReport: falsePermission, staff: falsePermission, settings: falsePermission, analytics: falsePermission,
     },
-    Custom: {
-        orders: { create: false, read: false, update: false, delete: false },
-        products: { create: false, read: false, update: false, delete: false },
-        inventory: { create: false, read: false, update: false, delete: false },
-        customers: { create: false, read: false, update: false, delete: false },
-        purchases: { create: false, read: false, update: false, delete: false },
-        expenses: { create: false, read: false, update: false, delete: false },
-        checkPassing: { create: false, read: false, update: false, delete: false },
-        partners: { create: false, read: false, update: false, delete: false },
-        courierReport: { create: false, read: false, update: false, delete: false },
-        staff: { create: false, read: false, update: false, delete: false },
-        settings: { create: false, read: false, update: false, delete: false },
-        analytics: { create: false, read: false, update: false, delete: false },
-    }
+    Moderator: {
+        orders: { create: true, read: true, update: true, delete: false },
+        products: { create: true, read: true, update: true, delete: false },
+        inventory: { create: false, read: true, update: false, delete: false },
+        customers: { create: true, read: true, update: true, delete: false },
+        purchases: { create: false, read: true, update: false, delete: false },
+        expenses: { create: false, read: true, update: false, delete: false },
+        checkPassing: falsePermission, partners: { create: false, read: true, update: false, delete: false },
+        courierReport: readOnlyPermission, staff: falsePermission, settings: falsePermission, analytics: readOnlyPermission,
+    },
+    Seller: {
+        orders: { create: true, read: true, update: false, delete: false },
+        products: readOnlyPermission, inventory: falsePermission, customers: { create: true, read: true, update: false, delete: false },
+        purchases: falsePermission, expenses: falsePermission, checkPassing: falsePermission,
+        partners: falsePermission, courierReport: falsePermission, staff: falsePermission,
+        settings: falsePermission, analytics: falsePermission,
+    },
+    'Call Assistant': {
+        orders: { create: false, read: true, update: true, delete: false }, // Can update notes
+        products: readOnlyPermission, inventory: falsePermission, customers: readOnlyPermission,
+        purchases: falsePermission, expenses: falsePermission, checkPassing: falsePermission,
+        partners: falsePermission, courierReport: readOnlyPermission, staff: falsePermission,
+        settings: falsePermission, analytics: falsePermission,
+    },
+    'Call Centre Manager': {
+        orders: { create: false, read: true, update: true, delete: false },
+        products: readOnlyPermission, inventory: falsePermission, customers: readOnlyPermission,
+        purchases: falsePermission, expenses: falsePermission, checkPassing: falsePermission,
+        partners: falsePermission, courierReport: readOnlyPermission, staff: { create: false, read: true, update: false, delete: false },
+        settings: falsePermission, analytics: readOnlyPermission,
+    },
+    'Courier Manager': {
+        orders: { create: false, read: true, update: true, delete: false },
+        products: readOnlyPermission, inventory: falsePermission, customers: readOnlyPermission,
+        purchases: falsePermission, expenses: falsePermission, checkPassing: falsePermission,
+        partners: { create: false, read: true, update: true, delete: false },
+        courierReport: { create: true, read: true, update: true, delete: false },
+        staff: falsePermission, settings: { create: false, read: true, update: true, delete: false }, // only courier settings
+        analytics: falsePermission,
+    },
+    'Courier Call Assistant': {
+        orders: { create: false, read: true, update: true, delete: false }, // Update notes
+        products: readOnlyPermission, inventory: falsePermission, customers: readOnlyPermission,
+        purchases: falsePermission, expenses: falsePermission, checkPassing: falsePermission,
+        partners: readOnlyPermission, courierReport: readOnlyPermission, staff: falsePermission,
+        settings: falsePermission, analytics: falsePermission,
+    },
+    Custom: falsePermission
 };
 
 
@@ -702,7 +704,7 @@ export const staff: StaffMember[] = [
         id: 'STAFF003', 
         name: 'Emily White', 
         email: 'emily.white@fashionary.com', 
-        role: 'Sales', 
+        role: 'Seller', 
         lastLogin: '2024-05-22T15:45:00Z',
         paymentType: 'Both',
         salaryDetails: { amount: 20000, frequency: 'Monthly' },
@@ -721,7 +723,7 @@ export const staff: StaffMember[] = [
             { date: '2024-05-22', orderId: 'ORD-2024-004', action: 'Created', amount: 50 },
             { date: '2024-05-23', orderId: 'ORD-2024-005', action: 'Created', amount: 50 },
         ],
-        permissions: defaultPermissions.Sales,
+        permissions: defaultPermissions.Seller,
     },
     { 
         id: 'STAFF004', 
@@ -820,5 +822,6 @@ export const bdDistricts: string[] = [
 
 
     
+
 
 

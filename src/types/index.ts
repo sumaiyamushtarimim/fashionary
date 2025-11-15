@@ -203,7 +203,17 @@ export type Permission = {
     delete: boolean;
 };
 
-export type StaffRole = 'Admin' | 'Manager' | 'Sales' | 'Warehouse' | 'Packing Assistant' | 'Custom';
+export type StaffRole = 
+    | 'Admin' 
+    | 'Manager' 
+    | 'Packing Assistant' 
+    | 'Moderator' 
+    | 'Seller' 
+    | 'Call Assistant' 
+    | 'Call Centre Manager' 
+    | 'Courier Manager' 
+    | 'Courier Call Assistant'
+    | 'Custom';
 
 export type StaffMember = {
     id: string;
@@ -233,18 +243,18 @@ export type StaffMember = {
     paymentHistory: StaffPayment[];
     incomeHistory: StaffIncome[];
     permissions: {
-        orders: Permission;
-        products: Permission;
-        inventory: Permission;
-        customers: Permission;
-        purchases: Permission;
-        expenses: Permission;
-        checkPassing: Permission;
-        partners: Permission;
-        courierReport: Permission;
-        staff: Permission;
-        settings: Permission;
-        analytics: Permission;
+        orders: Permission | boolean;
+        products: Permission | boolean;
+        inventory: Permission | boolean;
+        customers: Permission | boolean;
+        purchases: Permission | boolean;
+        expenses: Permission | boolean;
+        checkPassing: Permission | boolean;
+        partners: Permission | boolean;
+        courierReport: Permission | boolean;
+        staff: Permission | boolean;
+        settings: Permission | boolean;
+        analytics: Permission | boolean;
     };
 };
 

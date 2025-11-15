@@ -54,7 +54,18 @@ const ITEMS_PER_PAGE = 10;
 type PaymentType = 'Salary' | 'Commission' | 'Both';
 
 const paymentTypes: PaymentType[] = ['Salary', 'Commission', 'Both'];
-const staffRoles: StaffRole[] = ['Admin', 'Manager', 'Sales', 'Warehouse', 'Packing Assistant', 'Custom'];
+const staffRoles: StaffRole[] = [
+    'Admin', 
+    'Manager', 
+    'Packing Assistant', 
+    'Moderator', 
+    'Seller', 
+    'Call Assistant', 
+    'Call Centre Manager', 
+    'Courier Manager', 
+    'Courier Call Assistant',
+    'Custom'
+];
 const permissionModules: (keyof StaffMember['permissions'])[] = [
     'orders', 
     'products', 
