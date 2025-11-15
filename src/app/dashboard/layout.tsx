@@ -166,13 +166,13 @@ export default function DashboardLayout({
               <span className="font-headline text-xl">Fashionary</span>
             </Link>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 overflow-y-auto">
             <NavLinks />
           </div>
         </div>
       </div>
-      <div className="flex flex-col md:overflow-hidden">
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 md:relative md:z-auto sticky top-0 z-50">
+      <div className="flex flex-col">
+        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
           <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="shrink-0 md:hidden">
@@ -252,12 +252,10 @@ export default function DashboardLayout({
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-        <main className="flex flex-1 flex-col bg-background md:overflow-y-auto">
+        <main className="flex flex-1 flex-col bg-background">
           {children}
         </main>
       </div>
     </div>
   );
 }
-
-    
