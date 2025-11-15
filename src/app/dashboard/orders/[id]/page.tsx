@@ -50,10 +50,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-} from '@/components/ui/pagination';
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Separator } from '@/components/ui/separator';
 import {
   Table,
@@ -116,7 +122,7 @@ const statusIcons: Record<string, React.ElementType> = {
 
 
 const allPlatforms: OrderPlatform[] = ['TikTok', 'Messenger', 'Facebook', 'Instagram', 'Website'];
-
+const courierServices = ['Pathao', 'RedX', 'Steadfast'];
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -222,6 +228,7 @@ export default function OrderDetailsPage() {
   const [sendToCourier, setSendToCourier] = React.useState(false);
   const [businessId, setBusinessId] = React.useState<string | undefined>(undefined);
   const [platform, setPlatform] = React.useState<OrderPlatform | undefined>(undefined);
+  const [selectedCourier, setSelectedCourier] = React.useState<string | undefined>();
 
   React.useEffect(() => {
     if (orderId) {
@@ -713,6 +720,50 @@ export default function OrderDetailsPage() {
                         Save Source
                     </Button>
                 </CardFooter>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle>Courier Management</CardTitle>
+                    <CardDescription>Send this order to a courier service for delivery.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                     <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="courier">Courier Service</Label>
+                            <Select value={selectedCourier} onValueChange={setSelectedCourier}>
+                                <SelectTrigger id="courier">
+                                    <SelectValue placeholder="Select a courier" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {courierServices.map(c => (
+                                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        {selectedCourier && (
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button className="w-full">
+                                        <Truck className="mr-2 h-4 w-4" /> Send to {selectedCourier}
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Confirm Order Dispatch</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This will send the order details for <strong>{order.id}</strong> to <strong>{selectedCourier}</strong> for delivery. Are you sure you want to proceed?
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction>Confirm & Send</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        )}
+                     </div>
+                </CardContent>
             </Card>
            <Card>
                 <CardHeader>
