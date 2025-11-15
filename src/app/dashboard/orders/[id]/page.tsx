@@ -96,6 +96,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { getOrderById, getStatuses } from '@/services/orders';
 import { getProducts } from '@/services/products';
 import { getBusinesses, getCourierServices } from '@/services/partners';
+import { getDeliveryReport, type DeliveryReport } from '@/services/delivery-score';
 import type { Product, Business, OrderPlatform, OrderProduct, OrderLog, Order as OrderType, OrderStatus, CourierService } from '@/types';
 
 
@@ -204,19 +205,6 @@ function OrderHistory({ logs }: { logs: OrderLog[] }) {
     );
 }
 
-// Placeholder data for courier stats
-const courierStatsData = [
-    { name: 'Pathao', total: 12, delivered: 10, canceled: 1 },
-    { name: 'RedX', total: 8, delivered: 7, canceled: 1 },
-    { name: 'Steadfast', total: 5, delivered: 4, canceled: 0 },
-    { name: 'eCourier', total: 3, delivered: 3, canceled: 0 },
-];
-const totalParcels = courierStatsData.reduce((sum, c) => sum + c.total, 0);
-const totalDelivered = courierStatsData.reduce((sum, c) => sum + c.delivered, 0);
-const totalCanceled = courierStatsData.reduce((sum, c) => sum + c.canceled, 0);
-const deliveryRatio = totalParcels > 0 ? (totalDelivered / totalParcels) * 100 : 0;
-const cancelRatio = totalParcels > 0 ? (totalCanceled / totalParcels) * 100 : 0;
-
 const orderFormSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"),
   customerPhone: z.string().min(1, "Phone number is required"),
@@ -243,6 +231,8 @@ export default function OrderDetailsPage() {
   const orderId = params.id as string;
   
   const [order, setOrder] = React.useState<OrderType | undefined>(undefined);
+  const [deliveryReport, setDeliveryReport] = React.useState<DeliveryReport | null>(null);
+  const [isReportLoading, setIsReportLoading] = React.useState(true);
   const [allProducts, setAllProducts] = React.useState<Product[]>([]);
   const [allStatuses, setAllStatuses] = React.useState<OrderStatus[]>([]);
   const [businesses, setBusinesses] = React.useState<Business[]>([]);
@@ -297,6 +287,12 @@ export default function OrderDetailsPage() {
                   customerNote: orderData.customerNote,
                   officeNote: orderData.officeNote,
                 });
+                
+                setIsReportLoading(true);
+                getDeliveryReport(orderData.customerPhone).then(report => {
+                    setDeliveryReport(report);
+                }).finally(() => setIsReportLoading(false));
+
             }
             setAllProducts(productsData);
             setBusinesses(businessesData);
@@ -306,6 +302,23 @@ export default function OrderDetailsPage() {
         });
     }
   }, [orderId, form]);
+
+  const courierStatsData = React.useMemo(() => {
+    if (!deliveryReport || !deliveryReport.Summaries) return [];
+    return Object.entries(deliveryReport.Summaries).map(([name, data]) => ({
+        name,
+        total: data["Total Parcels"] || data["Total Delivery"] || 0,
+        delivered: data["Delivered Parcels"] || data["Successful Delivery"] || 0,
+        canceled: data["Canceled Parcels"] || data["Canceled Delivery"] || 0,
+    }));
+  }, [deliveryReport]);
+  
+  const totalParcels = deliveryReport?.totalSummary["Total Parcels"] || 0;
+  const totalDelivered = deliveryReport?.totalSummary["Delivered Parcels"] || 0;
+  const totalCanceled = deliveryReport?.totalSummary["Canceled Parcels"] || 0;
+  const deliveryRatio = totalParcels > 0 ? (totalDelivered / totalParcels) * 100 : 0;
+  const cancelRatio = totalParcels > 0 ? (totalCanceled / totalParcels) * 100 : 0;
+
   
   const handleEditToggle = () => {
     if (isEditing && order) { // Cancel logic
@@ -580,45 +593,58 @@ export default function OrderDetailsPage() {
                             Parcel history for customer phone number: {order.customerPhone}
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="grid gap-4">
-                        <div className="grid grid-cols-4 gap-x-4 border-b pb-2 text-xs font-medium text-muted-foreground">
-                            <div className="col-span-1">Courier</div>
-                            <div className="col-span-1 text-center">Total</div>
-                            <div className="col-span-1 text-center">Delivered</div>
-                            <div className="col-span-1 text-center">Canceled</div>
-                        </div>
-                        {courierStatsData.map(courier => (
-                             <div key={courier.name} className="grid grid-cols-4 gap-x-4 items-center text-sm">
-                                 <div className="col-span-1 font-semibold">{courier.name}</div>
-                                 <div className="col-span-1 text-center font-medium">{courier.total}</div>
-                                 <div className="col-span-1 text-center font-medium text-green-600">{courier.delivered}</div>
-                                 <div className="col-span-1 text-center font-medium text-red-500">{courier.canceled}</div>
-                             </div>
-                        ))}
-                        <Separator />
-                         <div className="grid grid-cols-4 gap-x-4 items-center text-sm font-bold">
-                             <div className="col-span-1">Total</div>
-                             <div className="col-span-1 text-center">{totalParcels}</div>
-                             <div className="col-span-1 text-center text-green-600">{totalDelivered}</div>
-                             <div className="col-span-1 text-center text-red-500">{totalCanceled}</div>
-                         </div>
-                         <Separator />
-                         <div className="grid grid-cols-2 gap-4">
-                             <div className="space-y-1">
-                                 <div className="flex justify-between items-center text-sm">
-                                     <span className="font-semibold">Delivery Ratio</span>
-                                     <span className="font-bold text-green-600">{deliveryRatio.toFixed(1)}%</span>
-                                 </div>
-                                 <Progress value={deliveryRatio} className="h-2 [&>div]:bg-green-500" />
-                             </div>
-                              <div className="space-y-1">
-                                 <div className="flex justify-between items-center text-sm">
-                                     <span className="font-semibold">Cancel Ratio</span>
-                                     <span className="font-bold text-red-500">{cancelRatio.toFixed(1)}%</span>
-                                 </div>
-                                 <Progress value={cancelRatio} className="h-2 [&>div]:bg-red-500" />
-                             </div>
-                         </div>
+                     <CardContent className="grid gap-4">
+                        {isReportLoading ? (
+                             <div className="space-y-4">
+                                <Skeleton className="h-4 w-full" />
+                                <Skeleton className="h-8 w-full" />
+                                <Skeleton className="h-8 w-full" />
+                                <Skeleton className="h-8 w-full" />
+                            </div>
+                        ) : deliveryReport ? (
+                            <>
+                                <div className="grid grid-cols-4 gap-x-4 border-b pb-2 text-xs font-medium text-muted-foreground">
+                                    <div className="col-span-1">Courier</div>
+                                    <div className="col-span-1 text-center">Total</div>
+                                    <div className="col-span-1 text-center">Delivered</div>
+                                    <div className="col-span-1 text-center">Canceled</div>
+                                </div>
+                                {courierStatsData.map(courier => (
+                                    <div key={courier.name} className="grid grid-cols-4 gap-x-4 items-center text-sm">
+                                        <div className="col-span-1 font-semibold">{courier.name}</div>
+                                        <div className="col-span-1 text-center font-medium">{courier.total}</div>
+                                        <div className="col-span-1 text-center font-medium text-green-600">{courier.delivered}</div>
+                                        <div className="col-span-1 text-center font-medium text-red-500">{courier.canceled}</div>
+                                    </div>
+                                ))}
+                                <Separator />
+                                <div className="grid grid-cols-4 gap-x-4 items-center text-sm font-bold">
+                                    <div className="col-span-1">Total</div>
+                                    <div className="col-span-1 text-center">{totalParcels}</div>
+                                    <div className="col-span-1 text-center text-green-600">{totalDelivered}</div>
+                                    <div className="col-span-1 text-center text-red-500">{totalCanceled}</div>
+                                </div>
+                                <Separator />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="font-semibold">Delivery Ratio</span>
+                                            <span className="font-bold text-green-600">{deliveryRatio.toFixed(1)}%</span>
+                                        </div>
+                                        <Progress value={deliveryRatio} className="h-2 [&>div]:bg-green-500" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="font-semibold">Cancel Ratio</span>
+                                            <span className="font-bold text-red-500">{cancelRatio.toFixed(1)}%</span>
+                                        </div>
+                                        <Progress value={cancelRatio} className="h-2 [&>div]:bg-red-500" />
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <p className="text-muted-foreground text-center">Could not load delivery report.</p>
+                        )}
                     </CardContent>
                 </Card>
             </div>

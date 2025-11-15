@@ -12,6 +12,7 @@ import {
   MessageSquare,
   Mail,
   BellRing,
+  Radar,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -34,6 +35,7 @@ const settingsNav = [
   { href: '/dashboard/settings/notifications', label: 'Notifications', icon: BellRing },
   { href: '/dashboard/settings/integrations', label: 'Integrations', icon: Plug },
   { href: '/dashboard/settings/courier', label: 'Courier', icon: Truck },
+  { href: '/dashboard/settings/delivery-score', label: 'Delivery Score', icon: Radar },
   { href: '/dashboard/settings/gateways/sms', label: 'SMS Gateway', icon: MessageSquare },
   { href: '/dashboard/settings/gateways/smtp', label: 'SMTP', icon: Mail },
 ];

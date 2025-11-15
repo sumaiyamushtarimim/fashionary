@@ -8,6 +8,7 @@ import {
   MessageSquare,
   Mail,
   BellRing,
+  Radar,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -49,6 +50,12 @@ const settingsLinks = [
     title: 'Courier',
     description: 'Manage shipping and courier services.',
     icon: Truck,
+  },
+  {
+      href: '/dashboard/settings/delivery-score',
+      title: 'Delivery Score',
+      description: 'Configure Courier Search API for reports.',
+      icon: Radar
   },
   {
     href: '/dashboard/settings/gateways/sms',
