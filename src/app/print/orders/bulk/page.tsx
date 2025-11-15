@@ -10,6 +10,7 @@ import { StickerTemplate } from '../sticker/[id]/page';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 export default function BulkPrintPage() {
     const searchParams = useSearchParams();
@@ -68,8 +69,11 @@ export default function BulkPrintPage() {
             <div className="p-4 print:p-0">
                 {printType === 'invoice' && (
                     <div className="space-y-4 print:space-y-0">
-                        {orders.map(order => (
-                            <div key={order.id} className="bg-white shadow-lg print:shadow-none print:border-b page-break">
+                        {orders.map((order, index) => (
+                            <div key={order.id} className={cn(
+                                "bg-white shadow-lg print:shadow-none print:border-b",
+                                index < orders.length - 1 && "page-break"
+                            )}>
                                 <InvoiceTemplate order={order} />
                             </div>
                         ))}
@@ -78,8 +82,11 @@ export default function BulkPrintPage() {
 
                 {printType === 'sticker' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 print:grid-cols-2 print:gap-0">
-                         {orders.map(order => (
-                            <div key={order.id} className="flex justify-center items-start bg-white shadow-lg print:shadow-none page-break">
+                         {orders.map((order, index) => (
+                            <div key={order.id} className={cn(
+                                "flex justify-center items-start bg-white shadow-lg print:shadow-none",
+                                index < orders.length - 1 && "page-break"
+                            )}>
                                 <StickerTemplate order={order} />
                             </div>
                         ))}
@@ -90,6 +97,9 @@ export default function BulkPrintPage() {
                 @media print {
                     .page-break {
                         page-break-after: always;
+                    }
+                    body {
+                        -webkit-print-color-adjust: exact;
                     }
                 }
             `}</style>
