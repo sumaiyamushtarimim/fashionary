@@ -31,11 +31,13 @@ import {
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { PlusCircle, Trash2, Store, Globe, Save } from "lucide-react";
+import { PlusCircle, Trash2, Store, Globe, Save, PackageSearch } from "lucide-react";
 import { OrderPlatform, PaymentMethod, bdDistricts } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { getProducts } from "@/services/products";
 import { getBusinesses } from "@/services/partners";
+import { getDeliveryReport, type DeliveryReport } from '@/services/delivery-score';
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Product, Business, OrderProduct } from "@/types";
 
 type OrderItem = {
@@ -49,6 +51,119 @@ type OrderItem = {
 
 const allPlatforms: OrderPlatform[] = ['TikTok', 'Messenger', 'Facebook', 'Instagram', 'Website'];
 const allPaymentMethods: PaymentMethod[] = ['Cash on Delivery', 'bKash', 'Nagad'];
+
+function CourierReport({ report, isLoading }: { report: DeliveryReport | null, isLoading: boolean }) {
+     const courierStatsData = useMemo(() => {
+        if (!report || !report.Summaries) return [];
+        return Object.entries(report.Summaries).map(([name, data]) => ({
+            name,
+            total: data["Total Parcels"] || data["Total Delivery"] || 0,
+            delivered: data["Delivered Parcels"] || data["Successful Delivery"] || 0,
+            canceled: data["Canceled Parcels"] || data["Canceled Delivery"] || 0,
+        }));
+    }, [report]);
+
+    const { totalParcels, totalDelivered, totalCanceled } = useMemo(() => {
+        return courierStatsData.reduce((acc, courier) => {
+            acc.totalParcels += courier.total;
+            acc.totalDelivered += courier.delivered;
+            acc.totalCanceled += courier.canceled;
+            return acc;
+        }, { totalParcels: 0, totalDelivered: 0, totalCanceled: 0 });
+    }, [courierStatsData]);
+
+    const deliveryRatio = totalParcels > 0 ? (totalDelivered / totalParcels) * 100 : 0;
+    const cancelRatio = totalParcels > 0 ? (totalCanceled / totalParcels) * 100 : 0;
+
+    if (isLoading) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Courier Delivery Report</CardTitle>
+                    <CardDescription>Fetching delivery history...</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-8 w-full" />
+                </CardContent>
+            </Card>
+        )
+    }
+
+    if (!report) {
+        return (
+             <Card>
+                <CardHeader>
+                    <CardTitle>Courier Delivery Report</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-center text-muted-foreground py-4 flex flex-col items-center gap-2">
+                        <PackageSearch className="w-8 h-8" />
+                        <span>Enter a valid phone number to see the report.</span>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+    
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Courier Delivery Report</CardTitle>
+                <CardDescription>
+                    Parcel history for the entered phone number.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+                {courierStatsData.length > 0 ? (
+                    <>
+                        <div className="grid grid-cols-4 gap-x-4 border-b pb-2 text-xs font-medium text-muted-foreground">
+                            <div className="col-span-1">Courier</div>
+                            <div className="col-span-1 text-center">Total</div>
+                            <div className="col-span-1 text-center">Delivered</div>
+                            <div className="col-span-1 text-center">Canceled</div>
+                        </div>
+                        {courierStatsData.map(courier => (
+                            <div key={courier.name} className="grid grid-cols-4 gap-x-4 items-center text-sm">
+                                <div className="col-span-1 font-semibold">{courier.name}</div>
+                                <div className="col-span-1 text-center font-medium">{courier.total}</div>
+                                <div className="col-span-1 text-center font-medium text-green-600">{courier.delivered}</div>
+                                <div className="col-span-1 text-center font-medium text-red-500">{courier.canceled}</div>
+                            </div>
+                        ))}
+                        <Separator />
+                        <div className="grid grid-cols-4 gap-x-4 items-center text-sm font-bold">
+                            <div className="col-span-1">Total</div>
+                            <div className="col-span-1 text-center">{totalParcels}</div>
+                            <div className="col-span-1 text-center text-green-600">{totalDelivered}</div>
+                            <div className="col-span-1 text-center text-red-500">{totalCanceled}</div>
+                        </div>
+                        <Separator />
+                        <div className="space-y-2">
+                            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                                <div className="bg-green-500 h-2.5 rounded-l-full" style={{ width: `${deliveryRatio}%`, display: 'inline-block' }}></div>
+                                <div className="bg-red-500 h-2.5 rounded-r-full" style={{ width: `${cancelRatio}%`, display: 'inline-block' }}></div>
+                            </div>
+                            <div className="flex justify-between text-sm mt-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                                    <span>Delivery: <strong>{deliveryRatio.toFixed(1)}%</strong></span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="h-2 w-2 rounded-full bg-red-500"></span>
+                                    <span>Cancel: <strong>{cancelRatio.toFixed(1)}%</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <div className="text-center text-muted-foreground py-4">No courier data found for this number.</div>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
 
 export default function NewOrderPage() {
     const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -71,6 +186,9 @@ export default function NewOrderPage() {
     const [businessId, setBusinessId] = useState<string>('');
     const [platform, setPlatform] = useState<OrderPlatform>();
 
+    const [deliveryReport, setDeliveryReport] = useState<DeliveryReport | null>(null);
+    const [isReportLoading, setIsReportLoading] = useState(false);
+
     useEffect(() => {
         setIsLoading(true);
         Promise.all([
@@ -82,6 +200,28 @@ export default function NewOrderPage() {
             setIsLoading(false);
         });
     }, []);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            if (customerPhone && customerPhone.length >= 11) {
+                setIsReportLoading(true);
+                getDeliveryReport(customerPhone)
+                    .then(report => {
+                        setDeliveryReport(report);
+                    })
+                    .finally(() => {
+                        setIsReportLoading(false);
+                    });
+            } else {
+                setDeliveryReport(null);
+            }
+        }, 500); // Debounce API call
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [customerPhone]);
+
 
     const subtotal = useMemo(() => {
         return orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -291,6 +431,8 @@ export default function NewOrderPage() {
                         </CardContent>
                     </Card>
 
+                    <CourierReport report={deliveryReport} isLoading={isReportLoading} />
+                    
                      <Card>
                         <CardHeader>
                             <CardTitle>Order Source</CardTitle>
