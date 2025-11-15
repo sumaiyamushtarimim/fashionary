@@ -79,6 +79,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { getOrders, getStatuses } from "@/services/orders";
 import { getBusinesses, getCourierServices } from "@/services/partners";
 import type { Order, OrderProduct, OrderStatus, Business, CourierService } from "@/types";
+import { Label } from "@/components/ui/label";
 
 const statusColors: Record<OrderStatus, string> = {
     'New': 'bg-blue-500/20 text-blue-700',
@@ -692,22 +693,22 @@ export default function OrdersClientPage() {
             )}
         </CardContent>
         <CardFooter>
-            <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
+            <div className="w-full flex items-center justify-between gap-4 text-xs text-muted-foreground flex-wrap">
                 <div className="flex items-center gap-2">
-                    <span>Rows per page</span>
-                    <Select value={String(itemsPerPage)} onValueChange={(value) => setItemsPerPage(Number(value))}>
-                        <SelectTrigger className="w-16 h-8 text-xs">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="10">10</SelectItem>
-                            <SelectItem value="20">20</SelectItem>
-                            <SelectItem value="50">50</SelectItem>
-                            <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <Label htmlFor="items-per-page" className="whitespace-nowrap">Rows per page</Label>
+                    <Input 
+                      id="items-per-page"
+                      type="number"
+                      min="1"
+                      className="h-8 w-16"
+                      value={itemsPerPage}
+                      onChange={(e) => {
+                          const value = Number(e.target.value);
+                          if(value > 0) setItemsPerPage(value);
+                      }}
+                    />
                 </div>
-                <div className="flex-1 text-center">
+                <div className="flex-1 text-center min-w-[150px]">
                     Showing <strong>{(currentPage - 1) * itemsPerPage + 1}-
                     {Math.min(currentPage * itemsPerPage, filteredOrders.length)}
                     </strong> of <strong>{filteredOrders.length}</strong> orders
