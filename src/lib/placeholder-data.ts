@@ -145,6 +145,7 @@ export const orders: Order[] = [
     date: '2024-05-20', 
     status: 'Delivered', 
     total: 104.99, 
+    shipping: 60,
     products: [
         { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price },
         { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: products[0].price }
@@ -178,6 +179,7 @@ export const orders: Order[] = [
     date: '2024-05-21', 
     status: 'Confirmed', 
     total: 25.00, 
+    shipping: 60,
     products: [
         { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: products[0].price }
     ],
@@ -207,6 +209,7 @@ export const orders: Order[] = [
     date: '2024-05-22', 
     status: 'New', 
     total: 200.49,
+    shipping: 60,
     products: [
         { productId: 'PROD003', name: 'Cotton Three-Piece', image: products[2].image, quantity: 1, price: products[2].price },
         { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price }
@@ -236,6 +239,7 @@ export const orders: Order[] = [
     date: '2024-05-22', 
     status: 'Shipped', 
     total: 350.00, 
+    shipping: 80,
     products: [
         { productId: 'PROD004', name: 'Leather Biker Jacket', image: products[3].image, quantity: 1, price: products[3].price }
     ],
@@ -266,6 +270,7 @@ export const orders: Order[] = [
     date: '2024-05-23', 
     status: 'Confirmed', 
     total: 120.50, 
+    shipping: 60,
     products: [
         { productId: 'PROD003', name: 'Cotton Three-Piece', image: products[2].image, quantity: 1, price: products[2].price }
     ],
@@ -296,6 +301,7 @@ export const orders: Order[] = [
     date: '2024-05-24',
     status: 'Canceled',
     total: 95.00,
+    shipping: 60,
     products: [{ productId: 'PROD005', name: 'Linen Three-Piece', image: products[4].image, quantity: 1, price: products[4].price }],
     logs: [
         { title: 'Canceled', timestamp: '2024-05-24T15:00:00Z', description: 'Customer requested cancellation.', user: 'Jane Doe' },
@@ -318,6 +324,7 @@ export const orders: Order[] = [
     date: '2024-05-25',
     status: 'Hold',
     total: 79.99,
+    shipping: 60,
     products: [{ productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price }],
     logs: [{ title: 'Hold', timestamp: '2024-05-25T10:00:00Z', description: 'Payment verification pending.', user: 'System' }],
     customerNote: 'Paid via bKash, transaction ID is XXXXX.',
@@ -337,6 +344,7 @@ export const orders: Order[] = [
     date: '2024-05-26',
     status: 'In-Courier',
     total: 25.00,
+    shipping: 60,
     products: [{ productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: products[0].price }],
     logs: [{ title: 'In-Courier', timestamp: '2024-05-26T18:00:00Z', description: 'Item out of stock. Awaiting new shipment.', user: 'John Smith' }],
     customerNote: '',
@@ -357,6 +365,7 @@ export const orders: Order[] = [
     date: '2024-05-27',
     status: 'RTS (Ready to Ship)',
     total: 350.00,
+    shipping: 80,
     products: [{ productId: 'PROD004', name: 'Leather Biker Jacket', image: products[3].image, quantity: 1, price: products[3].price }],
     logs: [{ title: 'RTS (Ready to Ship)', timestamp: '2024-05-27T17:00:00Z', description: 'Package packed and ready for courier pickup.', user: 'John Smith' }],
     customerNote: 'Please ensure good packaging.',
@@ -377,6 +386,7 @@ export const orders: Order[] = [
     date: '2024-05-19',
     status: 'Returned',
     total: 79.99,
+    shipping: 60,
     products: [{ productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price }],
     logs: [
         { title: 'Returned', timestamp: '2024-05-28T13:00:00Z', description: 'Item returned by customer. Reason: Wrong size.', user: 'System' },
@@ -400,6 +410,7 @@ export const orders: Order[] = [
     date: '2024-05-18',
     status: 'Partial',
     total: 145.50,
+    shipping: 60,
     products: [
         { productId: 'PROD003', name: 'Cotton Three-Piece', image: products[2].image, quantity: 1, price: 120.50 },
         { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: 25.00 }
@@ -423,6 +434,7 @@ export const orders: Order[] = [
     date: '2024-05-17',
     status: 'Paid Returned',
     total: 220.49,
+    shipping: 70,
     products: [
         { productId: 'PROD003', name: 'Cotton Three-Piece', image: products[2].image, quantity: 1, price: 120.50 },
         { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: 79.99 },
@@ -696,3 +708,6 @@ export const bdDistricts: string[] = [
 
     
 
+
+
+    

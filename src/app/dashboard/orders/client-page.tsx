@@ -249,7 +249,7 @@ export default function OrdersClientPage() {
                     '0.5', // Weight
                     dueAmount.toString(), // Cash
                     order.total.toString(), // SellingPrice
-                    '60', // PaidReturnCharge (placeholder shipping)
+                    (order.shipping || 60).toString(),
                     order.officeNote?.replace(/,/g, '') || '', // Instructions
                  ];
             });
@@ -700,3 +700,5 @@ export default function OrdersClientPage() {
     </div>
   );
 }
+
+    

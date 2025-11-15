@@ -1,3 +1,4 @@
+
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 
 export type Category = {
@@ -82,6 +83,7 @@ export type Order = {
   date: string;
   status: OrderStatus;
   total: number;
+  shipping?: number;
   products: OrderProduct[];
   logs: OrderLog[];
   customerNote: string;
@@ -254,5 +256,8 @@ export type WooCommerceIntegration = {
 };
 
     
+
+    
+
 
     
