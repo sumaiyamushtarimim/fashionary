@@ -1,8 +1,7 @@
 
-
 'use client';
 
-import { Copy, MoreHorizontal, PlusCircle } from 'lucide-react';
+import { Copy, MoreHorizontal, PlusCircle, RefreshCw } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -88,16 +87,27 @@ export default function CourierSettingsPage() {
         setSelectedCourier(null);
     }
     
-    const handleCopyWebhook = () => {
-        const webhookUrl = `https://your-domain.com/api/webhooks/steadfast`;
-        navigator.clipboard.writeText(webhookUrl);
+    const handleCopy = (textToCopy: string, fieldName: string) => {
+        navigator.clipboard.writeText(textToCopy);
         toast({
             title: "Copied to clipboard",
-            description: "Webhook URL has been copied.",
+            description: `${fieldName} has been copied.`,
         });
     };
 
+    const generateRandomString = (length: number) => {
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+        return result;
+    };
+    
+
     const fields = selectedCourier ? courierFields[selectedCourier.id] : [];
+    const authToken = `Bearer ${generateRandomString(32)}`;
+    const callbackUrl = `https://your-domain.com/api/webhooks/steadfast/${generateRandomString(12)}`;
 
     return (
         <div className="space-y-6">
@@ -185,14 +195,29 @@ export default function CourierSettingsPage() {
                         {selectedCourier?.id === 'steadfast' && (
                             <>
                                 <Separator />
-                                 <div className="space-y-2">
-                                    <Label>Webhook URL</Label>
+                                <div className="space-y-2">
+                                    <Label>Authorization Token (Bearer)</Label>
                                     <p className="text-xs text-muted-foreground">
-                                        Copy this URL and paste it into your Steadfast dashboard to receive automatic status updates.
+                                        Use this token in your Steadfast webhook settings for secure communication.
                                     </p>
                                     <div className="flex items-center space-x-2">
-                                        <Input value="https://your-domain.com/api/webhooks/steadfast" readOnly />
-                                        <Button type="button" size="sm" onClick={handleCopyWebhook}>
+                                        <Input value={authToken} readOnly />
+                                        <Button type="button" size="sm" variant="outline"><RefreshCw className="h-4 w-4" /></Button>
+                                        <Button type="button" size="sm" onClick={() => handleCopy(authToken, 'Auth Token')}>
+                                            <Copy className="h-4 w-4" />
+                                            <span className="sr-only">Copy</span>
+                                        </Button>
+                                    </div>
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label>Callback URL</Label>
+                                    <p className="text-xs text-muted-foreground">
+                                        Paste this URL into your Steadfast dashboard to receive automatic status updates.
+                                    </p>
+                                    <div className="flex items-center space-x-2">
+                                        <Input value={callbackUrl} readOnly />
+                                        <Button type="button" size="sm" variant="outline"><RefreshCw className="h-4 w-4" /></Button>
+                                        <Button type="button" size="sm" onClick={() => handleCopy(callbackUrl, 'Callback URL')}>
                                             <Copy className="h-4 w-4" />
                                             <span className="sr-only">Copy</span>
                                         </Button>
@@ -210,5 +235,3 @@ export default function CourierSettingsPage() {
         </div>
     );
 }
-
-    
