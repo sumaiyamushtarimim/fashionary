@@ -244,7 +244,7 @@ export default function OrdersClientPage() {
                     order.shippingAddress.address.replace(/,/g, ''),
                     '', // AltPhone
                     order.shippingAddress.district,
-                    'Same Day', // Category
+                    'Clothing and Apparel > Women clothing', // Category
                     order.id,
                     '0.5', // Weight
                     dueAmount.toString(), // Cash
@@ -700,5 +700,3 @@ export default function OrdersClientPage() {
     </div>
   );
 }
-
-    
