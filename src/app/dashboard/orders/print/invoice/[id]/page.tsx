@@ -3,6 +3,7 @@
 
 import * as React from 'react';
 import { useParams } from 'next/navigation';
+import Image from 'next/image';
 import { getOrderById } from '@/services/orders';
 import type { Order } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -58,6 +59,7 @@ export function InvoiceTemplate({ order }: { order: Order }) {
                 <table className="w-full">
                     <thead className="bg-gray-100">
                         <tr>
+                            <th className="p-3 text-left font-semibold w-20">Image</th>
                             <th className="p-3 text-left font-semibold">Item</th>
                             <th className="p-3 text-center font-semibold">Qty</th>
                             <th className="p-3 text-right font-semibold">Price</th>
@@ -67,6 +69,15 @@ export function InvoiceTemplate({ order }: { order: Order }) {
                     <tbody>
                         {order.products.map(p => (
                             <tr key={p.productId} className="border-b">
+                                <td className="p-3">
+                                    <Image 
+                                        src={p.image.imageUrl} 
+                                        alt={p.name} 
+                                        width={48} 
+                                        height={48}
+                                        className="rounded-md object-cover aspect-square"
+                                    />
+                                </td>
                                 <td className="p-3">{p.name}</td>
                                 <td className="p-3 text-center">{p.quantity}</td>
                                 <td className="p-3 text-right">৳{p.price.toFixed(2)}</td>
