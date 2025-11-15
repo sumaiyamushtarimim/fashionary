@@ -106,13 +106,13 @@ export default function PartnerDetailsPage() {
     if (!isClient || !partner) return [];
     const payments: PaymentWithPO[] = [];
     associatedPOs.forEach(po => {
-        if (po.supplier === partner.name && po.fabricPayment) {
+        if (po.supplier === partner?.name && po.fabricPayment) {
             payments.push({ ...po.fabricPayment, poId: po.id, paymentFor: 'Fabric', date: po.date });
         }
-        if ('type' in partner && partner.type === 'Printing' && po.printingVendor === partner.name && po.printingPayment) {
+        if (partner && 'type' in partner && partner.type === 'Printing' && po.printingVendor === partner.name && po.printingPayment) {
             payments.push({ ...po.printingPayment, poId: po.id, paymentFor: 'Printing', date: po.date });
         }
-        if ('type' in partner && partner.type === 'Cutting' && po.cuttingVendor === partner.name && po.cuttingPayment) {
+        if (partner && 'type' in partner && partner.type === 'Cutting' && po.cuttingVendor === partner.name && po.cuttingPayment) {
             payments.push({ ...po.cuttingPayment, poId: po.id, paymentFor: 'Cutting', date: po.date });
         }
     });

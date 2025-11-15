@@ -299,7 +299,7 @@ export default function PartnersPage() {
   );
 
   const renderVendorCards = () => (
-    <div className="sm:hidden space-y-4">
+    <div className="space-y-4">
       {paginatedVendors.map((vendor) => {
         const due = partnerDues[vendor.name] || 0;
         return (

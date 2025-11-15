@@ -338,11 +338,11 @@ export default function CheckPassingPage() {
                         </TableCell>
                     </TableRow>
                   ) : (
-                    <TableRow>
-                        <TableCell colSpan={7} className="h-24 text-center">
-                           Loading checks...
-                        </TableCell>
-                    </TableRow>
+                    [...Array(5)].map((_, i) => (
+                        <TableRow key={i}>
+                            <TableCell colSpan={7}><Skeleton className="h-8 w-full" /></TableCell>
+                        </TableRow>
+                    ))
                   )}
                 </TableBody>
               </Table>
@@ -371,7 +371,7 @@ export default function CheckPassingPage() {
                                                     <Badge variant="outline">{check.type}</Badge>
                                                 </div>
                                             </div>
-                                            <div className="text-right">
+                                            <div className="text-right flex flex-col items-end">
                                                 <p className="font-semibold font-mono">৳{check.amount.toFixed(2)}</p>
                                                 <div className="mt-2">
                                                     <Badge variant="outline" className={cn(statusColors[check.status])}>{check.status}</Badge>
@@ -423,5 +423,3 @@ export default function CheckPassingPage() {
     </div>
   );
 }
-
-    
