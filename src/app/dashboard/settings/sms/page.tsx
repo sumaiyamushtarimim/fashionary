@@ -1,62 +1,199 @@
-
 'use client';
 
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { sendSms } from '@/services/sms';
+
+const settingsSchema = z.object({
+    username: z.string().email("Please enter a valid email address."),
+    apiKey: z.string().min(1, "API Key is required."),
+    senderName: z.string().min(1, "Sender Name is required."),
+});
+
+const testSmsSchema = z.object({
+    mobileNumber: z.string().min(11, "Please enter a valid mobile number."),
+    message: z.string().min(1, "Message cannot be empty."),
+});
 
 export default function SmsGatewaySettingsPage() {
+    const { toast } = useToast();
+    const [isSending, setIsSending] = useState(false);
+
+    const settingsForm = useForm<z.infer<typeof settingsSchema>>({
+        resolver: zodResolver(settingsSchema),
+        defaultValues: {
+            username: "",
+            apiKey: "",
+            senderName: "",
+        },
+    });
+
+    const testSmsForm = useForm<z.infer<typeof testSmsSchema>>({
+        resolver: zodResolver(testSmsSchema),
+        defaultValues: {
+            mobileNumber: "",
+            message: "This is a test message from Fashionary.",
+        },
+    });
+
+    function onSettingsSubmit(values: z.infer<typeof settingsSchema>) {
+        console.log("Saving SMS Gateway settings:", values);
+        toast({
+            title: "Settings Saved",
+            description: "Your MiM SMS gateway settings have been saved.",
+        });
+    }
+
+    async function onTestSmsSubmit(values: z.infer<typeof testSmsSchema>) {
+        setIsSending(true);
+        try {
+            const result = await sendSms(values.mobileNumber, values.message);
+            if (result.status === 'Success') {
+                toast({
+                    title: "SMS Sent Successfully",
+                    description: `Transaction ID: ${result.trxnId}`,
+                });
+            } else {
+                 toast({
+                    variant: "destructive",
+                    title: "SMS Sending Failed",
+                    description: result.responseResult,
+                });
+            }
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "An Error Occurred",
+                description: "Could not send the test SMS. Please try again.",
+            });
+        } finally {
+            setIsSending(false);
+        }
+    }
+
     return (
-        <form className="space-y-6">
+        <div className="space-y-6">
             <div>
                 <h2 className="text-2xl font-bold tracking-tight">SMS Gateway Settings</h2>
                 <p className="text-muted-foreground">
-                    Configure your provider to send SMS notifications.
+                    Configure your MiM SMS provider to send SMS notifications.
                 </p>
             </div>
             <Card>
-                <CardHeader>
-                    <CardTitle>SMS Provider</CardTitle>
-                    <CardDescription>
-                        Select and configure your SMS gateway provider.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="sms-provider">Provider</Label>
-                        <Select defaultValue="twilio">
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a provider" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="twilio">Twilio</SelectItem>
-                                <SelectItem value="vonage">Vonage</SelectItem>
-                                <SelectItem value="ssl_wireless">SSL Wireless</SelectItem>
-                                <SelectItem value="custom">Custom</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="account-sid">Account SID</Label>
-                        <Input id="account-sid" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="auth-token">Auth Token</Label>
-                        <Input id="auth-token" type="password" placeholder="••••••••••••••••••••" />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="from-number">From Number</Label>
-                        <Input id="from-number" placeholder="+15017122661" />
-                    </div>
-                </CardContent>
+                <Form {...settingsForm}>
+                    <form onSubmit={settingsForm.handleSubmit(onSettingsSubmit)}>
+                        <CardHeader>
+                            <CardTitle>MiM SMS Configuration</CardTitle>
+                            <CardDescription>
+                                Enter your API credentials from your MiM SMS portal.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <FormField
+                                control={settingsForm.control}
+                                name="username"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Username</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="you@example.com" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={settingsForm.control}
+                                name="apiKey"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>API Key</FormLabel>
+                                        <FormControl>
+                                            <Input type="password" placeholder="••••••••••••••••••••" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={settingsForm.control}
+                                name="senderName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Sender Name (Sender ID)</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Your Registered Sender ID" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </CardContent>
+                        <CardContent>
+                            <Button type="submit">Save Configuration</Button>
+                        </CardContent>
+                    </form>
+                </Form>
             </Card>
 
-            <div className="flex justify-end">
-                <Button>Save Configuration</Button>
-            </div>
-        </form>
+            <Separator />
+
+            <Card>
+                <Form {...testSmsForm}>
+                    <form onSubmit={testSmsForm.handleSubmit(onTestSmsSubmit)}>
+                        <CardHeader>
+                            <CardTitle>Test SMS</CardTitle>
+                            <CardDescription>
+                                Send a test message to verify your configuration.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                           <FormField
+                                control={testSmsForm.control}
+                                name="mobileNumber"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Mobile Number</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="88018xxxxxxxx" {...field} />
+                                        </FormControl>
+                                        <FormDescription>Must be in international format without the + sign.</FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={testSmsForm.control}
+                                name="message"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Message</FormLabel>
+                                        <FormControl>
+                                            <Textarea {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </CardContent>
+                        <CardContent>
+                             <Button type="submit" disabled={isSending}>
+                                {isSending ? 'Sending...' : 'Send Test SMS'}
+                            </Button>
+                        </CardContent>
+                    </form>
+                </Form>
+            </Card>
+        </div>
     );
 }
