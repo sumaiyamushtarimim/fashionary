@@ -4,7 +4,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   ChevronLeft,
   Copy,
@@ -28,9 +28,14 @@ import {
   TrendingDown,
   ArrowRight,
   PackageSearch,
+  BookUser,
+  StickyNote,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import * as React from 'react';
+import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 
 import { Badge } from '@/components/ui/badge';
@@ -84,6 +89,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { getOrderById, getStatuses } from '@/services/orders';
 import { getProducts } from '@/services/products';
 import { getBusinesses, getCourierServices } from '@/services/partners';
@@ -96,12 +103,10 @@ const statusColors: Record<OrderType['status'], string> = {
     'Canceled': 'bg-red-500/20 text-red-700',
     'Hold': 'bg-yellow-500/20 text-yellow-700',
     'In-Courier': 'bg-orange-500/20 text-orange-700',
-    'Packing Hold': 'bg-orange-500/20 text-orange-700',
     'RTS (Ready to Ship)': 'bg-purple-500/20 text-purple-700',
     'Shipped': 'bg-cyan-500/20 text-cyan-700',
     'Delivered': 'bg-green-500/20 text-green-700',
     'Returned': 'bg-gray-500/20 text-gray-700',
-    'Partially Delivered': 'bg-teal-500/20 text-teal-700',
     'Paid Returned': 'bg-amber-500/20 text-amber-700',
     'Partial': 'bg-fuchsia-500/20 text-fuchsia-700',
 };
@@ -112,15 +117,13 @@ const statusIcons: Record<string, React.ElementType> = {
     'Canceled': XCircle,
     'Hold': History,
     'In-Courier': Truck,
-    'Packing Hold': History,
     'RTS (Ready to Ship)': PackageSearch,
     'Shipped': Truck,
     'Delivered': CheckCircle,
     'Returned': History,
-    'Partially Delivered': Truck,
-    'Paid Returned': History,
     'Partial': Truck,
-    'Notes updated': FileText, // For our new log type
+    'Paid Returned': History,
+    'Notes updated': FileText, 
 };
 
 
@@ -155,7 +158,7 @@ function OrderHistory({ logs }: { logs: OrderLog[] }) {
                     {isClient ? (
                         <ul className="space-y-6">
                             {sortedLogs.map((log, index) => {
-                                const Icon = statusIcons[log.description === 'Notes updated.' ? 'Notes updated' : log.status] || History;
+                                const Icon = statusIcons[log.status] || History;
                                 const isLast = index === 0;
                                 return (
                                     <li key={`${log.timestamp}-${index}`} className="relative flex items-start gap-4">
@@ -166,7 +169,7 @@ function OrderHistory({ logs }: { logs: OrderLog[] }) {
                                             <Icon className={cn("h-4 w-4", isLast ? "text-primary" : "text-muted-foreground")} />
                                         </div>
                                         <div className="flex-1 pt-1">
-                                            <p className={cn("font-medium", isLast ? "text-foreground" : "text-muted-foreground")}>{log.description === 'Notes updated.' ? 'Note' : log.status}</p>
+                                            <p className={cn("font-medium", isLast ? "text-foreground" : "text-muted-foreground")}>{log.status}</p>
                                             <p className="text-sm text-muted-foreground">{log.description}</p>
                                             <div className="text-xs text-muted-foreground mt-1">
                                                 <span>{format(new Date(log.timestamp), "MMM d, yyyy, h:mm a")}</span>
@@ -210,6 +213,26 @@ const totalCanceled = courierStatsData.reduce((sum, c) => sum + c.canceled, 0);
 const deliveryRatio = totalParcels > 0 ? (totalDelivered / totalParcels) * 100 : 0;
 const cancelRatio = totalParcels > 0 ? (totalCanceled / totalParcels) * 100 : 0;
 
+const orderFormSchema = z.object({
+  customerName: z.string().min(1, "Customer name is required"),
+  customerPhone: z.string().min(1, "Phone number is required"),
+  customerEmail: z.string().email().optional().or(z.literal('')),
+  shippingAddress: z.string().min(1, "Shipping address is required"),
+  products: z.array(z.object({
+    productId: z.string(),
+    name: z.string(),
+    image: z.any(),
+    quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
+    price: z.number(),
+  })).min(1, "Order must have at least one product"),
+  shipping: z.coerce.number().min(0, "Shipping cost cannot be negative"),
+  status: z.string(), // or z.enum(allStatuses)
+  businessId: z.string().optional(),
+  platform: z.string().optional(),
+  customerNote: z.string().optional(),
+  officeNote: z.string().optional(),
+});
+type OrderFormValues = z.infer<typeof orderFormSchema>;
 
 export default function OrderDetailsPage() {
   const params = useParams();
@@ -221,18 +244,28 @@ export default function OrderDetailsPage() {
   const [businesses, setBusinesses] = React.useState<Business[]>([]);
   const [courierServices, setCourierServices] = React.useState<CourierService[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
-
   const [isEditing, setIsEditing] = React.useState(false);
-  
-  const [editedProducts, setEditedProducts] = React.useState<OrderProduct[]>([]);
-  const [editedShipping, setEditedShipping] = React.useState(0);
-
-  const [customerNote, setCustomerNote] = React.useState('');
-  const [officeNote, setOfficeNote] = React.useState('');
-  const [sendToCourier, setSendToCourier] = React.useState(false);
-  const [businessId, setBusinessId] = React.useState<string | undefined>(undefined);
-  const [platform, setPlatform] = React.useState<OrderPlatform | undefined>(undefined);
   const [selectedCourier, setSelectedCourier] = React.useState<string | undefined>();
+  
+  const form = useForm<OrderFormValues>({
+    resolver: zodResolver(orderFormSchema),
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "products",
+  });
+  
+  const productsWatcher = form.watch("products");
+  const shippingWatcher = form.watch("shipping");
+
+  const subtotal = React.useMemo(() => 
+    productsWatcher?.reduce((acc, p) => acc + (p.price * p.quantity), 0) || 0, 
+    [productsWatcher]
+  );
+  const tax = subtotal * 0.08;
+  const total = subtotal + (shippingWatcher || 0) + tax;
+
 
   React.useEffect(() => {
     if (orderId) {
@@ -246,12 +279,19 @@ export default function OrderDetailsPage() {
         ]).then(([orderData, productsData, businessesData, statusesData, couriersData]) => {
             if (orderData) {
                 setOrder(orderData);
-                setCustomerNote(orderData.customerNote);
-                setOfficeNote(orderData.officeNote);
-                setBusinessId(orderData.businessId);
-                setPlatform(orderData.platform);
-                setEditedProducts(JSON.parse(JSON.stringify(orderData.products)));
-                setEditedShipping(5.0); // This should come from orderData in a real app
+                form.reset({
+                  customerName: orderData.customerName,
+                  customerPhone: orderData.customerPhone,
+                  customerEmail: orderData.customerEmail,
+                  shippingAddress: orderData.shippingAddress.address,
+                  products: orderData.products,
+                  shipping: 5.0, // Should come from order data
+                  status: orderData.status,
+                  businessId: orderData.businessId,
+                  platform: orderData.platform,
+                  customerNote: orderData.customerNote,
+                  officeNote: orderData.officeNote,
+                });
             }
             setAllProducts(productsData);
             setBusinesses(businessesData);
@@ -260,87 +300,47 @@ export default function OrderDetailsPage() {
             setIsLoading(false);
         });
     }
-  }, [orderId]);
+  }, [orderId, form]);
   
   const handleEditToggle = () => {
-    if (isEditing) { // Cancel logic
-        if (order) {
-            setEditedProducts(JSON.parse(JSON.stringify(order.products)));
-            setEditedShipping(5.0);
-        }
+    if (isEditing && order) { // Cancel logic
+        form.reset({
+          customerName: order.customerName,
+          customerPhone: order.customerPhone,
+          customerEmail: order.customerEmail,
+          shippingAddress: order.shippingAddress.address,
+          products: order.products,
+          shipping: 5.0,
+          status: order.status,
+          businessId: order.businessId,
+          platform: order.platform,
+          customerNote: order.customerNote,
+          officeNote: order.officeNote,
+        });
     }
     setIsEditing(!isEditing);
   };
-
-  const handleSaveChanges = () => {
-    if(!order) return;
-
-    // This would be an API call in a real app
-    // setOrders(prevOrders => 
-    //     prevOrders.map(o => 
-    //         o.id === orderId 
-    //         ? { ...o, businessId, platform, products: editedProducts, total: total }
-    //         : o
-    //     )
-    // );
-    console.log("Saving changes...", { businessId, platform, products: editedProducts, total });
+  
+  function onSubmit(data: OrderFormValues) {
+    console.log("Saving changes...", data);
+    // Here you would call an API to save the order
+    // e.g., updateOrder(orderId, data).then(...)
     setIsEditing(false);
   }
-
-  const handleSaveNotes = () => {
-    if (!order) return;
-    const newLog: OrderLog = {
-        status: order.status,
-        timestamp: new Date().toISOString(),
-        description: 'Notes updated.',
-        user: 'Admin'
-    };
-    
-    // This would be an API call in a real app
-    // setOrder(prevOrder => prevOrder ? {...prevOrder, customerNote, officeNote, logs: [...prevOrder.logs, newLog]} : undefined);
-    console.log("Saving notes...", { customerNote, officeNote });
-  };
-
-  const handleProductQuantityChange = (productId: string, quantity: number) => {
-    setEditedProducts(prev => prev.map(p => p.productId === productId ? {...p, quantity: Math.max(0, quantity)} : p));
-  };
-  
-  const handleRemoveProduct = (productId: string) => {
-      setEditedProducts(prev => prev.filter(p => p.productId !== productId));
-  };
 
   const handleAddProduct = () => {
       const firstProduct = allProducts[0];
       if (!firstProduct) return;
       
-      setEditedProducts(prev => {
-          const existing = prev.find(p => p.productId === firstProduct.id);
-          if (existing) {
-              return prev.map(p => p.productId === firstProduct.id ? {...p, quantity: p.quantity + 1} : p);
-          }
-          return [...prev, {
-              productId: firstProduct.id,
-              name: firstProduct.name,
-              image: firstProduct.image,
-              quantity: 1,
-              price: firstProduct.price
-          }];
+      append({
+          productId: firstProduct.id,
+          name: firstProduct.name,
+          image: firstProduct.image,
+          quantity: 1,
+          price: firstProduct.price
       });
   };
 
-  const mergedNote = React.useMemo(() => {
-    if (!sendToCourier) return null;
-    
-    const parts = [];
-    if (customerNote) {
-        parts.push(`Customer Note: ${customerNote}`);
-    }
-    if (officeNote) {
-        parts.push(`Office Note: ${officeNote}`);
-    }
-    return parts.join('\n\n');
-  }, [sendToCourier, customerNote, officeNote]);
-  
   if (isLoading) {
     return <div className="p-6">Loading order details...</div>;
   }
@@ -358,467 +358,419 @@ export default function OrderDetailsPage() {
   
   const whatsappMessage = `Hello ${order.customerName}, regarding your order ${order.id}:\n- Total: ৳${order.total.toFixed(2)}\n- Status: ${order.status}\n\nWe will update you shortly. Thank you!`;
 
-  const productsToShow = isEditing ? editedProducts : order.products;
-  const subtotal = productsToShow.reduce(
-    (acc, product) => acc + product.price * product.quantity,
-    0
-  );
-  const shipping = isEditing ? editedShipping : 5.0; // Placeholder
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
-
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" className="h-7 w-7" asChild>
-          <Link href="/dashboard/orders">
-            <ChevronLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
-          </Link>
-        </Button>
-        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-          {order.id}
-        </h1>
-        <Badge
-          variant="outline"
-          className={cn('ml-auto sm:ml-0', statusColors[order.status])}
-        >
-          {order.status}
-        </Badge>
-        <div className="hidden items-center gap-2 md:ml-auto md:flex">
-          <Button variant="outline" size="sm">
-            Print Invoice
-          </Button>
-          {isEditing ? (
-            <>
-              <Button variant="outline" size="sm" onClick={handleEditToggle}>Cancel</Button>
-              <Button size="sm" onClick={handleSaveChanges}><Save className="mr-2 h-4 w-4" /> Save Changes</Button>
-            </>
-          ) : (
-            <Button variant="outline" size="sm" onClick={handleEditToggle}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Order
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="icon" className="h-7 w-7" asChild>
+              <Link href="/dashboard/orders">
+                <ChevronLeft className="h-4 w-4" />
+                <span className="sr-only">Back</span>
+              </Link>
             </Button>
-          )}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-3.5 w-3.5" />
-                <span className="sr-only">More</span>
+            <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+              {order.id}
+            </h1>
+            <Badge
+              variant="outline"
+              className={cn('ml-auto sm:ml-0', statusColors[order.status])}
+            >
+              {order.status}
+            </Badge>
+            <div className="hidden items-center gap-2 md:ml-auto md:flex">
+              <Button variant="outline" size="sm">
+                Print Invoice
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>Export</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <div className="grid auto-rows-max items-start gap-4 lg:col-span-2">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Order Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader className="hidden sm:table-header-group">
-                  <TableRow>
-                    <TableHead className="w-[80px]">Image</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>SKU</TableHead>
-                    <TableHead className="text-right">Qty</TableHead>
-                    <TableHead className="text-right">Price</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                    {isEditing && <TableHead><span className="sr-only">Actions</span></TableHead>}
-                  </TableRow>
-                </TableHeader>
-                <TableBody className="flex flex-col sm:table-row-group gap-4">
-                  {productsToShow.map((product) => (
-                    <TableRow key={product.productId} className="flex sm:table-row flex-col sm:flex-row rounded-lg border sm:border-0 p-4 sm:p-0">
-                      <TableCell className="p-0 sm:p-4 w-[80px] hidden sm:table-cell">
-                        <Image
-                          alt={product.name}
-                          className="aspect-square rounded-md object-cover"
-                          height="64"
-                          src={product.image.imageUrl}
-                          width="64"
-                        />
-                      </TableCell>
-                       <TableCell className="font-medium p-0 sm:p-4 w-full">
-                            <div className="flex items-start gap-4 pb-4 border-b sm:border-0">
-                                <Image
-                                    alt={product.name}
-                                    className="aspect-square rounded-md object-cover sm:hidden"
-                                    height="64"
-                                    src={product.image.imageUrl}
-                                    width="64"
-                                />
-                                <div className="flex-1">
-                                    <p className="font-medium">{product.name}</p>
-                                    <p className="text-sm text-muted-foreground">SKU-452-187</p>
-                                </div>
-                                {isEditing && (
-                                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleRemoveProduct(product.productId)}>
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                )}
-                            </div>
-                            <div className="sm:hidden pt-4">
-                                <div className="grid grid-cols-3 gap-2">
-                                    <div className="col-span-1">
-                                        <p className="text-sm text-muted-foreground">Qty</p>
-                                        {isEditing ? (
-                                            <Input type="number" value={product.quantity} onChange={(e) => handleProductQuantityChange(product.productId, parseInt(e.target.value) || 0)} className="h-8 w-16 text-center"/>
-                                        ) : (
-                                            <p className="font-medium">{product.quantity}</p>
-                                        )}
-                                    </div>
-                                    <div className="col-span-1 text-right">
-                                        <p className="text-sm text-muted-foreground">Price</p>
-                                        <p className="font-medium">৳{product.price.toFixed(2)}</p>
-                                    </div>
-                                     <div className="col-span-1 text-right">
-                                        <p className="text-sm text-muted-foreground">Total</p>
-                                        <p className="font-medium">৳{(product.price * product.quantity).toFixed(2)}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </TableCell>
-                      <TableCell className="hidden sm:table-cell">SKU-452-187</TableCell>
-                      <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
-                          {isEditing ? (
-                            <Input type="number" value={product.quantity} onChange={(e) => handleProductQuantityChange(product.productId, parseInt(e.target.value) || 0)} className="h-8 w-16 text-center ml-auto"/>
-                          ) : (
-                            product.quantity
-                          )}
-                      </TableCell>
-                      <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
-                        ৳{product.price.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
-                        ৳{(product.price * product.quantity).toFixed(2)}
-                      </TableCell>
-                       {isEditing && (
-                            <TableCell className="hidden sm:table-cell">
-                                <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleRemoveProduct(product.productId)}>
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </TableCell>
-                        )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {isEditing && (
-                  <div className="mt-4">
-                      <Button variant="outline" size="sm" onClick={handleAddProduct}><PlusCircle className="mr-2 h-4 w-4" />Add Product</Button>
-                  </div>
-              )}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-              <div className="flex items-center justify-between">
-                <dt className="text-muted-foreground">Subtotal</dt>
-                <dd>৳{subtotal.toFixed(2)}</dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-muted-foreground">Shipping</dt>
-                {isEditing ? (
-                    <Input type="number" value={editedShipping} onChange={(e) => setEditedShipping(parseFloat(e.target.value) || 0)} className="h-8 w-24 text-right" />
-                ) : (
-                    <dd>৳{shipping.toFixed(2)}</dd>
-                )}
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-muted-foreground">Tax</dt>
-                <dd>৳{tax.toFixed(2)}</dd>
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between font-semibold">
-                <dt>Total</dt>
-                <dd>৳{total.toFixed(2)}</dd>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="lg:col-span-2">
-                <CardHeader>
-                    <CardTitle>Delivery & Courier Report</CardTitle>
-                    <CardDescription>
-                        Parcel history for customer phone number: {order.customerPhone}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                    <div className="grid grid-cols-4 gap-x-4 border-b pb-2 text-xs font-medium text-muted-foreground">
-                        <div className="col-span-1">Courier</div>
-                        <div className="col-span-1 text-center">Total</div>
-                        <div className="col-span-1 text-center">Delivered</div>
-                        <div className="col-span-1 text-center">Canceled</div>
-                    </div>
-                    {courierStatsData.map(courier => (
-                         <div key={courier.name} className="grid grid-cols-4 gap-x-4 items-center text-sm">
-                             <div className="col-span-1 font-semibold">{courier.name}</div>
-                             <div className="col-span-1 text-center font-medium">{courier.total}</div>
-                             <div className="col-span-1 text-center font-medium text-green-600">{courier.delivered}</div>
-                             <div className="col-span-1 text-center font-medium text-red-500">{courier.canceled}</div>
-                         </div>
-                    ))}
-                    <Separator />
-                     <div className="grid grid-cols-4 gap-x-4 items-center text-sm font-bold">
-                         <div className="col-span-1">Total</div>
-                         <div className="col-span-1 text-center">{totalParcels}</div>
-                         <div className="col-span-1 text-center text-green-600">{totalDelivered}</div>
-                         <div className="col-span-1 text-center text-red-500">{totalCanceled}</div>
-                     </div>
-                     <Separator />
-                     <div className="grid grid-cols-2 gap-4">
-                         <div className="space-y-1">
-                             <div className="flex justify-between items-center text-sm">
-                                 <span className="font-semibold">Delivery Ratio</span>
-                                 <span className="font-bold text-green-600">{deliveryRatio.toFixed(1)}%</span>
-                             </div>
-                             <Progress value={deliveryRatio} className="h-2 [&>div]:bg-green-500" />
-                         </div>
-                          <div className="space-y-1">
-                             <div className="flex justify-between items-center text-sm">
-                                 <span className="font-semibold">Cancel Ratio</span>
-                                 <span className="font-bold text-red-500">{cancelRatio.toFixed(1)}%</span>
-                             </div>
-                             <Progress value={cancelRatio} className="h-2 [&>div]:bg-red-500" />
-                         </div>
-                     </div>
-                </CardContent>
-            </Card>
-        </div>
-        <div className="grid auto-rows-max items-start gap-4">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Order Details</CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                    <div className="space-y-2">
-                        <p className="font-medium">Order Date</p>
-                        <p className="text-muted-foreground">{format(new Date(order.date), "MMM d, yyyy")}</p>
-                    </div>
-                     <Separator />
-                     <div className="space-y-2">
-                        <p className="font-medium">Update Status</p>
-                        <Select defaultValue={order.status}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {allStatuses.map(status => (
-                                    <SelectItem key={status} value={status}>{status}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                     </div>
-                     <Button className='w-full' onClick={handleSaveChanges}>Save Changes</Button>
-                </CardContent>
-            </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Customer &amp; Shipping</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-              <div className="flex items-center justify-between">
-                <div className="font-medium">{order.customerName}</div>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <Copy className="h-4 w-4" />
-                  <span className="sr-only">Copy</span>
+              {isEditing ? (
+                <>
+                  <Button variant="outline" size="sm" type="button" onClick={handleEditToggle}>Cancel</Button>
+                  <Button size="sm" type="submit"><Save className="mr-2 h-4 w-4" /> Save Changes</Button>
+                </>
+              ) : (
+                <Button variant="outline" size="sm" type="button" onClick={handleEditToggle}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Order
                 </Button>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                <p>1 order</p>
-              </div>
-              <Separator />
-              <div className="grid gap-2">
-                <div className="font-medium">Shipping Information</div>
-                <address className="not-italic text-muted-foreground">
-                  1234 Main Street
-                  <br />
-                  Anytown, CA 12345
-                </address>
-              </div>
-              <Separator />
-              <div className="grid gap-2">
-                <div className="font-medium">Contact Information</div>
-                <div className="text-muted-foreground">
-                  {order.customerEmail && (
-                    <div className="flex items-center gap-2">
-                        <p>{order.customerEmail}</p>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                            <a href={`mailto:${order.customerEmail}?subject=Regarding your order ${order.id}`}>
-                                <Mail className="h-4 w-4" />
-                            </a>
-                        </Button>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <p>{order.customerPhone}</p>
-                     <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                        <a href={`tel:${order.customerPhone}`}>
-                            <Phone className="h-4 w-4" />
-                        </a>
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                        <a href={`https://wa.me/${order.customerPhone.replace(/\+/g, '')}?text=${encodeURIComponent(whatsappMessage)}`} target="_blank" rel="noopener noreferrer">
-                           <WhatsAppIcon className="h-4 w-4" />
-                        </a>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-           <Card>
+              )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="h-8 w-8">
+                    <MoreVertical className="h-3.5 w-3.5" />
+                    <span className="sr-only">More</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>Export</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid auto-rows-max items-start gap-4 lg:col-span-2">
+              <Card>
                 <CardHeader>
-                    <CardTitle>Order Source</CardTitle>
-                    <CardDescription>The business and platform this order originated from.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                    <div className="space-y-2">
-                        <Label>Business</Label>
-                        <Select value={businessId} onValueChange={setBusinessId}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a business" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {businesses.map(b => (
-                                    <SelectItem key={b.id} value={b.id}>
-                                        <div className="flex items-center gap-2">
-                                            <Store className="h-4 w-4 text-muted-foreground" />
-                                            <span>{b.name}</span>
-                                        </div>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Platform</Label>
-                        <Select value={platform} onValueChange={(v: OrderPlatform) => setPlatform(v)}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a platform" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {allPlatforms.map(p => (
-                                    <SelectItem key={p} value={p}>
-                                        <div className="flex items-center gap-2">
-                                            <Globe className="h-4 w-4 text-muted-foreground" />
-                                            <span>{p}</span>
-                                        </div>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </CardContent>
-                <CardFooter>
-                    <Button className="ml-auto" onClick={handleSaveChanges}>
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Source
-                    </Button>
-                </CardFooter>
-            </Card>
-             <Card>
-                <CardHeader>
-                    <CardTitle>Courier Management</CardTitle>
-                    <CardDescription>Send this order to a courier service for delivery.</CardDescription>
+                  <CardTitle>Order Items</CardTitle>
                 </CardHeader>
                 <CardContent>
-                     <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="courier">Courier Service</Label>
-                            <Select value={selectedCourier} onValueChange={setSelectedCourier}>
-                                <SelectTrigger id="courier">
-                                    <SelectValue placeholder="Select a courier" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {courierServices.map(c => (
-                                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        {selectedCourier && (
-                             <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button className="w-full">
-                                        <Truck className="mr-2 h-4 w-4" /> Send to {selectedCourier}
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Confirm Order Dispatch</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This will send the order details for <strong>{order.id}</strong> to <strong>{selectedCourier}</strong> for delivery. Are you sure you want to proceed?
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction>Confirm & Send</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        )}
-                     </div>
-                </CardContent>
-            </Card>
-           <Card>
-                <CardHeader>
-                    <CardTitle>Notes</CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-6">
-                    <div className="grid gap-3">
-                        <Label htmlFor="customer-note">Customer Note</Label>
-                        <Textarea id="customer-note" placeholder="No customer note provided." value={customerNote} onChange={(e) => setCustomerNote(e.target.value)} />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <Checkbox id="send-to-courier" checked={sendToCourier} onCheckedChange={(checked) => setSendToCourier(!!checked)} />
-                        <label
-                            htmlFor="send-to-courier"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                            Send note to courier
-                        </label>
-                    </div>
-                     <div className="grid gap-3">
-                        <Label htmlFor="office-note">Office Note</Label>
-                        <Textarea id="office-note" placeholder="Add an internal note..." value={officeNote} onChange={(e) => setOfficeNote(e.target.value)} />
-                    </div>
-                    {mergedNote && (
-                        <div>
-                            <Separator className="my-4" />
-                            <div className="grid gap-3">
-                                <Label>Merged Note for Courier</Label>
-                                <div className="relative rounded-md border border-primary/50 bg-primary/10 p-3">
-                                    <div className="absolute top-2 right-2">
-                                        <FileText className="h-5 w-5 text-primary/80" />
+                  <Table>
+                    <TableHeader className="hidden sm:table-header-group">
+                      <TableRow>
+                        <TableHead className="w-[80px]">Image</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>SKU</TableHead>
+                        <TableHead className="text-right">Qty</TableHead>
+                        <TableHead className="text-right">Price</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        {isEditing && <TableHead><span className="sr-only">Actions</span></TableHead>}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="flex flex-col sm:table-row-group gap-4">
+                      {fields.map((product, index) => (
+                        <TableRow key={product.id} className="flex sm:table-row flex-col sm:flex-row rounded-lg border sm:border-0 p-4 sm:p-0">
+                          <TableCell className="p-0 sm:p-4 w-[80px] hidden sm:table-cell">
+                            <Image
+                              alt={product.name}
+                              className="aspect-square rounded-md object-cover"
+                              height="64"
+                              src={product.image.imageUrl}
+                              width="64"
+                            />
+                          </TableCell>
+                           <TableCell className="font-medium p-0 sm:p-4 w-full">
+                                <div className="flex items-start gap-4 pb-4 sm:pb-0 border-b sm:border-0">
+                                    <Image
+                                        alt={product.name}
+                                        className="aspect-square rounded-md object-cover sm:hidden"
+                                        height="64"
+                                        src={product.image.imageUrl}
+                                        width="64"
+                                    />
+                                    <div className="flex-1">
+                                        <p className="font-medium">{product.name}</p>
+                                        <p className="text-sm text-muted-foreground">SKU-452-187</p>
                                     </div>
-                                    <p className="text-sm whitespace-pre-wrap font-mono">{mergedNote}</p>
+                                    {isEditing && (
+                                        <Button variant="ghost" size="icon" className="text-destructive" type="button" onClick={() => remove(index)}>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    )}
                                 </div>
-                            </div>
-                        </div>
-                    )}
+                                <div className="sm:hidden pt-4">
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <div className="col-span-1">
+                                            <p className="text-sm text-muted-foreground">Qty</p>
+                                             {isEditing ? (
+                                                <FormField
+                                                  control={form.control}
+                                                  name={`products.${index}.quantity`}
+                                                  render={({ field }) => (
+                                                    <Input type="number" {...field} className="h-8 w-16 text-center"/>
+                                                  )}
+                                                />
+                                            ) : (
+                                                <p className="font-medium">{product.quantity}</p>
+                                            )}
+                                        </div>
+                                        <div className="col-span-1 text-right">
+                                            <p className="text-sm text-muted-foreground">Price</p>
+                                            <p className="font-medium">৳{product.price.toFixed(2)}</p>
+                                        </div>
+                                         <div className="col-span-1 text-right">
+                                            <p className="text-sm text-muted-foreground">Total</p>
+                                            <p className="font-medium">৳{(product.price * product.quantity).toFixed(2)}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </TableCell>
+                          <TableCell className="hidden sm:table-cell">SKU-452-187</TableCell>
+                          <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
+                              {isEditing ? (
+                                <FormField
+                                  control={form.control}
+                                  name={`products.${index}.quantity`}
+                                  render={({ field }) => (
+                                    <Input type="number" {...field} className="h-8 w-16 text-center ml-auto"/>
+                                  )}
+                                />
+                              ) : (
+                                product.quantity
+                              )}
+                          </TableCell>
+                          <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
+                            ৳{product.price.toFixed(2)}
+                          </TableCell>
+                          <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
+                            ৳{(product.price * product.quantity).toFixed(2)}
+                          </TableCell>
+                           {isEditing && (
+                                <TableCell className="hidden sm:table-cell">
+                                    <Button variant="ghost" size="icon" className="text-destructive" type="button" onClick={() => remove(index)}>
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </TableCell>
+                            )}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  {isEditing && (
+                      <div className="mt-4">
+                          <Button variant="outline" size="sm" type="button" onClick={handleAddProduct}><PlusCircle className="mr-2 h-4 w-4" />Add Product</Button>
+                      </div>
+                  )}
                 </CardContent>
                 <CardFooter>
-                    <Button className="ml-auto" onClick={handleSaveNotes}>
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Notes
-                    </Button>
+                    <div className='w-full space-y-2'>
+                        <div className="flex items-center justify-between">
+                            <dt className="text-muted-foreground">Subtotal</dt>
+                            <dd>৳{subtotal.toFixed(2)}</dd>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <dt className="text-muted-foreground">Shipping</dt>
+                             {isEditing ? (
+                                <FormField
+                                  control={form.control}
+                                  name="shipping"
+                                  render={({ field }) => (
+                                    <Input type="number" {...field} className="h-8 w-24 text-right" />
+                                  )}
+                                />
+                            ) : (
+                                <dd>৳{shippingWatcher.toFixed(2)}</dd>
+                            )}
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <dt className="text-muted-foreground">Tax</dt>
+                            <dd>৳{tax.toFixed(2)}</dd>
+                        </div>
+                        <Separator />
+                        <div className="flex items-center justify-between font-semibold text-lg">
+                            <dt>Total</dt>
+                            <dd>৳{total.toFixed(2)}</dd>
+                        </div>
+                    </div>
                 </CardFooter>
-            </Card>
-          <OrderHistory logs={order.logs} />
+              </Card>
+              <Card className="lg:col-span-2">
+                    <CardHeader>
+                        <CardTitle>Delivery & Courier Report</CardTitle>
+                        <CardDescription>
+                            Parcel history for customer phone number: {order.customerPhone}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4">
+                        <div className="grid grid-cols-4 gap-x-4 border-b pb-2 text-xs font-medium text-muted-foreground">
+                            <div className="col-span-1">Courier</div>
+                            <div className="col-span-1 text-center">Total</div>
+                            <div className="col-span-1 text-center">Delivered</div>
+                            <div className="col-span-1 text-center">Canceled</div>
+                        </div>
+                        {courierStatsData.map(courier => (
+                             <div key={courier.name} className="grid grid-cols-4 gap-x-4 items-center text-sm">
+                                 <div className="col-span-1 font-semibold">{courier.name}</div>
+                                 <div className="col-span-1 text-center font-medium">{courier.total}</div>
+                                 <div className="col-span-1 text-center font-medium text-green-600">{courier.delivered}</div>
+                                 <div className="col-span-1 text-center font-medium text-red-500">{courier.canceled}</div>
+                             </div>
+                        ))}
+                        <Separator />
+                         <div className="grid grid-cols-4 gap-x-4 items-center text-sm font-bold">
+                             <div className="col-span-1">Total</div>
+                             <div className="col-span-1 text-center">{totalParcels}</div>
+                             <div className="col-span-1 text-center text-green-600">{totalDelivered}</div>
+                             <div className="col-span-1 text-center text-red-500">{totalCanceled}</div>
+                         </div>
+                         <Separator />
+                         <div className="grid grid-cols-2 gap-4">
+                             <div className="space-y-1">
+                                 <div className="flex justify-between items-center text-sm">
+                                     <span className="font-semibold">Delivery Ratio</span>
+                                     <span className="font-bold text-green-600">{deliveryRatio.toFixed(1)}%</span>
+                                 </div>
+                                 <Progress value={deliveryRatio} className="h-2 [&>div]:bg-green-500" />
+                             </div>
+                              <div className="space-y-1">
+                                 <div className="flex justify-between items-center text-sm">
+                                     <span className="font-semibold">Cancel Ratio</span>
+                                     <span className="font-bold text-red-500">{cancelRatio.toFixed(1)}%</span>
+                                 </div>
+                                 <Progress value={cancelRatio} className="h-2 [&>div]:bg-red-500" />
+                             </div>
+                         </div>
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="grid auto-rows-max items-start gap-4">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Order Details</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid gap-4">
+                        <div className="space-y-2">
+                            <p className="font-medium">Order Date</p>
+                            <p className="text-muted-foreground">{format(new Date(order.date), "MMM d, yyyy")}</p>
+                        </div>
+                         <Separator />
+                         <FormField
+                            control={form.control}
+                            name="status"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Update Status</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select a status" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {allStatuses.map(status => (
+                                                <SelectItem key={status} value={status}>{status}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </FormItem>
+                            )}
+                        />
+                         <Button className='w-full' type="submit">Save Changes</Button>
+                    </CardContent>
+                </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Customer & Shipping</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-4">
+                    {isEditing ? (
+                        <>
+                            <FormField name="customerName" control={form.control} render={({ field }) => (<FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField name="customerPhone" control={form.control} render={({ field }) => (<FormItem><FormLabel>Phone</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField name="customerEmail" control={form.control} render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField name="shippingAddress" control={form.control} render={({ field }) => (<FormItem><FormLabel>Shipping Address</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        </>
+                    ) : (
+                        <>
+                            <div className="flex items-center justify-between">
+                                <div className="font-medium">{order.customerName}</div>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" type="button"><Copy className="h-4 w-4" /><span className="sr-only">Copy</span></Button>
+                            </div>
+                            <div className="text-sm text-muted-foreground"><p>1 order</p></div>
+                            <Separator />
+                            <div className="grid gap-2">
+                                <div className="font-medium">Contact Information</div>
+                                <div className="text-muted-foreground">
+                                {order.customerEmail && (
+                                    <div className="flex items-center gap-2"><p>{order.customerEmail}</p>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7" asChild><a href={`mailto:${order.customerEmail}?subject=Regarding your order ${order.id}`}><Mail className="h-4 w-4" /></a></Button>
+                                    </div>
+                                )}
+                                <div className="flex items-center gap-2">
+                                    <p>{order.customerPhone}</p>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" asChild><a href={`tel:${order.customerPhone}`}><Phone className="h-4 w-4" /></a></Button>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" asChild><a href={`https://wa.me/${order.customerPhone.replace(/\+/g, '')}?text=${encodeURIComponent(whatsappMessage)}`} target="_blank" rel="noopener noreferrer"><WhatsAppIcon className="h-4 w-4" /></a></Button>
+                                </div>
+                                </div>
+                            </div>
+                            <Separator />
+                            <div className="grid gap-2">
+                                <div className="font-medium">Shipping Information</div>
+                                <address className="not-italic text-muted-foreground">{order.shippingAddress.address}</address>
+                            </div>
+                        </>
+                    )}
+                </CardContent>
+              </Card>
+               <Tabs defaultValue="source" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="source"><BookUser className="sm:mr-2 h-4 w-4"/> <span className="hidden sm:inline">Source</span></TabsTrigger>
+                    <TabsTrigger value="notes"><StickyNote className="sm:mr-2 h-4 w-4"/> <span className="hidden sm:inline">Notes</span></TabsTrigger>
+                </TabsList>
+                <TabsContent value="source">
+                    <Card className="rounded-t-none">
+                        <CardHeader><CardTitle>Order Source</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                             <FormField control={form.control} name="businessId" render={({ field }) => (
+                                <FormItem><FormLabel>Business</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
+                                        <FormControl><SelectTrigger><SelectValue placeholder="Select a business" /></SelectTrigger></FormControl>
+                                        <SelectContent>{businesses.map(b => (<SelectItem key={b.id} value={b.id}><div className="flex items-center gap-2"><Store className="h-4 w-4 text-muted-foreground" /><span>{b.name}</span></div></SelectItem>))}</SelectContent>
+                                    </Select>
+                                </FormItem>
+                            )}/>
+                            <FormField control={form.control} name="platform" render={({ field }) => (
+                                <FormItem><FormLabel>Platform</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
+                                        <FormControl><SelectTrigger><SelectValue placeholder="Select a platform" /></SelectTrigger></FormControl>
+                                        <SelectContent>{allPlatforms.map(p => (<SelectItem key={p} value={p}><div className="flex items-center gap-2"><Globe className="h-4 w-4 text-muted-foreground" /><span>{p}</span></div></SelectItem>))}</SelectContent>
+                                    </Select>
+                                </FormItem>
+                            )}/>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="notes">
+                     <Card className="rounded-t-none">
+                        <CardHeader><CardTitle>Notes</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                            <FormField control={form.control} name="customerNote" render={({ field }) => (<FormItem><FormLabel>Customer Note</FormLabel><FormControl><Textarea placeholder="No customer note provided." {...field} readOnly={!isEditing}/></FormControl></FormItem>)} />
+                            <FormField control={form.control} name="officeNote" render={({ field }) => (<FormItem><FormLabel>Office Note</FormLabel><FormControl><Textarea placeholder="Add an internal note..." {...field} readOnly={!isEditing}/></FormControl></FormItem>)} />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+               </Tabs>
+
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Courier Management</CardTitle>
+                        <CardDescription>Send this order to a courier service for delivery.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                         <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="courier">Courier Service</Label>
+                                <Select value={selectedCourier} onValueChange={setSelectedCourier}>
+                                    <SelectTrigger id="courier">
+                                        <SelectValue placeholder="Select a courier" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {courierServices.map(c => (
+                                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            {selectedCourier && (
+                                 <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button className="w-full" type="button">
+                                            <Truck className="mr-2 h-4 w-4" /> Send to {selectedCourier}
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Confirm Order Dispatch</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This will send the order details for <strong>{order.id}</strong> to <strong>{selectedCourier}</strong> for delivery. Are you sure you want to proceed?
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction>Confirm & Send</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            )}
+                         </div>
+                    </CardContent>
+                </Card>
+              <OrderHistory logs={order.logs} />
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </form>
+    </Form>
   );
 }
 
@@ -829,3 +781,4 @@ export default function OrderDetailsPage() {
     
 
     
+
