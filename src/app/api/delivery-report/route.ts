@@ -48,11 +48,14 @@ export async function GET(request: Request) {
 
   const url = `https://dash.hoorin.com/api/courier/api?apiKey=${apiKey}&searchTerm=${phone}`;
   const sheetUrl = `https://dash.hoorin.com/api/courier/sheet?apiKey=${apiKey}&searchTerm=${phone}`;
+  const headers = {
+    'Referer': 'https://your-approved-domain.com'
+  };
 
   try {
     const [summaryRes, sheetRes] = await Promise.all([
-      fetch(url, { cache: 'no-store' }), // Disable caching for fresh data
-      fetch(sheetUrl, { cache: 'no-store' })
+      fetch(url, { cache: 'no-store', headers: headers }),
+      fetch(sheetUrl, { cache: 'no-store', headers: headers })
     ]);
 
     if (!summaryRes.ok || !sheetRes.ok) {
