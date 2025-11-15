@@ -10,6 +10,7 @@ export async function getAnalyticsData(): Promise<{
         cogs: number;
         grossProfit: number;
         expenses: number;
+        adExpenses: number;
         netProfit: number;
     };
     monthlyBreakdown: { month: string; revenue: number; cogs: number; expenses: number; profit: number; }[];
@@ -17,8 +18,8 @@ export async function getAnalyticsData(): Promise<{
 }> {
     // This is a mock implementation.
     // In a real backend, you would calculate this based on orders and expenses from your database.
-    const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    const adExpenses = expenses.filter(e => e.isAdExpense).reduce((sum, expense) => sum + expense.amount, 0);
     
     const analyticsData = {
         summary: {
@@ -26,6 +27,7 @@ export async function getAnalyticsData(): Promise<{
             cogs: 210000,
             grossProfit: 240000,
             expenses: 85000,
+            adExpenses: adExpenses,
             netProfit: 155000,
         },
         monthlyBreakdown: [

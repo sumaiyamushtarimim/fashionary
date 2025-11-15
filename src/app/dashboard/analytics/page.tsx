@@ -8,6 +8,7 @@ import {
   MinusCircle,
   TrendingDown,
   TrendingUp,
+  Radar,
 } from 'lucide-react';
 import { Bar, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, ComposedChart, Line, Legend } from 'recharts';
 
@@ -51,6 +52,7 @@ type AnalyticsData = {
         cogs: number;
         grossProfit: number;
         expenses: number;
+        adExpenses: number;
         netProfit: number;
     };
     monthlyBreakdown: { month: string; revenue: number; cogs: number; expenses: number; profit: number; }[];
@@ -94,8 +96,8 @@ export default function AnalyticsPage() {
         return (
              <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                 <Skeleton className="h-12 w-1/3" />
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-                    {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-[126px]" />)}
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+                    {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-[126px]" />)}
                 </div>
                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
                     <Skeleton className="lg:col-span-3 h-[400px]" />
@@ -130,7 +132,7 @@ export default function AnalyticsPage() {
                 </div>
             </div>
 
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -171,7 +173,17 @@ export default function AnalyticsPage() {
                         <p className="text-xs text-muted-foreground">Operational costs</p>
                     </CardContent>
                 </Card>
-                <Card className="bg-primary/10 border-primary md:col-span-3 lg:col-span-1">
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Ad Expense</CardTitle>
+                        <Radar className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">৳{analyticsData.summary.adExpenses.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">Marketing & Ads</p>
+                    </CardContent>
+                </Card>
+                <Card className="bg-primary/10 border-primary">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
                         <BarChart className="h-4 w-4 text-muted-foreground" />
