@@ -408,8 +408,8 @@ export default function OrderDetailsPage() {
               </DropdownMenu>
             </div>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div className="grid auto-rows-max items-start gap-4 lg:col-span-2">
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid auto-rows-max items-start gap-4 md:col-span-2">
               <Card>
                 <CardHeader>
                   <CardTitle>Order Items</CardTitle>
@@ -603,7 +603,7 @@ export default function OrderDetailsPage() {
                     </CardContent>
                 </Card>
             </div>
-            <div className="grid auto-rows-max items-start gap-4">
+            <div className="grid auto-rows-max items-start gap-4 md:col-span-1">
                 <Card>
                     <CardHeader>
                         <CardTitle>Order Details</CardTitle>
@@ -773,3 +773,4 @@ export default function OrderDetailsPage() {
     
 
     
+
