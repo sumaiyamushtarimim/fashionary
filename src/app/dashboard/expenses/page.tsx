@@ -100,9 +100,9 @@ export default function ExpensesPage() {
   const filteredExpenses = useMemo(() => {
     return allExpenses.filter((expense) => {
       const expenseDate = new Date(expense.date);
-      const dateMatch = !dateRange?.from || (dateRange?.from && dateRange?.to 
+      const dateMatch = !dateRange?.from || (dateRange.from && dateRange.to 
         ? isWithinInterval(expenseDate, { start: dateRange.from, end: dateRange.to })
-        : true);
+        : isWithinInterval(expenseDate, { start: dateRange.from, end: addDays(dateRange.from, 1) }));
 
       return dateMatch;
     });
@@ -235,6 +235,7 @@ export default function ExpensesPage() {
             <p className="text-muted-foreground hidden sm:block">Track and manage all business expenses.</p>
         </div>
         <div className="flex items-center gap-2">
+            <DateRangePicker date={dateRange} onDateChange={setDateRange} />
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
                 <Button size="sm">
@@ -337,7 +338,10 @@ export default function ExpensesPage() {
         <CardHeader>
           <CardTitle>Expense List</CardTitle>
           <CardDescription>
-            A list of all recorded business expenses.
+            {dateRange?.from 
+                ? `Showing expenses from ${format(dateRange.from, "LLL dd, y")}${dateRange.to ? ` to ${format(dateRange.to, "LLL dd, y")}`: ''}`
+                : "A list of all recorded business expenses."
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
