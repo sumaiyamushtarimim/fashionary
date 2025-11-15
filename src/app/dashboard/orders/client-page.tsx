@@ -80,8 +80,6 @@ import { getOrders, getStatuses } from "@/services/orders";
 import { getBusinesses, getCourierServices } from "@/services/partners";
 import type { Order, OrderProduct, OrderStatus, Business, CourierService } from "@/types";
 
-const ITEMS_PER_PAGE = 10;
-
 const statusColors: Record<OrderStatus, string> = {
     'New': 'bg-blue-500/20 text-blue-700',
     'Confirmed': 'bg-sky-500/20 text-sky-700',
@@ -174,6 +172,7 @@ export default function OrdersClientPage() {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedOrders, setSelectedOrders] = React.useState<string[]>([]);
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(10);
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -352,17 +351,17 @@ export default function OrdersClientPage() {
     });
   }, [statusFilter, businessFilter, dateRange, searchTerm, allOrders]);
   
-  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const paginatedOrders = React.useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredOrders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredOrders, currentPage]);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredOrders.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredOrders, currentPage, itemsPerPage]);
 
 
   React.useEffect(() => {
     setSelectedOrders([]);
     setCurrentPage(1);
-  }, [statusFilter, businessFilter, dateRange, searchTerm]);
+  }, [statusFilter, businessFilter, dateRange, searchTerm, itemsPerPage]);
 
   const handleSelectAll = (checked: boolean | 'indeterminate') => {
     if (checked === true) {
@@ -694,10 +693,24 @@ export default function OrdersClientPage() {
         </CardContent>
         <CardFooter>
             <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
-                <div>
-                 Showing <strong>{(currentPage - 1) * ITEMS_PER_PAGE + 1}-
-                 {Math.min(currentPage * ITEMS_PER_PAGE, filteredOrders.length)}
-                 </strong> of <strong>{filteredOrders.length}</strong> orders
+                <div className="flex items-center gap-2">
+                    <span>Rows per page</span>
+                    <Select value={String(itemsPerPage)} onValueChange={(value) => setItemsPerPage(Number(value))}>
+                        <SelectTrigger className="w-16 h-8 text-xs">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                            <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="flex-1 text-center">
+                    Showing <strong>{(currentPage - 1) * itemsPerPage + 1}-
+                    {Math.min(currentPage * itemsPerPage, filteredOrders.length)}
+                    </strong> of <strong>{filteredOrders.length}</strong> orders
                 </div>
                  {totalPages > 1 && (
                     <Pagination>
@@ -706,14 +719,14 @@ export default function OrdersClientPage() {
                                 <PaginationPrevious 
                                     href="#" 
                                     onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.max(1, p - 1))}} 
-                                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                                    className={cn('h-8', currentPage === 1 ? 'pointer-events-none opacity-50' : '')}
                                 />
                             </PaginationItem>
                              <PaginationItem>
                                 <PaginationNext 
                                     href="#" 
                                     onClick={(e) => { e.preventDefault(); setCurrentPage(p => Math.min(totalPages, p + 1))}}
-                                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''} 
+                                    className={cn('h-8', currentPage === totalPages ? 'pointer-events-none opacity-50' : '')} 
                                 />
                             </PaginationItem>
                         </PaginationContent>
