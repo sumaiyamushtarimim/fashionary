@@ -42,8 +42,8 @@ const settingsLinks = [
   },
   {
     href: '/dashboard/settings/integrations',
-    title: 'Integrations',
-    description: 'Connect with third-party services.',
+    title: 'WooCommerce',
+    description: 'Connect and manage your WooCommerce stores.',
     icon: Plug,
   },
   {

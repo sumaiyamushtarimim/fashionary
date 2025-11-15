@@ -34,7 +34,7 @@ const settingsNav = [
   { href: '/dashboard/settings/business', label: 'Business', icon: Store },
   { href: '/dashboard/settings/categories', label: 'Categories', icon: LayoutGrid },
   { href: '/dashboard/settings/notifications', label: 'Notifications', icon: BellRing },
-  { href: '/dashboard/settings/integrations', label: 'Integrations', icon: Plug },
+  { href: '/dashboard/settings/integrations', label: 'WooCommerce', icon: Plug },
   { href: '/dashboard/settings/courier', label: 'Courier', icon: Truck },
   { href: '/dashboard/settings/delivery-score', label: 'Delivery Score', icon: Radar },
   { href: '/dashboard/settings/gateways/sms', label: 'SMS Gateway', icon: MessageSquare },
