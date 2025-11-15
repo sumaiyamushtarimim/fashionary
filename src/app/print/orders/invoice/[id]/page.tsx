@@ -119,7 +119,7 @@ export function InvoiceTemplate({ order }: { order: Order }) {
             </section>
 
             <footer className="mt-16 text-center text-sm text-gray-500 border-t pt-4">
-                <p>পারচেজের জন্য ধন্যবাদ!</p>
+                <p>Thank you for your purchase!</p>
             </footer>
         </div>
     );
