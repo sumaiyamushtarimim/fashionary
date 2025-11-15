@@ -15,6 +15,7 @@ export type DeliveryReport = {
         Steadfast: CourierSummary;
         RedX: CourierSummary;
         Pathao: CourierSummary;
+        [key: string]: CourierSummary;
     };
     totalSummary: {
         "Total Parcels": number;
@@ -24,36 +25,27 @@ export type DeliveryReport = {
 };
 
 export async function getDeliveryReport(phone: string): Promise<DeliveryReport | null> {
-    const apiKey = 'example_api_key'; // In a real app, this would be fetched from a secure config
+    const apiKey = "example_api_key"; // In a real app, this would be fetched from a secure config
     const url = `https://dash.hoorin.com/api/courier/api?apiKey=${apiKey}&searchTerm=${phone}`;
     const sheetUrl = `https://dash.hoorin.com/api/courier/sheet?apiKey=${apiKey}&searchTerm=${phone}`;
 
     try {
-        // In a real app, you would use fetch to get the data
-        // const response = await fetch(url);
-        // const sheetResponse = await fetch(sheetUrl);
-        // if (!response.ok || !sheetResponse.ok) {
-        //     throw new Error('Failed to fetch delivery report');
-        // }
-        // const data = await response.json();
-        // const sheetData = await sheetResponse.json();
-
-        // Using mock data for demonstration
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const mockData = {
-            "Summaries": {
-                "Steadfast": { "Total Parcels": 12, "Delivered Parcels": 10, "Canceled Parcels": 2, "Details": [] },
-                "RedX": { "Total Parcels": 8, "Delivered Parcels": 7, "Canceled Parcels": 1 },
-                "Pathao": { "Total Delivery": 5, "Successful Delivery": 4, "Canceled Delivery": 1 }
-            }
-        };
-        const mockSheetData = {
-            "totalSummary": { "Total Parcels": 25, "Delivered Parcels": 21, "Canceled Parcels": 4 }
-        };
+        const [response, sheetResponse] = await Promise.all([
+             fetch(url),
+             fetch(sheetUrl)
+        ]);
+        
+        if (!response.ok || !sheetResponse.ok) {
+            console.error('Failed to fetch delivery report');
+            return null;
+        }
+        
+        const data = await response.json();
+        const sheetData = await sheetResponse.json();
 
         return {
-            Summaries: mockData.Summaries,
-            totalSummary: mockSheetData.totalSummary,
+            Summaries: data.Summaries,
+            totalSummary: sheetData.totalSummary,
         };
 
     } catch (error) {
