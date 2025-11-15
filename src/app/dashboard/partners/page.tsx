@@ -582,5 +582,4 @@ export default function PartnersPage() {
       </Dialog>
     </div>
   );
-
-    
+}

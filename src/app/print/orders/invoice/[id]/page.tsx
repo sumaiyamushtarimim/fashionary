@@ -8,7 +8,7 @@ import type { Order } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
-import { InvoiceTemplate } from '../../invoice-template';
+import { InvoiceTemplate } from '@/app/dashboard/orders/print/invoice-template';
 
 
 export default function SingleInvoicePage() {

@@ -8,7 +8,7 @@ import type { Order } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
-import { StickerTemplate } from '../../sticker-template';
+import { StickerTemplate } from '@/app/dashboard/orders/print/sticker-template';
 
 export default function SingleStickerPage() {
     const params = useParams();
