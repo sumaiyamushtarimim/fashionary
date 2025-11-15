@@ -246,6 +246,7 @@ export default function OrderDetailsPage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [isEditing, setIsEditing] = React.useState(false);
   const [selectedCourier, setSelectedCourier] = React.useState<string | undefined>();
+  const [includeCustomerNote, setIncludeCustomerNote] = React.useState(false);
   
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderFormSchema),
@@ -603,7 +604,7 @@ export default function OrderDetailsPage() {
                     </CardContent>
                 </Card>
             </div>
-            <div className="md:col-span-1 space-y-4">
+            <div className="md:col-span-1 grid auto-rows-max gap-4">
                 <Card>
                     <CardHeader>
                         <CardTitle>Order Details</CardTitle>
@@ -682,29 +683,29 @@ export default function OrderDetailsPage() {
                     )}
                 </CardContent>
               </Card>
-              <Card>
-                <CardHeader>
-                    <CardTitle>Order Source</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <FormField control={form.control} name="businessId" render={({ field }) => (
-                        <FormItem><FormLabel>Business</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Select a business" /></SelectTrigger></FormControl>
-                                <SelectContent>{businesses.map(b => (<SelectItem key={b.id} value={b.id}><div className="flex items-center gap-2"><Store className="h-4 w-4 text-muted-foreground" /><span>{b.name}</span></div></SelectItem>))}</SelectContent>
-                            </Select>
-                        </FormItem>
-                    )}/>
-                    <FormField control={form.control} name="platform" render={({ field }) => (
-                        <FormItem><FormLabel>Platform</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Select a platform" /></SelectTrigger></FormControl>
-                                <SelectContent>{allPlatforms.map(p => (<SelectItem key={p} value={p}><div className="flex items-center gap-2"><Globe className="h-4 w-4 text-muted-foreground" /><span>{p}</span></div></SelectItem>))}</SelectContent>
-                            </Select>
-                        </FormItem>
-                    )}/>
-                </CardContent>
-            </Card>
+               <Card>
+                    <CardHeader>
+                        <CardTitle>Order Source</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <FormField control={form.control} name="businessId" render={({ field }) => (
+                            <FormItem><FormLabel>Business</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a business" /></SelectTrigger></FormControl>
+                                    <SelectContent>{businesses.map(b => (<SelectItem key={b.id} value={b.id}><div className="flex items-center gap-2"><Store className="h-4 w-4 text-muted-foreground" /><span>{b.name}</span></div></SelectItem>))}</SelectContent>
+                                </Select>
+                            </FormItem>
+                        )}/>
+                        <FormField control={form.control} name="platform" render={({ field }) => (
+                            <FormItem><FormLabel>Platform</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a platform" /></SelectTrigger></FormControl>
+                                    <SelectContent>{allPlatforms.map(p => (<SelectItem key={p} value={p}><div className="flex items-center gap-2"><Globe className="h-4 w-4 text-muted-foreground" /><span>{p}</span></div></SelectItem>))}</SelectContent>
+                                </Select>
+                            </FormItem>
+                        )}/>
+                    </CardContent>
+                </Card>
             </div>
           </div>
            <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 mt-4">
@@ -715,7 +716,7 @@ export default function OrderDetailsPage() {
                     <CardDescription>Send this order to a courier service for delivery.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                        <div className="space-y-4">
+                    <div className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="courier">Courier Service</Label>
                             <Select value={selectedCourier} onValueChange={setSelectedCourier}>
@@ -729,8 +730,17 @@ export default function OrderDetailsPage() {
                                 </SelectContent>
                             </Select>
                         </div>
+                        <div className="flex items-center space-x-2">
+                            <Checkbox id="include-customer-note" checked={includeCustomerNote} onCheckedChange={(checked) => setIncludeCustomerNote(!!checked)} />
+                            <label
+                                htmlFor="include-customer-note"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                                Include Customer Note
+                            </label>
+                        </div>
                         {selectedCourier && (
-                                <AlertDialog>
+                            <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                     <Button className="w-full" type="button">
                                         <Truck className="mr-2 h-4 w-4" /> Send to {selectedCourier}
@@ -750,7 +760,7 @@ export default function OrderDetailsPage() {
                                 </AlertDialogContent>
                             </AlertDialog>
                         )}
-                        </div>
+                    </div>
                 </CardContent>
             </Card>
             <Card>
@@ -774,6 +784,7 @@ export default function OrderDetailsPage() {
     
 
     
+
 
 
 
