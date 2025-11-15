@@ -81,10 +81,10 @@ export default function BulkPrintPage() {
                 )}
 
                 {printType === 'sticker' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 print:grid-cols-2 print:gap-0">
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 print:block">
                          {orders.map((order, index) => (
                             <div key={order.id} className={cn(
-                                "flex justify-center items-start bg-white shadow-lg print:shadow-none",
+                                "flex justify-center items-start bg-white shadow-lg print:shadow-none print:w-full print:h-screen",
                                 index < orders.length - 1 && "page-break"
                             )}>
                                 <StickerTemplate order={order} />
@@ -106,3 +106,4 @@ export default function BulkPrintPage() {
         </div>
     );
 }
+
