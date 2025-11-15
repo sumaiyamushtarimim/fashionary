@@ -12,6 +12,40 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Phone number is required' }, { status: 400 });
   }
 
+  // Mock data for testing purposes
+  if (phone === '01234567890') {
+    const mockReport = {
+        Summaries: {
+            "Steadfast": {
+                "Total Parcels": 15,
+                "Delivered Parcels": 14,
+                "Canceled Parcels": 1,
+            },
+            "RedX": {
+                "Total Parcels": 10,
+                "Delivered Parcels": 8,
+                "Canceled Parcels": 2,
+            },
+            "Pathao": {
+                "Total Delivery": 22,
+                "Successful Delivery": 21,
+                "Canceled Delivery": 1,
+            },
+            "Carrybee": {
+                "Total Delivery": 5,
+                "Successful Delivery": 5,
+                "Canceled Delivery": 0,
+            }
+        },
+        totalSummary: {
+            "Total Parcels": 52,
+            "Delivered Parcels": 48,
+            "Canceled Parcels": 4,
+        }
+    };
+    return NextResponse.json(mockReport);
+  }
+
   const url = `https://dash.hoorin.com/api/courier/api?apiKey=${apiKey}&searchTerm=${phone}`;
   const sheetUrl = `https://dash.hoorin.com/api/courier/sheet?apiKey=${apiKey}&searchTerm=${phone}`;
 
