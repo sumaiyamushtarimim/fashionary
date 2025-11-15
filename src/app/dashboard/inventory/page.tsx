@@ -2,7 +2,7 @@
 
 'use client';
 
-import { MoreHorizontal, PlusCircle, History, ArrowRight, Minus, Plus, Package, Warehouse, HardHat, CircleDollarSign, TrendingUp, BarChart } from "lucide-react";
+import { MoreHorizontal, PlusCircle, History, ArrowRight, Minus, Plus, Package, Warehouse, HardHat, CircleDollarSign, TrendingUp, BarChart, UploadCloud, Search } from "lucide-react";
 import * as React from "react";
 import Link from 'next/link';
 import Image from 'next/image';
@@ -15,6 +15,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import {
   Dialog,
@@ -76,6 +77,7 @@ export default function InventoryPage() {
 
     const [isClient, setIsClient] = React.useState(false);
     const [locationFilter, setLocationFilter] = React.useState<string>('all');
+    const [searchTerm, setSearchTerm] = React.useState("");
 
     React.useEffect(() => {
         setIsClient(true);
@@ -94,11 +96,17 @@ export default function InventoryPage() {
         });
     }, []);
 
-    const overviewStats = React.useMemo(() => {
-        const filteredInventory = locationFilter === 'all'
-            ? allInventory
-            : allInventory.filter(item => item.locationId === locationFilter);
+    const filteredInventory = React.useMemo(() => {
+        return allInventory.filter(item => {
+            const locationMatch = locationFilter === 'all' || item.locationId === locationFilter;
+            const searchMatch = searchTerm === "" || 
+                                item.productName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                item.sku.toLowerCase().includes(searchTerm.toLowerCase());
+            return locationMatch && searchMatch;
+        });
+    }, [allInventory, locationFilter, searchTerm]);
 
+    const overviewStats = React.useMemo(() => {
         let totalItems = 0;
         let totalCostValue = 0;
         let totalSaleValue = 0;
@@ -107,7 +115,6 @@ export default function InventoryPage() {
             const product = allProducts.find(p => p.id === item.productId);
             if (product) {
                 totalItems += item.quantity;
-                // Assuming cost is 50% of the sale price for this calculation
                 const costPrice = product.price * 0.5;
                 totalCostValue += item.quantity * costPrice;
                 totalSaleValue += item.quantity * product.price;
@@ -118,7 +125,7 @@ export default function InventoryPage() {
 
         return { totalItems, totalCostValue, totalSaleValue, potentialProfit };
 
-    }, [allInventory, allProducts, locationFilter]);
+    }, [filteredInventory, allProducts]);
 
     const [dialogState, setDialogState] = React.useState<DialogState>({
         isOpen: false,
@@ -143,7 +150,6 @@ export default function InventoryPage() {
 
     const currentStock = React.useMemo(() => {
         if (!currentItem) return 0;
-        // In a real app, you'd also filter by location here
         return currentItem.quantity || 0;
     }, [currentItem]);
     
@@ -164,7 +170,7 @@ export default function InventoryPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {allInventory.map((item) => {
+          {filteredInventory.map((item) => {
             const product = allProducts.find(p => p.id === item.productId);
             return (
                 <TableRow key={item.id} className={item.quantity <= 10 ? "bg-destructive/10" : ""}>
@@ -223,7 +229,7 @@ export default function InventoryPage() {
 
     const renderCardList = () => (
       <div className="space-y-4">
-        {allInventory.map((item) => {
+        {filteredInventory.map((item) => {
             const product = allProducts.find(p => p.id === item.productId);
             return (
               <Card key={item.id} className={cn("overflow-hidden", item.quantity <= 10 && "bg-destructive/10")}>
@@ -294,26 +300,16 @@ export default function InventoryPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-      <div className="flex items-center">
-        <div className="flex-1">
-            <h1 className="font-headline text-2xl font-bold">Inventory</h1>
-            <p className="text-muted-foreground hidden sm:block">Track stock levels and movements across all locations.</p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-4">
+            <div className="flex-1">
+                <h1 className="font-headline text-2xl font-bold">Inventory</h1>
+                <p className="text-muted-foreground">Track stock levels and movements across all locations.</p>
+            </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline">
-            Export
-          </Button>
-           <Button size="sm" onClick={() => openDialog('movement')}>
-                Stock Movement
-            </Button>
-        </div>
-      </div>
 
-       <div className="space-y-4">
-        <div className="flex items-center gap-4">
-            <h2 className="text-lg font-semibold font-headline">Overview</h2>
+        <div className="flex flex-col sm:flex-row items-center gap-2">
             <Select value={locationFilter} onValueChange={setLocationFilter}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Select Location" />
                 </SelectTrigger>
                 <SelectContent>
@@ -323,7 +319,19 @@ export default function InventoryPage() {
                     ))}
                 </SelectContent>
             </Select>
+            <div className="w-full sm:w-auto flex-1 sm:flex-none">
+                 <Button size="sm" onClick={() => openDialog('movement')} className="w-full">
+                    Stock Movement
+                </Button>
+            </div>
+             <div className="w-full sm:w-auto flex-1 sm:flex-none">
+                <Button size="sm" variant="outline" className="w-full">
+                    Export
+                </Button>
+            </div>
         </div>
+
+       <div className="space-y-4 pt-2">
         <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -369,7 +377,18 @@ export default function InventoryPage() {
       </div>
 
       <Card>
-        <CardContent className="pt-6">
+        <CardHeader>
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                    placeholder="Search by product name or SKU..."
+                    className="pl-9"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+        </CardHeader>
+        <CardContent className="pt-0">
           {isClient ? (
             <>
               <div className="hidden sm:block">{renderTable()}</div>
@@ -381,6 +400,11 @@ export default function InventoryPage() {
             </div>
           )}
         </CardContent>
+         <CardFooter>
+            <div className="text-xs text-muted-foreground">
+                Showing <strong>{filteredInventory.length}</strong> of <strong>{allInventory.length}</strong> products.
+            </div>
+        </CardFooter>
       </Card>
 
       <Dialog open={dialogState.isOpen} onOpenChange={closeDialog}>
@@ -401,7 +425,7 @@ export default function InventoryPage() {
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="grid gap-3">
                                     <Label htmlFor="product">Product</Label>
-                                    <Select onValueChange={(value) => setDialogState(d => ({...d, selectedItem: { ...d.selectedItem!, productId: value }}))} value={currentItem?.productId}>
+                                    <Select onValueChange={(value) => setDialogState(d => ({...d, selectedItem: { ...d.selectedItem!, productId: value } as InventoryItem}))} value={currentItem?.productId}>
                                         <SelectTrigger id="product"><SelectValue placeholder="Select a product" /></SelectTrigger>
                                         <SelectContent>{allProducts.map(product => (<SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>))}</SelectContent>
                                     </Select>
@@ -442,14 +466,14 @@ export default function InventoryPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                <div className="grid gap-3">
                                     <Label htmlFor="product-adj">Product</Label>
-                                     <Select onValueChange={(value) => setDialogState(d => ({...d, selectedItem: { ...d.selectedItem!, productId: value }}))} value={currentItem?.productId} disabled={!!dialogState.selectedItem}>
+                                     <Select onValueChange={(value) => setDialogState(d => ({...d, selectedItem: { ...d.selectedItem!, productId: value } as InventoryItem}))} value={currentItem?.productId} disabled={!!dialogState.selectedItem?.id}>
                                         <SelectTrigger id="product-adj"><SelectValue placeholder="Select a product" /></SelectTrigger>
                                         <SelectContent>{allProducts.map(product => (<SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>))}</SelectContent>
                                     </Select>
                                 </div>
                                 <div className="grid gap-3">
                                     <Label htmlFor="location-adj">Location</Label>
-                                    <Select value={currentItem?.locationId}><SelectTrigger id="location-adj"><SelectValue placeholder="Select location" /></SelectTrigger>
+                                    <Select value={currentItem?.locationId} disabled={!!dialogState.selectedItem?.id}><SelectTrigger id="location-adj"><SelectValue placeholder="Select location" /></SelectTrigger>
                                         <SelectContent>{allLocations.map(loc => (<SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>))}</SelectContent>
                                     </Select>
                                 </div>
@@ -483,7 +507,7 @@ export default function InventoryPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                <div className="grid gap-3">
                                     <Label htmlFor="product-trans">Product</Label>
-                                    <Select onValueChange={(value) => setDialogState(d => ({...d, selectedItem: { ...d.selectedItem!, productId: value }}))} value={currentItem?.productId} disabled={!!dialogState.selectedItem}>
+                                    <Select onValueChange={(value) => setDialogState(d => ({...d, selectedItem: { ...d.selectedItem!, productId: value } as InventoryItem}))} value={currentItem?.productId} disabled={!!dialogState.selectedItem?.id}>
                                         <SelectTrigger id="product-trans"><SelectValue placeholder="Select a product" /></SelectTrigger>
                                         <SelectContent>{allProducts.map(product => (<SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>))}</SelectContent>
                                     </Select>
@@ -496,7 +520,7 @@ export default function InventoryPage() {
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                                <div className="grid gap-3">
                                     <Label htmlFor="from-loc">From Location</Label>
-                                    <Select value={currentItem?.locationId}><SelectTrigger id="from-loc"><SelectValue placeholder="Select source" /></SelectTrigger>
+                                    <Select value={currentItem?.locationId} disabled={!!dialogState.selectedItem?.id}><SelectTrigger id="from-loc"><SelectValue placeholder="Select source" /></SelectTrigger>
                                         <SelectContent>{allLocations.map(loc => (<SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>))}</SelectContent>
                                     </Select>
                                 </div>
@@ -529,7 +553,7 @@ export default function InventoryPage() {
                         Showing the stock movement history for SKU: {currentItem.sku}.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="py-4">
+                <div className="py-4 max-h-[60vh] overflow-y-auto">
                     {/* For larger screens */}
                    <div className="hidden sm:block">
                         <Table>
