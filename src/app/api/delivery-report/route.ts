@@ -5,8 +5,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const phone = searchParams.get('phone');
   
-  // In a real app, you would fetch this from a secure config/env variable
-  const apiKey = process.env.HOORIN_API_KEY || "fc8c2dc2b03c34d15b7136"; 
+  const apiKey = "fc8c2dc2b03c34d15b7136"; 
 
   if (!phone) {
     return NextResponse.json({ error: 'Phone number is required' }, { status: 400 });
