@@ -37,7 +37,8 @@ import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, ClerkLoaded, ClerkLoading } from "@clerk/nextjs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // In a real app, this would be fetched from a settings service
 const isCourierReportEnabled = true; 
@@ -237,7 +238,12 @@ export default function DashboardLayout({
                 </DropdownMenuFooter>
             </DropdownMenuContent>
           </DropdownMenu>
-          <UserButton afterSignOutUrl="/" />
+          <ClerkLoading>
+            <Skeleton className="h-8 w-8 rounded-full" />
+          </ClerkLoading>
+          <ClerkLoaded>
+            <UserButton afterSignOutUrl="/" />
+          </ClerkLoaded>
         </header>
         <main className="flex flex-1 flex-col bg-background">
           {children}
