@@ -133,6 +133,11 @@ export default function Dashboard() {
         router.push(`/dashboard/orders?${params.toString()}`);
     };
 
+    const statusEntries = allStatuses.map(status => ({
+        status,
+        ...orderStats[status]
+    })).filter(stat => stat.count > 0);
+
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -206,36 +211,53 @@ export default function Dashboard() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-center">Order Count</TableHead>
-                                <TableHead className="text-right">Total Amount</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {isLoading ? (
-                                <TableRow><TableCell colSpan={3} className="text-center h-24">Loading data...</TableCell></TableRow>
-                            ) : (
-                                allStatuses.map((status) => {
-                                    const stat = orderStats[status];
-                                    if (!stat || stat.count === 0) return null;
-                                    return (
-                                        <TableRow key={status} onClick={() => handleStatusClick(status)} className="cursor-pointer">
-                                            <TableCell>
-                                                <Badge variant="outline" className={cn(statusColors[status])}>
-                                                    {status}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-center font-medium">{stat.count}</TableCell>
-                                            <TableCell className="text-right font-mono">৳{stat.total.toLocaleString()}</TableCell>
+                    {isLoading ? (
+                        <div className="text-center h-24 flex items-center justify-center">Loading data...</div>
+                    ) : (
+                        <>
+                            {/* For larger screens */}
+                            <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {statusEntries.map(({ status, count, total }) => (
+                                    <Card key={status} onClick={() => handleStatusClick(status)} className="cursor-pointer hover:bg-muted/50 transition-colors">
+                                        <CardHeader className="pb-2">
+                                            <Badge variant="outline" className={cn("w-fit", statusColors[status])}>
+                                                {status}
+                                            </Badge>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <p className="text-2xl font-bold">{count} <span className="text-sm font-normal text-muted-foreground">orders</span></p>
+                                            <p className="text-sm font-semibold font-mono text-muted-foreground">৳{total.toLocaleString()}</p>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                            {/* For smaller screens */}
+                            <div className="sm:hidden">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead className="text-center">Count</TableHead>
+                                            <TableHead className="text-right">Total</TableHead>
                                         </TableRow>
-                                    );
-                                })
-                            )}
-                        </TableBody>
-                    </Table>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {statusEntries.map(({ status, count, total }) => (
+                                            <TableRow key={status} onClick={() => handleStatusClick(status)} className="cursor-pointer">
+                                                <TableCell>
+                                                    <Badge variant="outline" className={cn(statusColors[status])}>
+                                                        {status}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="text-center font-medium">{count}</TableCell>
+                                                <TableCell className="text-right font-mono">৳{total.toLocaleString()}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </>
+                    )}
                 </CardContent>
             </Card>
 
@@ -243,5 +265,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
-    
