@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from "react";
@@ -29,12 +30,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { PlusCircle, Trash2, Loader2, Save } from "lucide-react";
 import Link from "next/link";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { getProducts } from "@/services/products";
 import { getSuppliers, getVendors } from "@/services/partners";
 import type { Product, ProductVariant, Supplier, Vendor } from "@/types";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+
 
 type OrderItem = {
     id: string;
@@ -70,11 +74,14 @@ type PurchaseType = 'three-piece' | 'general';
 
 
 export default function NewPurchaseOrderPage() {
+  const { toast } = useToast();
+  const router = useRouter();
   const [purchaseType, setPurchaseType] = useState<PurchaseType>('three-piece');
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [allSuppliers, setAllSuppliers] = useState<Supplier[]>([]);
   const [allVendors, setAllVendors] = useState<Vendor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
 
   const [orderItems, setOrderItems] = useState<OrderItem[]>([
     { id: `item-${Date.now()}`, ...initialOrderItemState, lineTotal: 0 }
@@ -223,6 +230,19 @@ export default function NewPurchaseOrderPage() {
   const fabricDue = useMemo(() => calculateDue(fabricBillSummary.grandTotalCost, fabricPayment), [fabricBillSummary.grandTotalCost, fabricPayment]);
   const generalDue = useMemo(() => calculateDue(generalBillSummary, generalPayment), [generalBillSummary, generalPayment]);
 
+  const handleCreatePurchase = () => {
+    setIsCreating(true);
+    // Simulate API call
+    setTimeout(() => {
+        setIsCreating(false);
+        toast({
+            title: "Purchase Order Created",
+            description: "The new purchase order has been successfully created.",
+        });
+        router.push('/dashboard/purchases');
+    }, 2000);
+  };
+
   if (isLoading) {
       return <div className="p-6">Loading...</div>
   }
@@ -242,7 +262,10 @@ export default function NewPurchaseOrderPage() {
             <Button variant="outline" asChild>
                 <Link href="/dashboard/purchases">Cancel</Link>
             </Button>
-            <Button>Create Purchase Order</Button>
+            <Button onClick={handleCreatePurchase} disabled={isCreating}>
+                {isCreating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                {isCreating ? 'Creating...' : 'Create Purchase Order'}
+            </Button>
         </div>
       </div>
 
@@ -569,5 +592,3 @@ export default function NewPurchaseOrderPage() {
     </div>
   );
 }
-
-    

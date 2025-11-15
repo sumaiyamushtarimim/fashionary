@@ -32,6 +32,7 @@ import {
   StickyNote,
   Printer,
   File,
+  Loader2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import * as React from 'react';
@@ -98,6 +99,7 @@ import { getProducts } from '@/services/products';
 import { getBusinesses, getCourierServices } from '@/services/partners';
 import { getDeliveryReport, type DeliveryReport } from '@/services/delivery-score';
 import type { Product, Business, OrderPlatform, OrderProduct, OrderLog, Order as OrderType, OrderStatus, CourierService } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
 
 const statusColors: Record<OrderType['status'], string> = {
@@ -228,6 +230,7 @@ type OrderFormValues = z.infer<typeof orderFormSchema>;
 
 export default function OrderDetailsPage() {
   const params = useParams();
+  const { toast } = useToast();
   const orderId = params.id as string;
   
   const [order, setOrder] = React.useState<OrderType | undefined>(undefined);
@@ -239,6 +242,8 @@ export default function OrderDetailsPage() {
   const [courierServices, setCourierServices] = React.useState<CourierService[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isEditing, setIsEditing] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [isSending, setIsSending] = React.useState(false);
   const [selectedCourier, setSelectedCourier] = React.useState<string | undefined>();
   const [includeCustomerNote, setIncludeCustomerNote] = React.useState(false);
   
@@ -346,10 +351,29 @@ export default function OrderDetailsPage() {
   };
   
   function onSubmit(data: OrderFormValues) {
+    setIsSaving(true);
     console.log("Saving changes...", data);
     // Here you would call an API to save the order
     // e.g., updateOrder(orderId, data).then(...)
-    setIsEditing(false);
+    setTimeout(() => {
+        setIsEditing(false);
+        setIsSaving(false);
+        toast({
+            title: "Order Updated",
+            description: `Changes for order ${orderId} have been saved.`,
+        });
+    }, 1500);
+  }
+
+  function handleSendToCourier() {
+    setIsSending(true);
+    setTimeout(() => {
+        setIsSending(false);
+        toast({
+            title: "Order Sent to Courier",
+            description: `Order ${orderId} has been dispatched to ${selectedCourier}.`,
+        });
+    }, 1500)
   }
 
   const handleAddProduct = () => {
@@ -417,8 +441,11 @@ export default function OrderDetailsPage() {
                 </Button>
               {isEditing ? (
                 <>
-                  <Button variant="outline" size="sm" type="button" onClick={handleEditToggle}>Cancel</Button>
-                  <Button size="sm" type="submit"><Save className="mr-2 h-4 w-4" /> Save Changes</Button>
+                  <Button variant="outline" size="sm" type="button" onClick={handleEditToggle} disabled={isSaving}>Cancel</Button>
+                  <Button size="sm" type="submit" disabled={isSaving}>
+                      {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                      {isSaving ? 'Saving...' : 'Save Changes'}
+                  </Button>
                 </>
               ) : (
                 <Button variant="outline" size="sm" type="button" onClick={handleEditToggle}>
@@ -671,7 +698,7 @@ export default function OrderDetailsPage() {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Update Status</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSaving}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select a status" />
@@ -686,7 +713,10 @@ export default function OrderDetailsPage() {
                                 </FormItem>
                             )}
                         />
-                         <Button className='w-full' type="submit">Save Changes</Button>
+                         <Button className='w-full' type="submit" disabled={isSaving}>
+                             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                             {isSaving ? 'Saving...' : 'Save Changes'}
+                        </Button>
                     </CardContent>
                 </Card>
               <Card>
@@ -696,10 +726,10 @@ export default function OrderDetailsPage() {
                 <CardContent className="grid gap-4">
                     {isEditing ? (
                         <>
-                            <FormField name="customerName" control={form.control} render={({ field }) => (<FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField name="customerPhone" control={form.control} render={({ field }) => (<FormItem><FormLabel>Phone</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField name="customerEmail" control={form.control} render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField name="shippingAddress" control={form.control} render={({ field }) => (<FormItem><FormLabel>Shipping Address</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField name="customerName" control={form.control} render={({ field }) => (<FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} disabled={isSaving} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField name="customerPhone" control={form.control} render={({ field }) => (<FormItem><FormLabel>Phone</FormLabel><FormControl><Input {...field} disabled={isSaving} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField name="customerEmail" control={form.control} render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input {...field} disabled={isSaving} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField name="shippingAddress" control={form.control} render={({ field }) => (<FormItem><FormLabel>Shipping Address</FormLabel><FormControl><Textarea {...field} disabled={isSaving} /></FormControl><FormMessage /></FormItem>)} />
                         </>
                     ) : (
                         <>
@@ -740,7 +770,7 @@ export default function OrderDetailsPage() {
                     <CardContent className="space-y-4">
                         <FormField control={form.control} name="businessId" render={({ field }) => (
                             <FormItem><FormLabel>Business</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
+                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing || isSaving}>
                                     <FormControl><SelectTrigger><SelectValue placeholder="Select a business" /></SelectTrigger></FormControl>
                                     <SelectContent>{businesses.map(b => (<SelectItem key={b.id} value={b.id}><div className="flex items-center gap-2"><Store className="h-4 w-4 text-muted-foreground" /><span>{b.name}</span></div></SelectItem>))}</SelectContent>
                                 </Select>
@@ -748,7 +778,7 @@ export default function OrderDetailsPage() {
                         )}/>
                         <FormField control={form.control} name="platform" render={({ field }) => (
                             <FormItem><FormLabel>Platform</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
+                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing || isSaving}>
                                     <FormControl><SelectTrigger><SelectValue placeholder="Select a platform" /></SelectTrigger></FormControl>
                                     <SelectContent>{allPlatforms.map(p => (<SelectItem key={p} value={p}><div className="flex items-center gap-2"><Globe className="h-4 w-4 text-muted-foreground" /><span>{p}</span></div></SelectItem>))}</SelectContent>
                                 </Select>
@@ -792,8 +822,9 @@ export default function OrderDetailsPage() {
                         {selectedCourier && (
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button className="w-full" type="button">
-                                        <Truck className="mr-2 h-4 w-4" /> Send to {selectedCourier}
+                                    <Button className="w-full" type="button" disabled={isSending}>
+                                        {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Truck className="mr-2 h-4 w-4" />}
+                                        {isSending ? `Sending to ${selectedCourier}...` : `Send to ${selectedCourier}`}
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -805,7 +836,7 @@ export default function OrderDetailsPage() {
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction>Confirm & Send</AlertDialogAction>
+                                        <AlertDialogAction onClick={handleSendToCourier}>Confirm & Send</AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
                             </AlertDialog>

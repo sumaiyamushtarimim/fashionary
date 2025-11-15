@@ -13,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Save, Edit, X, User, Briefcase, DollarSign, BarChart2 } from 'lucide-react';
+import { Save, Edit, X, User, Briefcase, DollarSign, BarChart2, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
@@ -21,6 +21,7 @@ import { Pie, PieChart, Cell } from 'recharts';
 import { getStaffMemberById } from '@/services/staff';
 import type { StaffMember, OrderStatus } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 
 const chartColors = [
     'hsl(var(--chart-1))',
@@ -31,9 +32,12 @@ const chartColors = [
 ];
 
 export default function AccountPage() {
+    const { toast } = useToast();
     const [isEditing, setIsEditing] = React.useState(false);
     const [loggedInStaff, setLoggedInStaff] = React.useState<StaffMember | undefined>(undefined);
     const [isLoading, setIsLoading] = React.useState(true);
+    const [isSaving, setIsSaving] = React.useState(false);
+    const [isUpdatingPassword, setIsUpdatingPassword] = React.useState(false);
 
     React.useEffect(() => {
         // In a real app, you would get the logged-in user's ID from your auth context
@@ -62,6 +66,29 @@ export default function AccountPage() {
             return acc;
         }, {} as ChartConfig);
     }, [performanceChartData]);
+    
+    const handleSaveChanges = () => {
+        setIsSaving(true);
+        setTimeout(() => {
+            setIsEditing(false);
+            setIsSaving(false);
+            toast({
+                title: "Profile Updated",
+                description: "Your account information has been successfully saved.",
+            })
+        }, 1500);
+    };
+
+    const handleUpdatePassword = () => {
+        setIsUpdatingPassword(true);
+        setTimeout(() => {
+            setIsUpdatingPassword(false);
+            toast({
+                title: "Password Updated",
+                description: "Your password has been changed successfully.",
+            });
+        }, 1500);
+    }
 
     if (isLoading || !loggedInStaff) {
         return (
@@ -92,13 +119,13 @@ export default function AccountPage() {
                 </div>
                 {isEditing ? (
                     <div className="flex items-center gap-2">
-                         <Button variant="outline" onClick={() => setIsEditing(false)}>
+                         <Button variant="outline" onClick={() => setIsEditing(false)} disabled={isSaving}>
                             <X className="mr-2 h-4 w-4" />
                             Cancel
                         </Button>
-                        <Button onClick={() => setIsEditing(false)}>
-                            <Save className="mr-2 h-4 w-4" />
-                            Save Changes
+                        <Button onClick={handleSaveChanges} disabled={isSaving}>
+                            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                            {isSaving ? 'Saving...' : 'Save Changes'}
                         </Button>
                     </div>
                 ) : (
@@ -119,7 +146,7 @@ export default function AccountPage() {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Name</Label>
-                                <Input id="name" defaultValue={loggedInStaff.name} disabled={!isEditing} />
+                                <Input id="name" defaultValue={loggedInStaff.name} disabled={!isEditing || isSaving} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email</Label>
@@ -141,19 +168,22 @@ export default function AccountPage() {
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="current-password">Current Password</Label>
-                                    <Input id="current-password" type="password" />
+                                    <Input id="current-password" type="password" disabled={isUpdatingPassword} />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="new-password">New Password</Label>
-                                    <Input id="new-password" type="password" />
+                                    <Input id="new-password" type="password" disabled={isUpdatingPassword} />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="confirm-password">Confirm New Password</Label>
-                                    <Input id="confirm-password" type="password" />
+                                    <Input id="confirm-password" type="password" disabled={isUpdatingPassword} />
                                 </div>
                             </CardContent>
                              <CardFooter>
-                                <Button className="ml-auto">Update Password</Button>
+                                <Button className="ml-auto" onClick={handleUpdatePassword} disabled={isUpdatingPassword}>
+                                    {isUpdatingPassword ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                    {isUpdatingPassword ? 'Updating...' : 'Update Password'}
+                                </Button>
                             </CardFooter>
                         </Card>
                     )}

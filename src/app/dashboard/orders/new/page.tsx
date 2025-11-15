@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { PlusCircle, Trash2, Store, Globe, Save, PackageSearch } from "lucide-react";
+import { PlusCircle, Trash2, Store, Globe, Save, PackageSearch, Loader2 } from "lucide-react";
 import { OrderPlatform, PaymentMethod, bdDistricts } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { getProducts } from "@/services/products";
@@ -39,6 +39,8 @@ import { getBusinesses } from "@/services/partners";
 import { getDeliveryReport, type DeliveryReport } from '@/services/delivery-score';
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Product, Business, OrderProduct } from "@/types";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 type OrderItem = {
     id: string;
@@ -166,9 +168,12 @@ function CourierReport({ report, isLoading }: { report: DeliveryReport | null, i
 }
 
 export default function NewOrderPage() {
+    const { toast } = useToast();
+    const router = useRouter();
     const [allProducts, setAllProducts] = useState<Product[]>([]);
     const [businesses, setBusinesses] = useState<Business[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isCreating, setIsCreating] = useState(false);
 
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
@@ -267,6 +272,19 @@ export default function NewOrderPage() {
         setOrderItems(prev => prev.filter(item => item.id !== itemId));
     };
 
+    const handleCreateOrder = () => {
+        setIsCreating(true);
+        // Simulate API call
+        setTimeout(() => {
+            setIsCreating(false);
+            toast({
+                title: "Order Created",
+                description: "The new order has been successfully created.",
+            });
+            router.push('/dashboard/orders');
+        }, 2000);
+    }
+
     return (
         <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
             <div className="flex items-center justify-between">
@@ -276,7 +294,10 @@ export default function NewOrderPage() {
                 </div>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" asChild><Link href="/dashboard/orders">Cancel</Link></Button>
-                    <Button><Save className="mr-2 h-4 w-4" /> Create Order</Button>
+                    <Button onClick={handleCreateOrder} disabled={isCreating}>
+                        {isCreating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                        {isCreating ? 'Creating Order...' : 'Create Order'}
+                    </Button>
                 </div>
             </div>
 
