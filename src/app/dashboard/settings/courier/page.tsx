@@ -36,6 +36,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type Courier = {
     id: string;
@@ -53,6 +54,8 @@ const courierFields: Record<string, { label: string; placeholder: string; type?:
     pathao: [
         { label: 'Client ID', placeholder: 'Enter your Pathao Client ID' },
         { label: 'Client Secret', placeholder: 'Enter your Pathao Client Secret', type: 'password' },
+        { label: 'Username (Email)', placeholder: 'Enter your Pathao login email', type: 'email' },
+        { label: 'Password', placeholder: 'Enter your Pathao login password', type: 'password' },
     ],
     redx: [
         { label: 'API Access Token', placeholder: 'Enter your RedX API Access Token', type: 'password' },
@@ -185,6 +188,20 @@ export default function CourierSettingsPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
+                        {selectedCourier?.id === 'pathao' && (
+                            <div className="space-y-2">
+                                <Label htmlFor="pathao-env">Environment</Label>
+                                <Select defaultValue="sandbox">
+                                    <SelectTrigger id="pathao-env">
+                                        <SelectValue placeholder="Select environment" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="sandbox">Sandbox / Test</SelectItem>
+                                        <SelectItem value="production">Production / Live</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
                         {fields.map((field) => (
                              <div className="space-y-2" key={field.label}>
                                 <Label htmlFor={field.label}>{field.label}</Label>
