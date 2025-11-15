@@ -1,7 +1,7 @@
 
 'use client';
 
-import { MoreHorizontal, PlusCircle, HardHat, DollarSign } from "lucide-react";
+import { MoreHorizontal, PlusCircle, HardHat, DollarSign, Scissors } from "lucide-react";
 import Link from "next/link";
 import { DateRange } from "react-day-picker";
 import { format, isWithinInterval } from "date-fns";
@@ -147,7 +147,7 @@ export default function PurchasesPage() {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">In Cutting</CardTitle>
-                    <HardHat className="h-4 w-4 text-muted-foreground" />
+                    <Scissors className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">{overviewStats.inCuttingQty.toLocaleString()} units</div>
