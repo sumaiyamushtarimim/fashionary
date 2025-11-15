@@ -603,7 +603,7 @@ export default function OrderDetailsPage() {
                     </CardContent>
                 </Card>
             </div>
-            <div className="grid auto-rows-max items-start gap-4 md:col-span-1">
+            <div className="md:col-span-1 space-y-4">
                 <Card>
                     <CardHeader>
                         <CardTitle>Order Details</CardTitle>
@@ -773,4 +773,5 @@ export default function OrderDetailsPage() {
     
 
     
+
 
