@@ -290,7 +290,7 @@ export default function OrderDetailsPage() {
                   customerEmail: orderData.customerEmail,
                   shippingAddress: orderData.shippingAddress.address,
                   products: orderData.products,
-                  shipping: 5.0, // Should come from order data
+                  shipping: orderData.shipping || 5.0,
                   status: orderData.status,
                   businessId: orderData.businessId,
                   platform: orderData.platform,
@@ -315,7 +315,7 @@ export default function OrderDetailsPage() {
           customerEmail: order.customerEmail,
           shippingAddress: order.shippingAddress.address,
           products: order.products,
-          shipping: 5.0,
+          shipping: order.shipping || 5.0,
           status: order.status,
           businessId: order.businessId,
           platform: order.platform,
@@ -536,38 +536,43 @@ export default function OrderDetailsPage() {
                       </div>
                   )}
                 </CardContent>
-                <CardFooter>
-                    <div className='w-full space-y-2'>
-                        <div className="flex items-center justify-between">
-                            <dt className="text-muted-foreground">Subtotal</dt>
-                            <dd>৳{subtotal.toFixed(2)}</dd>
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <dt className="text-muted-foreground">Shipping</dt>
-                             {isEditing ? (
-                                <FormField
-                                  control={form.control}
-                                  name="shipping"
-                                  render={({ field }) => (
-                                    <Input type="number" {...field} className="h-8 w-24 text-right" />
-                                  )}
-                                />
-                            ) : (
-                                <dd>৳{shippingWatcher.toFixed(2)}</dd>
-                            )}
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <dt className="text-muted-foreground">Tax</dt>
-                            <dd>৳{tax.toFixed(2)}</dd>
-                        </div>
-                        <Separator />
-                        <div className="flex items-center justify-between font-semibold text-lg">
-                            <dt>Total</dt>
-                            <dd>৳{total.toFixed(2)}</dd>
-                        </div>
-                    </div>
-                </CardFooter>
               </Card>
+
+              <Card>
+                <CardHeader>
+                    <CardTitle>Payment Summary</CardTitle>
+                </CardHeader>
+                <CardContent className='space-y-2'>
+                    <div className="flex items-center justify-between">
+                        <dt className="text-muted-foreground">Subtotal</dt>
+                        <dd>৳{subtotal.toFixed(2)}</dd>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <dt className="text-muted-foreground">Shipping</dt>
+                            {isEditing ? (
+                            <FormField
+                                control={form.control}
+                                name="shipping"
+                                render={({ field }) => (
+                                <Input type="number" {...field} className="h-8 w-24 text-right" />
+                                )}
+                            />
+                        ) : (
+                            <dd>৳{shippingWatcher.toFixed(2)}</dd>
+                        )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <dt className="text-muted-foreground">Tax</dt>
+                        <dd>৳{tax.toFixed(2)}</dd>
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between font-semibold text-lg">
+                        <dt>Total</dt>
+                        <dd>৳{total.toFixed(2)}</dd>
+                    </div>
+                </CardContent>
+              </Card>
+
               <Card className="lg:col-span-2">
                     <CardHeader>
                         <CardTitle>Delivery & Courier Report</CardTitle>

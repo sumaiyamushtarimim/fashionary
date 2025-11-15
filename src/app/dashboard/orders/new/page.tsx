@@ -190,6 +190,53 @@ export default function NewOrderPage() {
                         </CardContent>
                     </Card>
 
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Payment & Shipping</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             <div className="space-y-1 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Subtotal</span>
+                                    <span className="font-mono">৳{subtotal.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-muted-foreground">Shipping</span>
+                                    <Input type="number" value={shippingCost} onChange={(e) => setShippingCost(Number(e.target.value))} className="w-24 h-8 text-right" />
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Tax (8%)</span>
+                                    <span className="font-mono">৳{tax.toFixed(2)}</span>
+                                </div>
+                                <Separator className="my-2" />
+                                <div className="flex justify-between font-semibold text-lg">
+                                    <span>Total</span>
+                                    <span className="font-mono">৳{total.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <Separator />
+                            <div className="space-y-2">
+                                <Label htmlFor="payment-method">Payment Method</Label>
+                                <Select value={paymentMethod} onValueChange={(v: PaymentMethod) => setPaymentMethod(v)}>
+                                    <SelectTrigger id="payment-method">
+                                        <SelectValue placeholder="Select payment method" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {allPaymentMethods.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="paid-amount">Paid Amount (Advance)</Label>
+                                <Input id="paid-amount" type="number" value={paidAmount || ''} onChange={(e) => setPaidAmount(Number(e.target.value))} placeholder="0.00"/>
+                            </div>
+                             <div className="flex justify-between font-semibold text-base mt-4">
+                                <span className={cn(dueAmount > 0 && "text-destructive")}>Due Amount</span>
+                                <span className={cn("font-mono", dueAmount > 0 && "text-destructive")}>৳{dueAmount.toFixed(2)}</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+
                     <Card>
                         <CardHeader>
                             <CardTitle>Notes</CardTitle>
@@ -288,52 +335,7 @@ export default function NewOrderPage() {
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Payment & Shipping</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                             <div className="space-y-1 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Subtotal</span>
-                                    <span className="font-mono">৳{subtotal.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-muted-foreground">Shipping</span>
-                                    <Input type="number" value={shippingCost} onChange={(e) => setShippingCost(Number(e.target.value))} className="w-24 h-8 text-right" />
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Tax (8%)</span>
-                                    <span className="font-mono">৳{tax.toFixed(2)}</span>
-                                </div>
-                                <Separator className="my-2" />
-                                <div className="flex justify-between font-semibold text-lg">
-                                    <span>Total</span>
-                                    <span className="font-mono">৳{total.toFixed(2)}</span>
-                                </div>
-                            </div>
-                            <Separator />
-                            <div className="space-y-2">
-                                <Label htmlFor="payment-method">Payment Method</Label>
-                                <Select value={paymentMethod} onValueChange={(v: PaymentMethod) => setPaymentMethod(v)}>
-                                    <SelectTrigger id="payment-method">
-                                        <SelectValue placeholder="Select payment method" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {allPaymentMethods.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="paid-amount">Paid Amount (Advance)</Label>
-                                <Input id="paid-amount" type="number" value={paidAmount || ''} onChange={(e) => setPaidAmount(Number(e.target.value))} placeholder="0.00"/>
-                            </div>
-                             <div className="flex justify-between font-semibold text-base mt-4">
-                                <span className={cn(dueAmount > 0 && "text-destructive")}>Due Amount</span>
-                                <span className={cn("font-mono", dueAmount > 0 && "text-destructive")}>৳{dueAmount.toFixed(2)}</span>
-                            </div>
-                        </CardContent>
-                    </Card>
+                   
                 </div>
             </div>
         </div>
