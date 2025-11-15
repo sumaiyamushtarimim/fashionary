@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const phone = searchParams.get('phone');
   
   // In a real app, you would fetch this from a secure config/env variable
-  const apiKey = process.env.HOORIN_API_KEY || "example_api_key"; 
+  const apiKey = process.env.HOORIN_API_KEY || "fc8c2dc2b03c34d15b7136"; 
 
   if (!phone) {
     return NextResponse.json({ error: 'Phone number is required' }, { status: 400 });
@@ -49,7 +49,7 @@ export async function GET(request: Request) {
   const url = `https://dash.hoorin.com/api/courier/api?apiKey=${apiKey}&searchTerm=${phone}`;
   const sheetUrl = `https://dash.hoorin.com/api/courier/sheet?apiKey=${apiKey}&searchTerm=${phone}`;
   const headers = {
-    'Referer': 'https://your-approved-domain.com'
+    'Referer': 'https://fixedplus.com.bd'
   };
 
   try {
