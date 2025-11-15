@@ -66,6 +66,7 @@ export async function GET(request: Request) {
     const summaryData = await summaryRes.json();
     const sheetData = await sheetRes.json();
 
+    // Correctly combine the data from both API calls
     const report = {
       Summaries: summaryData.Summaries,
       totalSummary: sheetData.totalSummary,
