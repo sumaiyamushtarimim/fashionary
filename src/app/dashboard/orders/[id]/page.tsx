@@ -313,14 +313,14 @@ export default function OrderDetailsPage() {
     }));
   }, [deliveryReport]);
   
-  const { totalParcels, totalDelivered, totalCanceled } = React.useMemo(() => {
-      return courierStatsData.reduce((acc, courier) => {
-          acc.totalParcels += courier.total;
-          acc.totalDelivered += courier.delivered;
-          acc.totalCanceled += courier.canceled;
-          return acc;
-      }, { totalParcels: 0, totalDelivered: 0, totalCanceled: 0 });
-  }, [courierStatsData]);
+    const { totalParcels, totalDelivered, totalCanceled } = React.useMemo(() => {
+        return courierStatsData.reduce((acc, courier) => {
+            acc.totalParcels += courier.total;
+            acc.totalDelivered += courier.delivered;
+            acc.totalCanceled += courier.canceled;
+            return acc;
+        }, { totalParcels: 0, totalDelivered: 0, totalCanceled: 0 });
+    }, [courierStatsData]);
 
   const deliveryRatio = totalParcels > 0 ? (totalDelivered / totalParcels) * 100 : 0;
   const cancelRatio = totalParcels > 0 ? (totalCanceled / totalParcels) * 100 : 0;
@@ -631,20 +631,20 @@ export default function OrderDetailsPage() {
                                     <div className="col-span-1 text-center text-red-500">{totalCanceled}</div>
                                 </div>
                                 <Separator />
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="font-semibold">Delivery Ratio</span>
-                                            <span className="font-bold text-green-600">{deliveryRatio.toFixed(1)}%</span>
-                                        </div>
-                                        <Progress value={deliveryRatio} className="h-2 [&>div]:bg-green-500" />
+                                <div className="space-y-2">
+                                    <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                                        <div className="bg-green-500 h-2.5 rounded-l-full" style={{ width: `${deliveryRatio}%`, display: 'inline-block' }}></div>
+                                        <div className="bg-red-500 h-2.5 rounded-r-full" style={{ width: `${cancelRatio}%`, display: 'inline-block' }}></div>
                                     </div>
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="font-semibold">Cancel Ratio</span>
-                                            <span className="font-bold text-red-500">{cancelRatio.toFixed(1)}%</span>
+                                    <div className="flex justify-between text-sm mt-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                                            <span>Delivery: <strong>{deliveryRatio.toFixed(1)}%</strong></span>
                                         </div>
-                                        <Progress value={cancelRatio} className="h-2 [&>div]:bg-red-500" />
+                                        <div className="flex items-center gap-2">
+                                            <span className="h-2 w-2 rounded-full bg-red-500"></span>
+                                            <span>Cancel: <strong>{cancelRatio.toFixed(1)}%</strong></span>
+                                        </div>
                                     </div>
                                 </div>
                             </>

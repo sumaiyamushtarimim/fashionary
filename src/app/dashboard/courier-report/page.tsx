@@ -81,20 +81,22 @@ function ReportDisplay({ report }: { report: DeliveryReport }) {
                 <CardHeader>
                     <CardTitle>Delivery & Cancellation Ratios</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <CardContent className="grid grid-cols-1 gap-4">
                     <div className="space-y-2">
-                        <div className="flex justify-between items-center text-sm">
-                            <span className="font-semibold">Delivery Ratio</span>
-                            <span className="font-bold text-green-600">{deliveryRatio.toFixed(1)}%</span>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                            <div className="bg-green-500 h-2.5 rounded-l-full" style={{ width: `${deliveryRatio}%`, display: 'inline-block' }}></div>
+                            <div className="bg-red-500 h-2.5 rounded-r-full" style={{ width: `${cancelRatio}%`, display: 'inline-block' }}></div>
                         </div>
-                        <Progress value={deliveryRatio} className="h-2 [&>div]:bg-green-500" />
-                    </div>
-                    <div className="space-y-2">
-                        <div className="flex justify-between items-center text-sm">
-                            <span className="font-semibold">Cancel Ratio</span>
-                            <span className="font-bold text-red-500">{cancelRatio.toFixed(1)}%</span>
+                        <div className="flex justify-between text-sm mt-2">
+                            <div className="flex items-center gap-2">
+                                <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                                <span>Delivery: <strong>{deliveryRatio.toFixed(1)}%</strong></span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="h-2 w-2 rounded-full bg-red-500"></span>
+                                <span>Cancel: <strong>{cancelRatio.toFixed(1)}%</strong></span>
+                            </div>
                         </div>
-                        <Progress value={cancelRatio} className="h-2 [&>div]:bg-red-500" />
                     </div>
                 </CardContent>
             </Card>
@@ -126,8 +128,8 @@ export default function CourierReportPage() {
                 setError('Could not fetch report. The API may be down or the phone number is invalid.');
             }
         } catch (e) {
-            setError('An unexpected error occurred.');
             console.error(e);
+            setError('An unexpected error occurred.');
         } finally {
             setIsLoading(false);
         }
