@@ -201,7 +201,7 @@ export default function OrdersClientPage() {
   const handleBulkPrint = (type: 'invoice' | 'sticker') => {
     if (selectedOrders.length === 0) return;
     const ids = selectedOrders.join(',');
-    window.open(`/dashboard/orders/print/bulk?type=${type}&ids=${ids}`, '_blank');
+    window.open(`/print/orders/bulk?type=${type}&ids=${ids}`, '_blank');
   };
 
   const handleStatusFilterChange = (newStatus: string) => {
