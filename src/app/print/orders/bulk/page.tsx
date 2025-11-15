@@ -5,8 +5,8 @@ import * as React from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getOrderById } from '@/services/orders';
 import type { Order } from '@/types';
-import { InvoiceTemplate } from '../invoice/[id]/page';
-import { StickerTemplate } from '../sticker/[id]/page';
+import { InvoiceTemplate } from '@/app/print/orders/invoice-template';
+import { StickerTemplate } from '@/app/print/orders/sticker-template';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -105,5 +105,3 @@ export default function BulkPrintPage() {
         </div>
     );
 }
-
-    

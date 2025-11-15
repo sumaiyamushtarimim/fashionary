@@ -39,6 +39,7 @@ import { Separator } from '@/components/ui/separator';
 import { getWooCommerceIntegrations } from '@/services/integrations';
 import { getBusinesses } from '@/services/partners';
 import type { WooCommerceIntegration, Business } from '@/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function WooCommerceIntegrationsPage() {
     const [integrations, setIntegrations] = React.useState<WooCommerceIntegration[]>([]);
@@ -60,10 +61,6 @@ export default function WooCommerceIntegrationsPage() {
         });
     }, []);
 
-    if(isLoading) {
-        return <div>Loading...</div>
-    }
-
     const renderTable = () => (
         <Table>
             <TableHeader>
@@ -78,18 +75,73 @@ export default function WooCommerceIntegrationsPage() {
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {integrations.map((integration) => (
-                    <TableRow key={integration.id}>
-                        <TableCell className="font-medium">{integration.storeName}</TableCell>
-                        <TableCell>{integration.businessName}</TableCell>
-                        <TableCell className="text-muted-foreground">{integration.storeUrl}</TableCell>
-                        <TableCell>
-                            <Badge variant={integration.status === 'Active' ? 'default' : 'secondary'}>
-                                {integration.status}
-                            </Badge>
+                {isLoading ? (
+                    [...Array(2)].map((_, i) => (
+                        <TableRow key={i}>
+                            <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                            <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                            <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                            <TableCell><Skeleton className="h-8 w-8 float-right" /></TableCell>
+                        </TableRow>
+                    ))
+                ) : integrations.length > 0 ? (
+                    integrations.map((integration) => (
+                        <TableRow key={integration.id}>
+                            <TableCell className="font-medium">{integration.storeName}</TableCell>
+                            <TableCell>{integration.businessName}</TableCell>
+                            <TableCell className="text-muted-foreground">{integration.storeUrl}</TableCell>
+                            <TableCell>
+                                <Badge variant={integration.status === 'Active' ? 'default' : 'secondary'}>
+                                    {integration.status}
+                                </Badge>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex justify-end">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                                <span className="sr-only">Toggle menu</span>
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                                            <DropdownMenuItem>Sync Products</DropdownMenuItem>
+                                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    ))
+                ) : (
+                    <TableRow>
+                        <TableCell colSpan={5} className="text-center h-24">
+                            No WooCommerce integrations found.
                         </TableCell>
-                        <TableCell>
-                            <div className="flex justify-end">
+                    </TableRow>
+                )}
+            </TableBody>
+        </Table>
+    );
+
+    const renderCardList = () => (
+        <div className="space-y-4">
+             {isLoading ? (
+                [...Array(2)].map((_, i) => (
+                    <Card key={i}><CardContent className="p-4"><Skeleton className="h-24 w-full" /></CardContent></Card>
+                ))
+            ) : integrations.length > 0 ? (
+                integrations.map((integration) => (
+                    <Card key={integration.id}>
+                        <CardContent className="p-4">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="font-semibold">{integration.storeName}</p>
+                                    <p className="text-sm text-muted-foreground">{integration.businessName}</p>
+                                </div>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -105,48 +157,19 @@ export default function WooCommerceIntegrationsPage() {
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
-                        </TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
-    );
-
-    const renderCardList = () => (
-        <div className="space-y-4">
-            {integrations.map((integration) => (
-                <Card key={integration.id}>
-                    <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <p className="font-semibold">{integration.storeName}</p>
-                                <p className="text-sm text-muted-foreground">{integration.businessName}</p>
+                            <p className="text-sm text-muted-foreground mt-2">{integration.storeUrl}</p>
+                            <Separator className="my-3" />
+                            <div className="flex items-center">
+                                <Badge variant={integration.status === 'Active' ? 'default' : 'secondary'}>
+                                    {integration.status}
+                                </Badge>
                             </div>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button aria-haspopup="true" size="icon" variant="ghost">
-                                        <MoreHorizontal className="h-4 w-4" />
-                                        <span className="sr-only">Toggle menu</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                                    <DropdownMenuItem>Sync Products</DropdownMenuItem>
-                                    <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-2">{integration.storeUrl}</p>
-                        <Separator className="my-3" />
-                        <div className="flex items-center">
-                             <Badge variant={integration.status === 'Active' ? 'default' : 'secondary'}>
-                                {integration.status}
-                            </Badge>
-                        </div>
-                    </CardContent>
-                </Card>
-            ))}
+                        </CardContent>
+                    </Card>
+                ))
+            ) : (
+                 <div className="text-center text-muted-foreground py-8">No WooCommerce integrations found.</div>
+            )}
         </div>
     );
 
@@ -232,5 +255,3 @@ export default function WooCommerceIntegrationsPage() {
         </div>
     );
 }
-
-    
