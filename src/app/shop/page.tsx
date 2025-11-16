@@ -134,7 +134,7 @@ export default function ShopPage() {
                 <main className="md:col-span-3">
                     <h1 className="text-3xl font-bold mb-6">Our Products</h1>
                     {isLoading ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {[...Array(6)].map((_, i) => (
                                 <Card key={i}>
                                     <Skeleton className="aspect-square w-full" />
@@ -147,7 +147,7 @@ export default function ShopPage() {
                             ))}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {filteredProducts.map(product => (
                                 <ProductCard key={product.id} product={product} />
                             ))}
