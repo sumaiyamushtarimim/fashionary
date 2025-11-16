@@ -143,6 +143,10 @@ export const products: Product[] = [
   },
 ];
 
+const now = new Date();
+const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString().split('T')[0];
+const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).toISOString().split('T')[0];
+
 export const orders: Order[] = [
   { 
     id: 'ORD-2024-001', 
@@ -457,7 +461,66 @@ export const orders: Order[] = [
     shippingAddress: { address: '909 Fir St', district: 'Narayanganj', country: 'Bangladesh' },
     paymentMethod: 'Cash on Delivery',
     paidAmount: 145.50
-  }
+  },
+  { 
+    id: 'ORD-2024-013', 
+    customerName: 'Alice Johnson', 
+    customerEmail: 'alice@example.com', 
+    customerPhone: '01321907699',
+    date: today,
+    status: 'New', 
+    total: 25.00, 
+    shipping: 60,
+    products: [
+        { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: products[0].price }
+    ],
+    logs: [
+        { title: 'New', timestamp: new Date().toISOString(), description: 'Order was placed.', user: 'Alice Johnson' },
+    ],
+    customerNote: 'This is a new order for today.',
+    officeNote: '',
+    createdBy: 'System',
+    confirmedBy: '',
+    businessId: 'BIZ001',
+    platform: 'Website',
+    shippingAddress: {
+        address: '123 Main Street',
+        district: 'Dhaka',
+        country: 'Bangladesh',
+    },
+    paymentMethod: 'Cash on Delivery',
+    paidAmount: 0,
+  },
+   { 
+    id: 'ORD-2024-014', 
+    customerName: 'Alice Johnson', 
+    customerEmail: 'alice@example.com', 
+    customerPhone: '01321907699',
+    date: yesterday,
+    status: 'Confirmed', 
+    total: 79.99, 
+    shipping: 60,
+    products: [
+        { productId: 'PROD002', name: 'Slim Fit Denim Jeans', image: products[1].image, quantity: 1, price: products[1].price }
+    ],
+    logs: [
+        { title: 'Confirmed', timestamp: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(), description: 'Order has been confirmed.', user: 'Jane Doe' },
+        { title: 'New', timestamp: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(), description: 'Order was placed.', user: 'Alice Johnson' },
+    ],
+    customerNote: 'This was ordered yesterday.',
+    officeNote: '',
+    createdBy: 'System',
+    confirmedBy: 'Jane Doe',
+    businessId: 'BIZ001',
+    platform: 'Facebook',
+    shippingAddress: {
+        address: '123 Main Street',
+        district: 'Dhaka',
+        country: 'Bangladesh',
+    },
+    paymentMethod: 'bKash',
+    paidAmount: 79.99,
+  },
 ];
 
 export const allStatuses: OrderStatus[] = [
@@ -506,7 +569,6 @@ export const inventoryMovements: Record<string, InventoryMovement[]> = {
 };
 
 
-const today = new Date();
 const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
 
@@ -539,7 +601,7 @@ export const purchaseOrders: PurchaseOrder[] = [
             { status: 'Fabric Ordered', timestamp: '2024-06-05T17:00:00Z', description: 'Fabric order placed with supplier.', user: 'John Smith' },
         ],
         printingVendor: 'Precision Prints',
-        printingPayment: { cash: 500, check: 1000, checkDate: formatDate(new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000)), checkStatus: 'Pending' }
+        printingPayment: { cash: 500, check: 1000, checkDate: formatDate(new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000)), checkStatus: 'Pending' }
     },
     { 
         id: 'PO-2024-003', 
@@ -553,7 +615,7 @@ export const purchaseOrders: PurchaseOrder[] = [
             { status: 'Fabric Ordered', timestamp: '2024-06-05T17:00:00Z', description: 'Fabric order placed with supplier.', user: 'John Smith' },
         ],
         cuttingVendor: 'Sharp Cuts',
-        cuttingPayment: { cash: 0, check: 800, checkDate: formatDate(new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)), checkStatus: 'Pending' }
+        cuttingPayment: { cash: 0, check: 800, checkDate: formatDate(new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)), checkStatus: 'Pending' }
     },
     { 
         id: 'PO-2024-004', 
@@ -578,7 +640,7 @@ export const purchaseOrders: PurchaseOrder[] = [
             { status: 'Draft', timestamp: '2024-05-25T10:00:00Z', description: 'Purchase order created as draft.', user: 'John Smith' },
         ],
         printingVendor: 'Ink & Thread',
-        printingPayment: { cash: 0, check: 2500, checkDate: formatDate(new Date(today.getTime() + 1 * 24 * 60 * 60 * 1000)), checkStatus: 'Bounced' }
+        printingPayment: { cash: 0, check: 2500, checkDate: formatDate(new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000)), checkStatus: 'Bounced' }
     },
     { 
         id: 'PO-2024-006', 
@@ -591,7 +653,7 @@ export const purchaseOrders: PurchaseOrder[] = [
              { status: 'Cancelled', timestamp: '2024-05-11T12:00:00Z', description: 'Order cancelled by management.', user: 'Jane Doe' },
         ],
         cuttingVendor: 'CutRight Solutions',
-        cuttingPayment: { cash: 0, check: 1200, checkDate: formatDate(new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000)), checkStatus: 'Cancelled' }
+        cuttingPayment: { cash: 0, check: 1200, checkDate: formatDate(new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)), checkStatus: 'Cancelled' }
     },
 ];
 
