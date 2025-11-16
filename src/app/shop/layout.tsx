@@ -20,7 +20,7 @@ export default function ShopLayout({
                     <div className="flex flex-1 items-center justify-center">
                         <Link href="/shop" className="flex items-center gap-2">
                             <Logo />
-                            <span className="hidden sm:inline-block font-bold font-headline text-xl">Fashionary</span>
+                            <span className="font-bold font-headline text-xl">Fashionary</span>
                         </Link>
                     </div>
 
