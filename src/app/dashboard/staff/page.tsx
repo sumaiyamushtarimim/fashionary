@@ -67,7 +67,7 @@ const staffRoles: StaffRole[] = [
     'Custom'
 ];
 const permissionModules: (keyof StaffMember['permissions'])[] = [
-    'orders', 
+    'orders', 'packingOrders',
     'products', 
     'inventory',
     'customers', 
@@ -128,6 +128,7 @@ export default function StaffPage() {
     const [permissions, setPermissions] = useState<StaffMember['permissions']>(
         staffMember?.permissions || {
             orders: { create: false, read: true, update: false, delete: false },
+            packingOrders: { create: false, read: true, update: true, delete: false },
             products: { create: false, read: true, update: false, delete: false },
             inventory: { create: false, read: true, update: false, delete: false },
             customers: { create: false, read: true, update: false, delete: false },
@@ -518,5 +519,7 @@ export default function StaffPage() {
     </div>
   );
 }
+
+    
 
     

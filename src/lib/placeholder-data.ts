@@ -214,7 +214,7 @@ export const orders: Order[] = [
     customerEmail: 'charlie@example.com', 
     customerPhone: '01601701567',
     date: '2024-05-22', 
-    status: 'New', 
+    status: 'Packing Hold', 
     total: 200.49,
     shipping: 60,
     products: [
@@ -461,7 +461,7 @@ export const orders: Order[] = [
 ];
 
 export const allStatuses: OrderStatus[] = [
-    'New', 'Confirmed', 'Canceled', 'Hold', 'In-Courier', 
+    'New', 'Confirmed', 'Packing Hold', 'Canceled', 'Hold', 'In-Courier', 
     'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 
     'Paid Returned', 'Partial'
 ];
@@ -488,7 +488,7 @@ export const inventory: InventoryItem[] = [
 export const inventoryMovements: Record<string, InventoryMovement[]> = {
     'INV001': [
         { id: 'MOV005', date: '2024-05-21', type: 'Sold', quantityChange: -2, balance: 50, notes: 'Sale', user: 'Emily White', reference: 'ORD-2024-001' },
-        { id: 'MOV006', date: '2024-05-15', type: 'Received', quantityChange: 52, balance: 52, notes: 'From Godown', user: 'System', reference: 'TRN-002', fromLocationId: 'LOC001', toLocationId: 'LOC002' },
+        { id: 'MOV006', date: '2024-05-15', type: 'Transfer', quantityChange: 52, balance: 52, notes: 'From Godown', user: 'System', reference: 'TRN-002', fromLocationId: 'LOC001', toLocationId: 'LOC002' },
     ],
     'INV002': [
         { id: 'MOV001', date: '2024-05-20', type: 'Sold', quantityChange: -1, balance: 9, notes: 'Sale', user: 'Emily White', reference: 'ORD-2024-002' },
@@ -597,24 +597,19 @@ export const purchaseOrders: PurchaseOrder[] = [
 
 const falsePermission: Permission = { create: false, read: false, update: false, delete: false };
 const readOnlyPermission: Permission = { create: false, read: true, update: false, delete: false };
+const fullPermission: Permission = { create: true, read: true, update: true, delete: true };
 
 export const defaultPermissions: { [key in StaffRole]: StaffMember['permissions'] } = {
     Admin: {
-        orders: { create: true, read: true, update: true, delete: true },
-        products: { create: true, read: true, update: true, delete: true },
-        inventory: { create: true, read: true, update: true, delete: true },
-        customers: { create: true, read: true, update: true, delete: true },
-        purchases: { create: true, read: true, update: true, delete: true },
-        expenses: { create: true, read: true, update: true, delete: true },
-        checkPassing: { create: true, read: true, update: true, delete: true },
-        partners: { create: true, read: true, update: true, delete: true },
-        courierReport: { create: true, read: true, update: true, delete: true },
-        staff: { create: true, read: true, update: true, delete: true },
-        settings: { create: true, read: true, update: true, delete: true },
-        analytics: { create: true, read: true, update: true, delete: true },
+        orders: fullPermission, packingOrders: fullPermission, products: fullPermission,
+        inventory: fullPermission, customers: fullPermission, purchases: fullPermission,
+        expenses: fullPermission, checkPassing: fullPermission, partners: fullPermission,
+        courierReport: fullPermission, staff: fullPermission, settings: fullPermission,
+        analytics: fullPermission,
     },
     Manager: {
         orders: { create: true, read: true, update: true, delete: false },
+        packingOrders: { create: true, read: true, update: true, delete: false },
         products: { create: true, read: true, update: true, delete: false },
         inventory: { create: true, read: true, update: true, delete: false },
         customers: { create: true, read: true, update: true, delete: false },
@@ -628,14 +623,14 @@ export const defaultPermissions: { [key in StaffRole]: StaffMember['permissions'
         analytics: { create: false, read: true, update: false, delete: false },
     },
     'Packing Assistant': {
-        orders: { create: false, read: true, update: true, delete: false },
-        products: { create: false, read: true, update: false, delete: false },
-        inventory: falsePermission, customers: falsePermission, purchases: falsePermission,
+        orders: falsePermission, packingOrders: { create: false, read: true, update: true, delete: false },
+        products: readOnlyPermission, inventory: falsePermission, customers: falsePermission, purchases: falsePermission,
         expenses: falsePermission, checkPassing: falsePermission, partners: falsePermission,
         courierReport: falsePermission, staff: falsePermission, settings: falsePermission, analytics: falsePermission,
     },
     Moderator: {
         orders: { create: true, read: true, update: true, delete: false },
+        packingOrders: { create: false, read: true, update: true, delete: false },
         products: { create: true, read: true, update: true, delete: false },
         inventory: { create: false, read: true, update: false, delete: false },
         customers: { create: true, read: true, update: true, delete: false },
@@ -646,28 +641,29 @@ export const defaultPermissions: { [key in StaffRole]: StaffMember['permissions'
     },
     Seller: {
         orders: { create: true, read: true, update: false, delete: false },
-        products: readOnlyPermission, inventory: falsePermission, customers: { create: true, read: true, update: false, delete: false },
+        packingOrders: falsePermission, products: readOnlyPermission, inventory: falsePermission, 
+        customers: { create: true, read: true, update: false, delete: false },
         purchases: falsePermission, expenses: falsePermission, checkPassing: falsePermission,
         partners: falsePermission, courierReport: falsePermission, staff: falsePermission,
         settings: falsePermission, analytics: falsePermission,
     },
     'Call Assistant': {
         orders: { create: false, read: true, update: true, delete: false }, // Can update notes
-        products: readOnlyPermission, inventory: falsePermission, customers: readOnlyPermission,
+        packingOrders: falsePermission, products: readOnlyPermission, inventory: falsePermission, customers: readOnlyPermission,
         purchases: falsePermission, expenses: falsePermission, checkPassing: falsePermission,
         partners: falsePermission, courierReport: readOnlyPermission, staff: falsePermission,
         settings: falsePermission, analytics: falsePermission,
     },
     'Call Centre Manager': {
         orders: { create: false, read: true, update: true, delete: false },
-        products: readOnlyPermission, inventory: falsePermission, customers: readOnlyPermission,
+        packingOrders: falsePermission, products: readOnlyPermission, inventory: falsePermission, customers: readOnlyPermission,
         purchases: falsePermission, expenses: falsePermission, checkPassing: falsePermission,
         partners: falsePermission, courierReport: readOnlyPermission, staff: { create: false, read: true, update: false, delete: false },
         settings: falsePermission, analytics: readOnlyPermission,
     },
     'Courier Manager': {
         orders: { create: false, read: true, update: true, delete: false },
-        products: readOnlyPermission, inventory: falsePermission, customers: readOnlyPermission,
+        packingOrders: falsePermission, products: readOnlyPermission, inventory: falsePermission, customers: readOnlyPermission,
         purchases: falsePermission, expenses: falsePermission, checkPassing: falsePermission,
         partners: { create: false, read: true, update: true, delete: false },
         courierReport: { create: true, read: true, update: true, delete: false },
@@ -676,7 +672,7 @@ export const defaultPermissions: { [key in StaffRole]: StaffMember['permissions'
     },
     'Courier Call Assistant': {
         orders: { create: false, read: true, update: true, delete: false }, // Update notes
-        products: readOnlyPermission, inventory: falsePermission, customers: readOnlyPermission,
+        packingOrders: falsePermission, products: readOnlyPermission, inventory: falsePermission, customers: readOnlyPermission,
         purchases: falsePermission, expenses: falsePermission, checkPassing: falsePermission,
         partners: readOnlyPermission, courierReport: readOnlyPermission, staff: falsePermission,
         settings: falsePermission, analytics: falsePermission,
@@ -694,7 +690,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-23T10:00:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 50000, frequency: 'Monthly' },
-        performance: { ordersCreated: 0, ordersConfirmed: 3, statusBreakdown: { 'New': 0, 'Confirmed': 3, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 2, 'Delivered': 1, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
+        performance: { ordersCreated: 0, ordersConfirmed: 3, statusBreakdown: { 'New': 0, 'Confirmed': 3, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 2, 'Delivered': 1, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
         financials: { totalEarned: 50000, totalPaid: 50000, dueAmount: 0 },
         paymentHistory: [
             { date: '2024-05-01', amount: 50000, notes: 'May Salary' }
@@ -710,7 +706,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-23T09:30:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 60000, frequency: 'Monthly' },
-        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
         financials: { totalEarned: 60000, totalPaid: 55000, dueAmount: 5000 },
         paymentHistory: [
             { date: '2024-05-01', amount: 55000, notes: 'May Salary (Partial)' }
@@ -727,7 +723,7 @@ export const staff: StaffMember[] = [
         paymentType: 'Both',
         salaryDetails: { amount: 20000, frequency: 'Monthly' },
         commissionDetails: { onOrderCreate: 50, onOrderConfirm: 100 },
-        performance: { ordersCreated: 5, ordersConfirmed: 1, statusBreakdown: { 'New': 1, 'Confirmed': 1, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 1, 'Delivered': 1, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
+        performance: { ordersCreated: 5, ordersConfirmed: 1, statusBreakdown: { 'New': 1, 'Confirmed': 1, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 1, 'Delivered': 1, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
         financials: { totalEarned: 20350, totalPaid: 20200, dueAmount: 150 },
         paymentHistory: [
              { date: '2024-05-01', amount: 20000, notes: 'May Salary' },
@@ -751,7 +747,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-23T08:15:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 35000, frequency: 'Monthly' },
-        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
         financials: { totalEarned: 35000, totalPaid: 35000, dueAmount: 0 },
         paymentHistory: [
              { date: '2024-05-01', amount: 35000, notes: 'May Salary' }
@@ -767,7 +763,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-24T11:00:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 15000, frequency: 'Monthly' },
-        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
         financials: { totalEarned: 15000, totalPaid: 15000, dueAmount: 0 },
         paymentHistory: [
              { date: '2024-05-01', amount: 15000, notes: 'May Salary' }
@@ -846,3 +842,6 @@ export const bdDistricts: string[] = [
 
 
 
+
+
+    

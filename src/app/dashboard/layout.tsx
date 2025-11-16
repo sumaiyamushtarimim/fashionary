@@ -21,6 +21,7 @@ import {
   BarChartHorizontal,
   Archive,
   FileSearch,
+  ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,6 +50,7 @@ const isCourierReportEnabled = true;
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
   { href: "/dashboard/orders", icon: ShoppingCart, label: "Orders" },
+  { href: "/dashboard/packing-orders", icon: ClipboardList, label: "Packing Orders" },
   { href: "/dashboard/products", icon: Package, label: "Products" },
   { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
   { href: "/dashboard/customers", icon: Users, label: "Customers" },
@@ -233,3 +235,5 @@ export default function DashboardLayout({
     </div>
   );
 }
+
+    

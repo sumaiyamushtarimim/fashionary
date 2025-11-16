@@ -47,6 +47,7 @@ export type Product = {
 export type OrderStatus = 
   | 'New'
   | 'Confirmed'
+  | 'Packing Hold'
   | 'Canceled'
   | 'Hold'
   | 'In-Courier'
@@ -58,7 +59,7 @@ export type OrderStatus =
   | 'Partial';
 
 export const allStatuses: OrderStatus[] = [
-    'New', 'Confirmed', 'Canceled', 'Hold', 'In-Courier',
+    'New', 'Confirmed', 'Packing Hold', 'Canceled', 'Hold', 'In-Courier',
     'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 
     'Paid Returned', 'Partial'
 ];
@@ -263,6 +264,7 @@ export type StaffMember = {
     incomeHistory: StaffIncome[];
     permissions: {
         orders: Permission | boolean;
+        packingOrders: Permission | boolean;
         products: Permission | boolean;
         inventory: Permission | boolean;
         customers: Permission | boolean;
@@ -318,5 +320,7 @@ export type WooCommerceIntegration = {
     businessId: string;
     businessName: string;
 };
+
+    
 
     

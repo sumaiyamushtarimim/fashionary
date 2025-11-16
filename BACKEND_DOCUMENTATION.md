@@ -45,6 +45,7 @@ generator client {
 enum OrderStatus {
   New
   Confirmed
+  PackingHold   @map("Packing Hold")
   Canceled
   Hold
   InCourier     @map("In-Courier")
@@ -526,3 +527,5 @@ The frontend already contains some server-side logic in the `src/app/api/` direc
 - **`src/services/sms.ts`**: This file contains a mock function to send SMS. You should create a dedicated endpoint on your backend (e.g., `POST /api/sms`) that the frontend can call, which then handles the communication with the MiM SMS service.
 
 By following this guide, you have a clear path to building and integrating a robust backend with this comprehensive frontend application. Good luck!
+
+    

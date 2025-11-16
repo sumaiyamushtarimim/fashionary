@@ -1,4 +1,5 @@
 
+
 import {
   Settings,
   Store,
@@ -11,6 +12,7 @@ import {
   Radar,
   FileSearch,
   Warehouse,
+  ClipboardList,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -108,3 +110,5 @@ export default function SettingsDashboardPage() {
     </div>
   );
 }
+
+    

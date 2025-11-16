@@ -16,6 +16,7 @@ import {
   Radar,
   FileSearch,
   Warehouse,
+  ClipboardList,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -133,3 +134,5 @@ export default function SettingsLayout({
     </div>
   );
 }
+
+    

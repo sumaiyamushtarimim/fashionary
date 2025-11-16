@@ -85,6 +85,7 @@ import { Label } from "@/components/ui/label";
 const statusColors: Record<OrderStatus, string> = {
     'New': 'bg-blue-500/20 text-blue-700',
     'Confirmed': 'bg-sky-500/20 text-sky-700',
+    'Packing Hold': 'bg-amber-500/20 text-amber-700',
     'Canceled': 'bg-red-500/20 text-red-700',
     'Hold': 'bg-yellow-500/20 text-yellow-700',
     'In-Courier': 'bg-orange-500/20 text-orange-700',
@@ -316,7 +317,7 @@ export default function OrdersClientPage() {
   const handleBulkPrint = (type: 'invoice' | 'sticker') => {
     if (selectedOrders.length === 0) return;
     const ids = selectedOrders.join(',');
-    window.open(`/print/orders/bulk?type=${type}&ids=${ids}`, '_blank');
+    window.open(`/dashboard/orders/print/bulk?type=${type}&ids=${ids}`, '_blank');
   };
 
   const handleStatusFilterChange = (newStatus: string) => {
@@ -738,3 +739,5 @@ export default function OrdersClientPage() {
     </div>
   );
 }
+
+    
