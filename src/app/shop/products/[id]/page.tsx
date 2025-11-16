@@ -7,29 +7,23 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
   ChevronLeft,
-  Copy,
-  Check,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import { getProductById, getCategories } from '@/services/products';
 import type { Product, Category } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
 
 export default function ProductDetailsPage() {
   const params = useParams();
   const productId = params.id as string;
-  const { toast } = useToast();
 
   const [product, setProduct] = React.useState<Product | undefined>(undefined);
   const [category, setCategory] = React.useState<Category | null>(null);
@@ -48,15 +42,6 @@ export default function ProductDetailsPage() {
     }
   }, [productId]);
 
-  const handleCopyLink = () => {
-    const url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => {
-      toast({
-        title: "Link Copied!",
-        description: "Product link has been copied to your clipboard.",
-      });
-    });
-  };
 
   if (isLoading) {
       return (
@@ -125,11 +110,6 @@ export default function ProductDetailsPage() {
                         <p className="text-muted-foreground">{product.description}</p>
                     </CardContent>
                 </Card>
-
-                 <Button size="lg" onClick={handleCopyLink}>
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy Link to Share
-                </Button>
             </div>
         </div>
     </div>
