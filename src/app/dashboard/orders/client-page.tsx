@@ -463,7 +463,7 @@ export default function OrdersClientPage() {
                                 <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                                <Link href={`/dashboard/products/${order.id}/edit`}>Edit</Link>
+                                <Link href={`/dashboard/orders/${order.id}/edit`}>Edit</Link>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem>Update Status</DropdownMenuItem>
@@ -508,7 +508,7 @@ export default function OrdersClientPage() {
                                      <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                         <DropdownMenuItem asChild><Link href={`/dashboard/orders/${order.id}`}>View Details</Link></DropdownMenuItem>
-                                        <DropdownMenuItem asChild><Link href={`/dashboard/products/${order.id}/edit`}>Edit</Link></DropdownMenuItem>
+                                        <DropdownMenuItem asChild><Link href={`/dashboard/orders/${order.id}/edit`}>Edit</Link></DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem>Update Status</DropdownMenuItem>
                                         <DropdownMenuItem className="text-red-600">Cancel Order</DropdownMenuItem>
@@ -757,6 +757,7 @@ export default function OrdersClientPage() {
     </div>
   );
 }
+
 
 
 
