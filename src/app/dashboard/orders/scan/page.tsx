@@ -15,6 +15,9 @@ import {
   ChevronLeft,
   ChevronsRight,
   MoreVertical,
+  Printer,
+  Download,
+  Truck,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -39,7 +42,6 @@ import {
     DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 import { allStatuses } from '@/lib/placeholder-data';
-import { Printer, Download, Truck } from 'lucide-react';
 
 type ScanResult = 'success' | 'duplicate' | 'error' | 'idle';
 
@@ -148,7 +150,7 @@ export default function ScanOrdersPage() {
         event.preventDefault();
         undo();
       }
-      if ((event.ctrlKey || event.metaKey) && event.key === 'y') {
+      if ((event.ctrlKey || event.metaKey) && (event.key === 'y' || (event.shiftKey && event.key === 'z')) ) {
         event.preventDefault();
         redo();
       }
