@@ -97,22 +97,19 @@ export function DateRangePicker({
 
 
   const displayValue = () => {
-    if (preset && preset !== 'custom' && preset !== 'all-time') {
-        return presetDisplay[preset];
-    }
     if (date?.from) {
       if (date.to) {
-        return `${format(date.from, "LLL dd, y")} - ${format(date.to, "LLL dd, y")}`;
+        return `${format(date.from, "LLL dd")} - ${format(date.to, "LLL dd, y")}`;
       }
       return format(date.from, "LLL dd, y");
     }
-    return "Select a date...";
+    return "Custom Range";
   };
 
   return (
-    <div className={cn("grid grid-cols-1 sm:grid-cols-2 gap-2", className)}>
+    <div className={cn("grid grid-cols-2 gap-2", className)}>
         <Select value={preset} onValueChange={(value: Preset) => handlePresetChange(value)}>
-            <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectTrigger className="w-full">
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
@@ -131,9 +128,8 @@ export function DateRangePicker({
             id="date"
             variant={"outline"}
             className={cn(
-              "w-full sm:w-[240px] justify-start text-left font-normal hidden",
-              !date && "text-muted-foreground",
-              preset === 'custom' && "sm:flex"
+              "w-full justify-start text-left font-normal",
+              !date && "text-muted-foreground"
             )}
             onClick={() => setIsPopoverOpen(true)}
             disabled={preset !== 'custom'}
@@ -142,10 +138,7 @@ export function DateRangePicker({
             {displayValue()}
           </Button>
         </PopoverTrigger>
-         <div className={cn("pl-1 text-sm font-medium text-muted-foreground self-center hidden", preset !== 'custom' && preset !== 'all-time' ? "sm:flex": "")}>
-           {displayValue()}
-        </div>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-auto p-0" align="end">
           <Calendar
             initialFocus
             mode="range"
