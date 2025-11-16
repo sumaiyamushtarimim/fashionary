@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Menu } from 'lucide-react';
+import { Menu, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { getCategories } from '@/services/products';
@@ -17,7 +17,13 @@ function CategoryNav({ categories, selectedCategory, onSelectCategory }: { categ
     const mainCategories = categories.filter(c => !c.parentId);
     const subCategories = (parentId: string) => categories.filter(c => c.parentId === parentId);
 
-    const parentOfSelected = selectedCategory ? categories.find(c => c.id === selectedCategory)?.parentId : null;
+    const getParentId = (childId: string | null): string | null => {
+        if (!childId) return null;
+        const category = categories.find(c => c.id === childId);
+        return category?.parentId || null;
+    };
+    
+    const parentOfSelected = getParentId(selectedCategory);
 
     return (
         <nav className="flex flex-col gap-2 p-4">
@@ -31,11 +37,14 @@ function CategoryNav({ categories, selectedCategory, onSelectCategory }: { categ
             <Accordion type="single" collapsible defaultValue={parentOfSelected || undefined}>
                 {mainCategories.map(cat => {
                     const children = subCategories(cat.id);
+                    const isParentSelected = selectedCategory === cat.id;
+                    const isChildSelected = children.some(child => child.id === selectedCategory);
+
                     if (children.length === 0) {
                         return (
                              <Button
                                 key={cat.id}
-                                variant={selectedCategory === cat.id ? 'secondary' : 'ghost'}
+                                variant={isParentSelected ? 'secondary' : 'ghost'}
                                 className="justify-start w-full"
                                 onClick={() => onSelectCategory(cat.id)}
                             >
@@ -45,15 +54,21 @@ function CategoryNav({ categories, selectedCategory, onSelectCategory }: { categ
                     }
                     return (
                         <AccordionItem value={cat.id} key={cat.id} className="border-b-0">
-                            <AccordionTrigger 
-                                className={cn(
-                                    "py-2 px-3 text-sm font-medium rounded-md hover:bg-muted hover:no-underline",
-                                    selectedCategory === cat.id && 'bg-secondary'
-                                )}
-                                onClick={() => onSelectCategory(cat.id)}
-                            >
-                                {cat.name}
-                            </AccordionTrigger>
+                            <div className={cn(
+                                "flex items-center justify-between rounded-md hover:bg-muted",
+                                (isParentSelected || isChildSelected) && 'bg-secondary'
+                            )}>
+                                <AccordionTrigger 
+                                    className="py-2 px-3 text-sm font-medium hover:no-underline flex-1"
+                                >
+                                    <span onClick={(e) => {
+                                        e.stopPropagation();
+                                        onSelectCategory(cat.id);
+                                    }} className="hover:underline">
+                                        {cat.name}
+                                    </span>
+                                </AccordionTrigger>
+                            </div>
                             <AccordionContent className="pt-2 pl-4">
                                 <div className="flex flex-col gap-1">
                                 {children.map(subCat => (
@@ -112,8 +127,8 @@ export function CategorySheet() {
                     <span className="sr-only">Toggle Menu</span>
                 </Button>
             </SheetTrigger>
-            <SheetContent side="left">
-                <SheetHeader>
+            <SheetContent side="left" className="p-0">
+                <SheetHeader className="p-4 border-b">
                     <SheetTitle className="text-xl">Categories</SheetTitle>
                 </SheetHeader>
                  {isLoading ? (
