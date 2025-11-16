@@ -302,12 +302,14 @@ export default function DashboardLayout({
                 </DropdownMenuFooter>
             </DropdownMenuContent>
           </DropdownMenu>
-          <ClerkLoading>
-            <Skeleton className="h-8 w-8 rounded-full" />
-          </ClerkLoading>
-          <ClerkLoaded>
-            <UserButton afterSignOutUrl="/" />
-          </ClerkLoaded>
+          <Suspense fallback={<Skeleton className="h-8 w-8 rounded-full" />}>
+            <ClerkLoaded>
+              <UserButton afterSignOutUrl="/" />
+            </ClerkLoaded>
+            <ClerkLoading>
+              <Skeleton className="h-8 w-8 rounded-full" />
+            </ClerkLoading>
+          </Suspense>
         </header>
         <main className="flex flex-1 flex-col bg-background">
           {children}
