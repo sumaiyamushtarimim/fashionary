@@ -109,8 +109,8 @@ export default function PackingOrdersPage() {
     }, []);
 
     const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
-        setAllOrders(prevOrders => prevOrders.map(order => 
-            order.id === orderId ? { ...order, status: newStatus } : order
+        setAllOrders(prevOrders => prevOrders.filter(order => 
+            order.id !== orderId
         ));
     };
 
@@ -174,4 +174,3 @@ export default function PackingOrdersPage() {
     );
 }
 
-    
