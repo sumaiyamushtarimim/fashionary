@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -7,11 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 
 export function CopyLinkButton() {
     const { toast } = useToast();
-    const [isClient, setIsClient] = React.useState(false);
-
-    React.useEffect(() => {
-        setIsClient(true);
-    }, []);
 
     const handleCopy = () => {
         if (typeof window !== 'undefined') {
@@ -30,10 +26,6 @@ export function CopyLinkButton() {
             });
         }
     };
-
-    if (!isClient) {
-        return null;
-    }
 
     return (
         <Button variant="ghost" size="icon" onClick={handleCopy}>
