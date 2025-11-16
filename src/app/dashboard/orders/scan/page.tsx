@@ -16,7 +16,6 @@ import {
   ChevronsRight,
   MoreVertical,
 } from 'lucide-react';
-import { useHotkeys } from 'react-hotkeys-hook';
 import { formatDistanceToNow } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
@@ -163,10 +162,6 @@ export default function ScanOrdersPage() {
     return () => window.removeEventListener('scan-state-change', handleStateChange);
   }, []);
 
-
-  useHotkeys('ctrl+z', undo, { preventDefault: true });
-  useHotkeys('ctrl+y', redo, { preventDefault: true });
-  useHotkeys('ctrl+shift+z', redo, { preventDefault: true });
 
   React.useEffect(() => {
     inputRef.current?.focus();
