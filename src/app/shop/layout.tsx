@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
@@ -19,8 +20,7 @@ export default function ShopLayout({
                     
                     <div className="flex flex-1 items-center justify-center">
                         <Link href="/shop" className="flex items-center gap-2">
-                            <Logo />
-                            <span className="font-bold font-headline text-xl">Fashionary</span>
+                            <Logo variant="full" />
                         </Link>
                     </div>
 

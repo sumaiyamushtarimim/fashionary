@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +11,7 @@ export default function LandingPage() {
       <Card className="mx-auto max-w-sm w-full">
         <CardHeader className="space-y-4">
           <div className="flex justify-center">
-            <Logo />
+            <Logo variant="full" />
           </div>
           <CardTitle className="text-2xl font-headline text-center">Welcome to Fashionary</CardTitle>
           <CardDescription className="text-center">

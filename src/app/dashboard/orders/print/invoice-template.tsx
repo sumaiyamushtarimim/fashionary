@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Image from 'next/image';
@@ -19,7 +20,7 @@ export function InvoiceTemplate({ order }: { order: Order }) {
                 <div>
                     <header className="flex justify-between items-start pb-6 border-b">
                         <div className="flex items-center gap-4">
-                            <Logo />
+                            <Logo variant="icon" />
                             <div>
                                 <h1 className="text-2xl font-bold font-headline text-primary">Fashionary</h1>
                                 <p className="text-sm text-gray-500">123 Fashion Ave, Dhaka</p>

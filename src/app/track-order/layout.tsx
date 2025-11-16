@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 
@@ -12,8 +13,7 @@ export default function TrackOrderLayout({
                 <div className="container flex h-16 items-center justify-between px-4 sm:px-8">
                     <div className="flex flex-1 items-center justify-center">
                         <Link href="/track-order" className="flex items-center gap-2">
-                            <Logo />
-                            <span className="font-bold font-headline text-xl">Fashionary</span>
+                            <Logo variant="full" />
                         </Link>
                     </div>
                 </div>

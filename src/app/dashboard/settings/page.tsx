@@ -13,6 +13,7 @@ import {
   FileSearch,
   Warehouse,
   ClipboardList,
+  Palette,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -24,6 +25,12 @@ const settingsLinks = [
     title: 'General Settings',
     description: 'Manage store details, currency, and language.',
     icon: Settings,
+  },
+  {
+    href: '/dashboard/settings/branding',
+    title: 'Branding',
+    description: 'Customize your store logo and icons.',
+    icon: Palette,
   },
   {
     href: '/dashboard/settings/business',
@@ -110,5 +117,3 @@ export default function SettingsDashboardPage() {
     </div>
   );
 }
-
-    

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from "next/link";
@@ -104,8 +105,7 @@ function MobileNavLinks({ onLinkClick }: { onLinkClick: () => void }) {
                 href="#"
                 className="flex items-center gap-2 text-lg font-semibold mb-4"
             >
-                <Logo />
-                <span className="sr-only">Fashionary</span>
+                <Logo variant="full" />
             </Link>
             {navItems.map(({ href, icon: Icon, label }) => (
                 <Link
@@ -158,8 +158,7 @@ export default function DashboardLayout({
         <div className="sticky top-0 flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold">
-              <Logo />
-              <span className="font-headline text-xl">Fashionary</span>
+              <Logo variant="full" />
             </Link>
           </div>
           <div className="flex-1 overflow-y-auto">
@@ -189,7 +188,7 @@ export default function DashboardLayout({
           <div className="w-full flex-1">
              <div className="flex h-full items-center justify-center md:hidden">
                 <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-                    <span className="font-headline text-xl">Fashionary</span>
+                    <Logo variant="full" />
                 </Link>
              </div>
           </div>
@@ -244,5 +243,3 @@ export default function DashboardLayout({
     </div>
   );
 }
-
-    

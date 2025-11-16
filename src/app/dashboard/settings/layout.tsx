@@ -17,6 +17,7 @@ import {
   FileSearch,
   Warehouse,
   ClipboardList,
+  Palette,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -34,6 +35,7 @@ import React from 'react';
 const settingsNav = [
   { href: '/dashboard/settings', label: 'Dashboard', icon: Settings },
   { href: '/dashboard/settings/general', label: 'General', icon: Settings },
+  { href: '/dashboard/settings/branding', label: 'Branding', icon: Palette },
   { href: '/dashboard/settings/business', label: 'Business', icon: Store },
   { href: '/dashboard/settings/categories', label: 'Categories', icon: LayoutGrid },
   { href: '/dashboard/settings/locations', label: 'Locations', icon: Warehouse },
@@ -134,5 +136,3 @@ export default function SettingsLayout({
     </div>
   );
 }
-
-    

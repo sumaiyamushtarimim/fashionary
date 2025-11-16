@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type { Order } from '@/types';
@@ -20,7 +21,7 @@ export function StickerTemplate({ order }: { order: Order }) {
                         <p>Phone: +8801234567890</p>
                     </div>
                     <div className="w-12 h-12">
-                        <Logo />
+                        <Logo variant="icon" />
                     </div>
                 </header>
 
