@@ -31,7 +31,8 @@ This application comes packed with a wide range of pre-built features:
   - **Staff:** Manage staff roles, payments, and performance with an invitation-based system.
   - **Partners:** Handle suppliers and vendors, tracking payments and purchase orders.
   - **Finance:** Track expenses and view detailed financial analytics, including profit & loss statements.
-- **Advanced Integrations:**
+- **Advanced Tools:**
+  - **All-in-One Scan Mode:** A dedicated, distraction-free UI for rapidly scanning order barcodes, adding them to a list, and applying bulk actions like "Mark as Shipped".
   - **Courier Services:** Integrated courier report search (Hoorin API) and tools for dispatching orders.
   - **SMS Gateway:** Configurable SMS notifications for various events.
 - **Settings:** A modular settings panel to configure every aspect of the application, from business details to third-party integrations.

@@ -432,9 +432,9 @@ Create RESTful API endpoints for each data domain. For example:
 - `GET /api/products`
 - `GET /api/customers`
 
-### **Specialized Endpoints**
+### **Specialized Endpoints for "All-in-One Scan Mode"**
 
-For the new "All-in-One Scan Mode" feature, you will need two specific endpoints:
+For the "All-in-One Scan Mode" feature, you will need two specific endpoints:
 
 #### **Order Validation**
 
@@ -592,5 +592,3 @@ The frontend already contains some server-side logic in the `src/app/api/` direc
 - **`src/services/sms.ts`**: This file contains a mock function to send SMS. You should create a dedicated endpoint on your backend (e.g., `POST /api/sms`) that the frontend can call, which then handles the communication with the MiM SMS service.
 
 By following this guide, you have a clear path to building and integrating a robust backend with this comprehensive frontend application. Good luck!
-
-    
