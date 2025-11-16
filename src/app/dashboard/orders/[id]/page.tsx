@@ -792,7 +792,7 @@ export default function OrderDetailsPage() {
                                     <CardTitle className="text-sm">Customer History</CardTitle>
                                 </CardHeader>
                                 <CardContent className="p-2 pt-0 text-xs">
-                                     <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                                     <div className="flex flex-wrap gap-x-4 gap-y-2">
                                         <div className="flex items-center gap-2">
                                             <Package className="w-4 h-4 text-muted-foreground" />
                                             <span>Total: {customerHistoryStats.totalOrders}</span>
@@ -962,3 +962,5 @@ export default function OrderDetailsPage() {
     </Form>
   );
 }
+
+    
