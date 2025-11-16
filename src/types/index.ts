@@ -1,6 +1,7 @@
 
 
 
+
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import type { LucideIcon } from 'lucide-react';
 
@@ -103,15 +104,15 @@ export type Order = {
   date: string;
   status: OrderStatus;
   total: number;
-  shipping?: number;
+  shipping: number;
   products: OrderProduct[];
   logs: OrderLog[];
   customerNote: string;
   officeNote: string;
-  createdBy?: string;
-  confirmedBy?: string;
-  businessId?: string;
-  platform?: OrderPlatform;
+  createdBy: string;
+  confirmedBy: string;
+  businessId: string;
+  platform: OrderPlatform;
   shippingAddress: {
     address: string;
     district: string;

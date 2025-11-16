@@ -20,8 +20,8 @@ export async function getOrderById(id: string): Promise<Order | undefined> {
   return Promise.resolve(order);
 }
 
-export async function getOrdersByCustomer(customerPhone: string): Promise<Order[]> {
-    const customerOrders = orders.filter((o) => o.customerPhone === customerPhone).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+export async function getOrdersByCustomerPhone(phone: string): Promise<Order[]> {
+    const customerOrders = orders.filter((o) => o.customerPhone === phone);
     return Promise.resolve(customerOrders);
 }
 

@@ -33,8 +33,12 @@ import {
   Printer,
   File,
   Loader2,
+  Clock,
+  PackageCheck,
+  Ban,
+  RotateCcw,
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow, isAfter, subHours } from 'date-fns';
 import * as React from 'react';
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -58,6 +62,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -94,7 +107,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { getOrderById, getStatuses } from '@/services/orders';
+import { getOrderById, getStatuses, getOrdersByCustomerPhone } from '@/services/orders';
 import { getProducts } from '@/services/products';
 import { getBusinesses, getCourierServices } from '@/services/partners';
 import { getDeliveryReport, type DeliveryReport } from '@/services/delivery-score';
@@ -105,6 +118,7 @@ import { useToast } from '@/hooks/use-toast';
 const statusColors: Record<OrderType['status'], string> = {
     'New': 'bg-blue-500/20 text-blue-700',
     'Confirmed': 'bg-sky-500/20 text-sky-700',
+    'Packing Hold': 'bg-amber-500/20 text-amber-700',
     'Canceled': 'bg-red-500/20 text-red-700',
     'Hold': 'bg-yellow-500/20 text-yellow-700',
     'In-Courier': 'bg-orange-500/20 text-orange-700',
@@ -234,6 +248,7 @@ export default function OrderDetailsPage() {
   const orderId = params.id as string;
   
   const [order, setOrder] = React.useState<OrderType | undefined>(undefined);
+  const [customerHistory, setCustomerHistory] = React.useState<OrderType[]>([]);
   const [deliveryReport, setDeliveryReport] = React.useState<DeliveryReport | null>(null);
   const [isReportLoading, setIsReportLoading] = React.useState(true);
   const [allProducts, setAllProducts] = React.useState<Product[]>([]);
@@ -298,6 +313,10 @@ export default function OrderDetailsPage() {
                     setDeliveryReport(report);
                 }).finally(() => setIsReportLoading(false));
 
+                getOrdersByCustomerPhone(orderData.customerPhone).then(history => {
+                    setCustomerHistory(history);
+                })
+
             }
             setAllProducts(productsData);
             setBusinesses(businessesData);
@@ -307,6 +326,19 @@ export default function OrderDetailsPage() {
         });
     }
   }, [orderId, form]);
+
+  const customerHistoryStats = React.useMemo(() => {
+    const totalOrders = customerHistory.length;
+    const delivered = customerHistory.filter(o => o.status === 'Delivered').length;
+    const canceled = customerHistory.filter(o => o.status === 'Canceled').length;
+    const returned = customerHistory.filter(o => o.status === 'Returned' || o.status === 'Paid Returned').length;
+    const processing = totalOrders - (delivered + canceled + returned);
+    const recentDate = subHours(new Date(), 48);
+    const recentOrders = customerHistory.filter(o => isAfter(new Date(o.date), recentDate));
+    
+    return { totalOrders, delivered, canceled, returned, processing, recentOrders };
+  }, [customerHistory]);
+
 
   const courierStatsData = React.useMemo(() => {
     if (!deliveryReport || !deliveryReport.Summaries) return [];
@@ -754,6 +786,79 @@ export default function OrderDetailsPage() {
                                 </div>
                                 </div>
                             </div>
+                            <Separator />
+                             <Card>
+                                <CardHeader className="p-2 pt-0">
+                                    <CardTitle className="text-sm">Customer History</CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-2 pt-0 text-xs">
+                                     <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <Package className="w-4 h-4 text-muted-foreground" />
+                                            <span>Total: {customerHistoryStats.totalOrders}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <PackageCheck className="w-4 h-4 text-green-600" />
+                                            <span>Delivered: {customerHistoryStats.delivered}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Ban className="w-4 h-4 text-red-500" />
+                                            <span>Canceled: {customerHistoryStats.canceled}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <RotateCcw className="w-4 h-4 text-orange-500" />
+                                            <span>Returned: {customerHistoryStats.returned}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="w-4 h-4 text-blue-500" />
+                                            <span>Processing: {customerHistoryStats.processing}</span>
+                                        </div>
+                                    </div>
+                                    {customerHistoryStats.recentOrders.length > 0 && (
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button variant="link" className="p-0 h-auto text-xs mt-2">
+                                                    Recent Orders: {customerHistoryStats.recentOrders.length} in last 48h
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Recent Orders (Last 48 Hours)</DialogTitle>
+                                                    <DialogDescription>
+                                                        Orders placed by {order.customerName} in the last 48 hours.
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <div className="max-h-80 overflow-y-auto">
+                                                    <Table>
+                                                        <TableHeader>
+                                                            <TableRow>
+                                                                <TableHead>Order ID</TableHead>
+                                                                <TableHead>Status</TableHead>
+                                                                <TableHead className="text-right">Total</TableHead>
+                                                            </TableRow>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {customerHistoryStats.recentOrders.map(o => (
+                                                                <TableRow key={o.id}>
+                                                                    <TableCell>
+                                                                        <Link href={`/dashboard/orders/${o.id}`} className="text-primary hover:underline">{o.id}</Link>
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        <Badge variant="outline" className={cn(statusColors[o.status])}>
+                                                                            {o.status}
+                                                                        </Badge>
+                                                                    </TableCell>
+                                                                    <TableCell className="text-right font-mono">৳{o.total.toFixed(2)}</TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
+                                </CardContent>
+                            </Card>
                             <Separator />
                             <div className="grid gap-2">
                                 <div className="font-medium">Shipping Information</div>
