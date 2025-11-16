@@ -432,6 +432,71 @@ Create RESTful API endpoints for each data domain. For example:
 - `GET /api/products`
 - `GET /api/customers`
 
+### **Specialized Endpoints**
+
+For the new "All-in-One Scan Mode" feature, you will need two specific endpoints:
+
+#### **Order Validation**
+
+This endpoint is used to quickly validate a scanned order code.
+
+**Endpoint:** `GET /api/orders/validate-scan?code={barcodeContent}`
+
+**Success Response (200 OK):**
+```json
+{
+  "status": "ok",
+  "order": {
+    "id": "ORD-2024-001",
+    "currentStatus": "RTS (Ready to Ship)"
+  }
+}
+```
+
+**Error Response (e.g., 404 Not Found, 409 Conflict):**
+```json
+{
+  "status": "error",
+  "reason": "Order not found / Status mismatch / Already processed"
+}
+```
+
+#### **Bulk Order Action**
+
+This endpoint applies a single action to multiple orders at once.
+
+**Endpoint:** `POST /api/orders/bulk-action`
+
+**Request Body:**
+```json
+{
+  "action": "MARK_AS_SHIPPED", // or "PRINT_INVOICES", "CANCEL", etc.
+  "orderIds": ["ORD-2024-001", "ORD-2024-002", "ORD-2024-003"]
+}
+```
+
+**Success Response (200 OK):**
+```json
+{
+  "status": "success",
+  "message": "Successfully applied action to 3 orders.",
+  "processed": ["ORD-2024-001", "ORD-2024-002", "ORD-2024-003"],
+  "failed": []
+}
+```
+
+**Partial Success Response (207 Multi-Status):**
+```json
+{
+  "status": "partial_success",
+  "message": "Applied action to 1 of 2 orders.",
+  "processed": ["ORD-2024-001"],
+  "failed": [
+    { "orderId": "ORD-2024-002", "reason": "Invalid status for this action" }
+  ]
+}
+```
+
 ## 3. Replacing Frontend Data Services
 
 Your main integration task is to replace the mock data functions in the `src/services` directory with live API calls to your newly created backend.

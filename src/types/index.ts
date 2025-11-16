@@ -1,7 +1,14 @@
 
 
+
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import type { LucideIcon } from 'lucide-react';
+
+export type ScannedItem = {
+    id: string;
+    currentStatus: OrderStatus;
+    scannedAt: Date;
+};
 
 export type Notification = {
     id: string;

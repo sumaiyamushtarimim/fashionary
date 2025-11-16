@@ -6,7 +6,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { MoreHorizontal, PlusCircle, Truck, Printer, File as FileIcon, Download } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Truck, Printer, File as FileIcon, Download, ScanLine } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { format, isWithinInterval } from "date-fns";
 
@@ -557,7 +557,13 @@ export default function OrdersClientPage() {
                         ))}
                     </SelectContent>
                 </Select>
-                 <div className="sm:hidden">
+                 <div className="sm:hidden flex items-center gap-2">
+                    <Button size="sm" variant="outline" asChild>
+                        <Link href="/dashboard/orders/scan">
+                            <ScanLine className="h-4 w-4" />
+                            <span className="sr-only">Scan Orders</span>
+                        </Link>
+                    </Button>
                     <Button size="sm" asChild>
                         <Link href="/dashboard/orders/new">
                             <PlusCircle className="h-4 w-4" />
@@ -570,6 +576,12 @@ export default function OrdersClientPage() {
         
         <div className="hidden sm:flex items-center gap-2 justify-end">
             <DateRangePicker date={dateRange} onDateChange={setDateRange} placeholder="Filter by date" />
+             <Button size="sm" variant="outline" asChild>
+                <Link href="/dashboard/orders/scan">
+                    <ScanLine className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Scan Orders</span>
+                </Link>
+            </Button>
             <Button size="sm" asChild>
                 <Link href="/dashboard/orders/new">
                     <PlusCircle className="h-4 w-4 sm:mr-2" />
@@ -739,4 +751,5 @@ export default function OrdersClientPage() {
     </div>
   );
 }
+
 
