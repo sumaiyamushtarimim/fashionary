@@ -61,6 +61,7 @@ import { getIncompleteOrders } from '@/services/orders';
 import { cn } from '@/lib/utils';
 import type { Order } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -130,7 +131,7 @@ export default function IncompleteOrdersPage() {
               <div className="flex justify-end gap-2">
                 <AlertDialog>
                   <Button variant="outline" size="sm" asChild>
-                    <Link href={`/dashboard/orders/${order.id}/edit`}>
+                    <Link href={`/dashboard/orders/${order.id}`}>
                       <Undo2 className="mr-2 h-4 w-4" />
                       Convert
                     </Link>
@@ -160,6 +161,54 @@ export default function IncompleteOrdersPage() {
         ))}
       </TableBody>
     </Table>
+  );
+
+  const renderCards = () => (
+      <div className="space-y-4">
+          {paginatedOrders.map((order) => (
+              <Card key={order.id}>
+                  <CardContent className="p-4 space-y-3">
+                      <div>
+                          <p className="font-semibold">{order.customerName}</p>
+                          <p className="text-sm text-muted-foreground">{order.customerPhone}</p>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                          <p className="text-muted-foreground">{format(new Date(order.date), 'MMM d, yyyy')}</p>
+                          <p className="font-semibold font-mono text-lg">৳{order.total.toFixed(2)}</p>
+                      </div>
+                      <Separator />
+                        <div className="flex justify-end gap-2">
+                            <AlertDialog>
+                                <Button variant="outline" size="sm" asChild className="flex-1">
+                                    <Link href={`/dashboard/orders/${order.id}`}>
+                                    <Undo2 className="mr-2 h-4 w-4" />
+                                    Convert
+                                    </Link>
+                                </Button>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" size="sm" className="flex-1">
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Cancel
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This will cancel the incomplete order for <strong>{order.customerName}</strong>. This action cannot be undone.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Go Back</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleCancel(order.id)}>Confirm Cancel</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+                  </CardContent>
+              </Card>
+          ))}
+      </div>
   );
 
   return (
@@ -194,7 +243,10 @@ export default function IncompleteOrdersPage() {
                 {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           ) : paginatedOrders.length > 0 ? (
-            renderTable()
+            <>
+                <div className="hidden sm:block">{renderTable()}</div>
+                <div className="sm:hidden">{renderCards()}</div>
+            </>
           ) : (
             <div className="h-48 flex flex-col items-center justify-center text-center text-muted-foreground">
               <FileWarning className="w-12 h-12 mb-4" />
