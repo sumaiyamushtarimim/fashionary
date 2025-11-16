@@ -23,6 +23,7 @@ import {
   Archive,
   FileSearch,
   ClipboardList,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +36,7 @@ import {
   DropdownMenuFooter
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import React, { Suspense } from "react";
@@ -54,12 +56,16 @@ const isPackingAssistant = MOCK_USER_ROLE === 'Packing Assistant';
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
-  { 
-    href: isPackingAssistant ? "/dashboard/packing-orders" : "/dashboard/orders", 
-    icon: isPackingAssistant ? ClipboardList : ShoppingCart, 
-    label: isPackingAssistant ? "Packing Orders" : "Orders" 
-  },
   ...(!isPackingAssistant ? [
+    { 
+        label: "Orders", 
+        icon: ShoppingCart, 
+        subItems: [
+            { href: "/dashboard/orders", label: "All Orders" },
+            { href: "/dashboard/orders/incomplete", label: "Incomplete Orders" },
+            { href: "/dashboard/packing-orders", label: "Packing Orders" },
+        ]
+    },
     { href: "/dashboard/products", icon: Package, label: "Products" },
     { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
     { href: "/dashboard/customers", icon: Users, label: "Customers" },
@@ -71,28 +77,68 @@ const navItems = [
     { href: "/dashboard/analytics", icon: BarChartHorizontal, label: "Analytics" },
     { href: "/dashboard/staff", icon: User, label: "Staff" },
     { href: "/dashboard/settings", icon: Settings, label: "Settings" },
-  ] : [])
+  ] : [
+      { href: "/dashboard/packing-orders", icon: ClipboardList, label: "Packing Orders" }
+  ])
 ];
-
 
 function NavLinks() {
     const pathname = usePathname();
+    const isOrderRelatedPage = pathname.startsWith('/dashboard/orders') || pathname === '/dashboard/packing-orders';
+    
     return (
         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-        {navItems.map(({ href, icon: Icon, label }) => (
-            <Link
-            key={href}
-            href={href}
-            className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-muted hover:text-primary",
-                pathname.startsWith(href) && href !== "/dashboard" && "bg-muted text-primary",
-                pathname === href && "bg-muted text-primary"
-            )}
-            >
-            <Icon className="h-4 w-4" />
-            {label}
-            </Link>
-        ))}
+        {navItems.map((item, index) => {
+            if ('subItems' in item) {
+                return (
+                    <Collapsible key={index} defaultOpen={isOrderRelatedPage}>
+                        <CollapsibleTrigger asChild>
+                            <div
+                                className={cn(
+                                    "flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-muted hover:text-primary",
+                                    isOrderRelatedPage && "text-primary"
+                                )}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <item.icon className="h-4 w-4" />
+                                    {item.label}
+                                </div>
+                                <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                            </div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pl-7 pt-1">
+                            <nav className="grid items-start text-sm font-medium">
+                                {item.subItems.map(subItem => (
+                                     <Link
+                                        key={subItem.href}
+                                        href={subItem.href}
+                                        className={cn(
+                                            "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-muted hover:text-primary",
+                                            pathname === subItem.href && "bg-muted text-primary"
+                                        )}
+                                    >
+                                        {subItem.label}
+                                    </Link>
+                                ))}
+                            </nav>
+                        </CollapsibleContent>
+                    </Collapsible>
+                )
+            }
+            return (
+                <Link
+                    key={item.href}
+                    href={item.href!}
+                    className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-muted hover:text-primary",
+                        pathname === item.href && "bg-muted text-primary"
+                    )}
+                    >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                </Link>
+            )
+        })}
         </nav>
     );
 }
@@ -107,21 +153,48 @@ function MobileNavLinks({ onLinkClick }: { onLinkClick: () => void }) {
             >
                 <Logo variant="full" />
             </Link>
-            {navItems.map(({ href, icon: Icon, label }) => (
-                <Link
-                    key={href}
-                    href={href}
-                    onClick={onLinkClick}
-                    className={cn(
-                        "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground",
-                        pathname.startsWith(href) && href !== "/dashboard" && "bg-muted text-foreground",
-                        pathname === href && "bg-muted text-foreground"
-                    )}
-                >
-                    <Icon className="h-5 w-5" />
-                    {label}
-                </Link>
-            ))}
+            {navItems.map((item, index) => {
+                 if ('subItems' in item) {
+                     return (
+                         <div key={index} className="flex flex-col">
+                             <span className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground">
+                                 <item.icon className="h-5 w-5" />
+                                 {item.label}
+                             </span>
+                             <div className="pl-8 flex flex-col gap-1">
+                                {item.subItems.map(subItem => (
+                                    <Link
+                                        key={subItem.href}
+                                        href={subItem.href}
+                                        onClick={onLinkClick}
+                                        className={cn(
+                                            "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground",
+                                            pathname === subItem.href && "bg-muted text-foreground"
+                                        )}
+                                    >
+                                        {subItem.label}
+                                    </Link>
+                                ))}
+                             </div>
+                         </div>
+                     )
+                 }
+                return (
+                    <Link
+                        key={item.href}
+                        href={item.href!}
+                        onClick={onLinkClick}
+                        className={cn(
+                            "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground",
+                            pathname.startsWith(item.href!) && item.href! !== "/dashboard" && "bg-muted text-foreground",
+                            pathname === item.href! && "bg-muted text-foreground"
+                        )}
+                    >
+                        <item.icon className="h-5 w-5" />
+                        {item.label}
+                    </Link>
+                )
+            })}
         </nav>
     );
 }

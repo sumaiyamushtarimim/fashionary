@@ -9,9 +9,21 @@ import { Order, OrderStatus } from '@/types';
 export async function getOrders(): Promise<Order[]> {
   // Simulate a network delay
   await new Promise(resolve => setTimeout(resolve, 500));
-  const sortedOrders = orders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const sortedOrders = orders
+    .filter(o => o.status !== 'Incomplete' && o.status !== 'Incomplete-Cancelled')
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   return Promise.resolve(sortedOrders);
 }
+
+export async function getIncompleteOrders(): Promise<Order[]> {
+  // Simulate a network delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  const incompleteOrders = orders
+    .filter(o => o.status === 'Incomplete')
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  return Promise.resolve(incompleteOrders);
+}
+
 
 export async function getOrderById(id: string): Promise<Order | undefined> {
   const order = orders.find((o) => o.id === id);

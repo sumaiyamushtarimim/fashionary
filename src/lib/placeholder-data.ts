@@ -521,12 +521,70 @@ export const orders: Order[] = [
     paymentMethod: 'bKash',
     paidAmount: 79.99,
   },
+  { 
+    id: 'INC-2024-001', 
+    customerName: 'Incomplete User 1', 
+    customerEmail: 'incomplete1@example.com', 
+    customerPhone: '01987654321',
+    date: '2024-05-28', 
+    status: 'Incomplete', 
+    total: 120.50, 
+    shipping: 60,
+    products: [
+        { productId: 'PROD003', name: 'Cotton Three-Piece', image: products[2].image, quantity: 1, price: products[2].price }
+    ],
+    logs: [
+        { title: 'Incomplete', timestamp: '2024-05-28T10:00:00Z', description: 'Cart was abandoned.', user: 'System' },
+    ],
+    customerNote: '',
+    officeNote: 'Abandoned cart from WooCommerce.',
+    createdBy: 'System',
+    confirmedBy: '',
+    businessId: 'BIZ001',
+    platform: 'Website',
+    shippingAddress: {
+        address: 'House 1, Road 1',
+        district: 'Dhaka',
+        country: 'Bangladesh',
+    },
+    paymentMethod: 'Cash on Delivery',
+    paidAmount: 0,
+  },
+  { 
+    id: 'INC-2024-002', 
+    customerName: 'Incomplete User 2', 
+    customerEmail: '', 
+    customerPhone: '01712345678',
+    date: '2024-05-27', 
+    status: 'Incomplete', 
+    total: 25.00, 
+    shipping: 60,
+    products: [
+        { productId: 'PROD001', name: 'Organic Cotton T-Shirt', image: products[0].image, quantity: 1, price: products[0].price }
+    ],
+    logs: [
+         { title: 'Incomplete', timestamp: '2024-05-27T18:30:00Z', description: 'Cart was abandoned.', user: 'System' },
+    ],
+    customerNote: '',
+    officeNote: 'Abandoned cart from WooCommerce. Only phone number available.',
+    createdBy: 'System',
+    confirmedBy: '',
+    businessId: 'BIZ002',
+    platform: 'Website',
+    shippingAddress: {
+        address: 'N/A',
+        district: 'N/A',
+        country: 'Bangladesh',
+    },
+    paymentMethod: 'Cash on Delivery',
+    paidAmount: 0,
+  },
 ];
 
 export const allStatuses: OrderStatus[] = [
     'New', 'Confirmed', 'Packing Hold', 'Canceled', 'Hold', 'In-Courier', 
     'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 
-    'Paid Returned', 'Partial'
+    'Paid Returned', 'Partial', 'Incomplete', 'Incomplete-Cancelled'
 ];
 
 export const courierServices: CourierService[] = ['Pathao', 'RedX', 'Steadfast'];
@@ -752,7 +810,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-23T10:00:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 50000, frequency: 'Monthly' },
-        performance: { ordersCreated: 0, ordersConfirmed: 3, statusBreakdown: { 'New': 0, 'Confirmed': 3, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 2, 'Delivered': 1, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
+        performance: { ordersCreated: 0, ordersConfirmed: 3, statusBreakdown: { 'New': 0, 'Confirmed': 3, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 2, 'Delivered': 1, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
         financials: { totalEarned: 50000, totalPaid: 50000, dueAmount: 0 },
         paymentHistory: [
             { date: '2024-05-01', amount: 50000, notes: 'May Salary' }
@@ -768,7 +826,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-23T09:30:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 60000, frequency: 'Monthly' },
-        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
         financials: { totalEarned: 60000, totalPaid: 55000, dueAmount: 5000 },
         paymentHistory: [
             { date: '2024-05-01', amount: 55000, notes: 'May Salary (Partial)' }
@@ -785,7 +843,7 @@ export const staff: StaffMember[] = [
         paymentType: 'Both',
         salaryDetails: { amount: 20000, frequency: 'Monthly' },
         commissionDetails: { onOrderCreate: 50, onOrderConfirm: 100 },
-        performance: { ordersCreated: 5, ordersConfirmed: 1, statusBreakdown: { 'New': 1, 'Confirmed': 1, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 1, 'Delivered': 1, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
+        performance: { ordersCreated: 5, ordersConfirmed: 1, statusBreakdown: { 'New': 1, 'Confirmed': 1, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 1, 'Delivered': 1, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
         financials: { totalEarned: 20350, totalPaid: 20200, dueAmount: 150 },
         paymentHistory: [
              { date: '2024-05-01', amount: 20000, notes: 'May Salary' },
@@ -809,7 +867,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-23T08:15:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 35000, frequency: 'Monthly' },
-        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
         financials: { totalEarned: 35000, totalPaid: 35000, dueAmount: 0 },
         paymentHistory: [
              { date: '2024-05-01', amount: 35000, notes: 'May Salary' }
@@ -825,7 +883,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-24T11:00:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 15000, frequency: 'Monthly' },
-        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0 } },
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
         financials: { totalEarned: 15000, totalPaid: 15000, dueAmount: 0 },
         paymentHistory: [
              { date: '2024-05-01', amount: 15000, notes: 'May Salary' }
@@ -907,3 +965,4 @@ export const bdDistricts: string[] = [
 
 
     
+

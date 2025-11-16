@@ -1,7 +1,5 @@
 
 
-
-
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import type { LucideIcon } from 'lucide-react';
 
@@ -64,12 +62,14 @@ export type OrderStatus =
   | 'Delivered'
   | 'Returned'
   | 'Paid Returned'
-  | 'Partial';
+  | 'Partial'
+  | 'Incomplete'
+  | 'Incomplete-Cancelled';
 
 export const allStatuses: OrderStatus[] = [
     'New', 'Confirmed', 'Packing Hold', 'Canceled', 'Hold', 'In-Courier',
     'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 
-    'Paid Returned', 'Partial'
+    'Paid Returned', 'Partial', 'Incomplete', 'Incomplete-Cancelled'
 ];
 
 export type OrderPlatform = 'TikTok' | 'Messenger' | 'Facebook' | 'Instagram' | 'Website';
@@ -328,7 +328,3 @@ export type WooCommerceIntegration = {
     businessId: string;
     businessName: string;
 };
-
-    
-
-    
