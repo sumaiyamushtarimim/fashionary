@@ -60,7 +60,7 @@ export default function ProductDetailsPage() {
 
   if (isLoading) {
       return (
-          <div className="container py-8">
+          <div className="container px-4 sm:px-8 py-8">
               <div className="grid md:grid-cols-2 gap-8 items-start max-w-6xl mx-auto">
                   <div className="grid gap-4">
                       <Skeleton className="aspect-square w-full" />
@@ -81,7 +81,7 @@ export default function ProductDetailsPage() {
 
   if (!product) {
     return (
-      <div className="container text-center py-16">
+      <div className="container px-4 sm:px-8 text-center py-16">
         <p>Product not found.</p>
         <Button asChild variant="outline" className="mt-4">
           <Link href="/shop">Back to Shop</Link>
@@ -91,7 +91,7 @@ export default function ProductDetailsPage() {
   }
 
   return (
-    <div className="container py-8">
+    <div className="container px-4 sm:px-8 py-8">
         <div className="mb-6">
              <Button variant="outline" size="sm" asChild>
                 <Link href="/shop">
