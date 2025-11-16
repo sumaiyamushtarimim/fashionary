@@ -38,7 +38,6 @@ function CategoryNav({ categories, selectedCategory, onSelectCategory }: { categ
                 {mainCategories.map(cat => {
                     const children = subCategories(cat.id);
                     const isParentSelected = selectedCategory === cat.id;
-                    const isChildSelected = children.some(child => child.id === selectedCategory);
 
                     if (children.length === 0) {
                         return (
@@ -54,23 +53,23 @@ function CategoryNav({ categories, selectedCategory, onSelectCategory }: { categ
                     }
                     return (
                         <AccordionItem value={cat.id} key={cat.id} className="border-b-0">
-                            <div className={cn(
-                                "flex items-center justify-between rounded-md hover:bg-muted",
-                                (isParentSelected || isChildSelected) && 'bg-secondary'
-                            )}>
-                                <AccordionTrigger 
-                                    className="py-2 px-3 text-sm font-medium hover:no-underline flex-1"
-                                >
-                                    <span onClick={(e) => {
-                                        e.stopPropagation();
-                                        onSelectCategory(cat.id);
-                                    }} className="hover:underline">
-                                        {cat.name}
-                                    </span>
-                                </AccordionTrigger>
-                            </div>
+                             <AccordionTrigger 
+                                className={cn(
+                                    "py-2 px-3 text-sm font-medium hover:no-underline rounded-md hover:bg-muted",
+                                    isParentSelected && 'bg-secondary'
+                                )}
+                            >
+                                {cat.name}
+                            </AccordionTrigger>
                             <AccordionContent className="pt-2 pl-4">
                                 <div className="flex flex-col gap-1">
+                                <Button
+                                    variant={selectedCategory === cat.id ? 'secondary' : 'ghost'}
+                                    className="justify-start w-full text-muted-foreground hover:text-foreground h-9"
+                                    onClick={() => onSelectCategory(cat.id)}
+                                >
+                                    View All {cat.name}
+                                </Button>
                                 {children.map(subCat => (
                                     <Button
                                         key={subCat.id}
