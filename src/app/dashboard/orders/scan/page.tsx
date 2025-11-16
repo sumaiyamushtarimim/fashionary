@@ -38,7 +38,6 @@ import {
     DropdownMenuSeparator,
     DropdownMenuSub,
     DropdownMenuSubTrigger,
-    DropdownMenuSubContent,
     DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 
@@ -148,22 +147,22 @@ export default function ScanOrdersPage() {
         getStatuses().then(setAllStatuses);
     }, []);
 
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
-        event.preventDefault();
-        undo();
-      }
-      if ((event.ctrlKey || event.metaKey) && (event.key === 'y' || (event.shiftKey && event.key === 'z')) ) {
-        event.preventDefault();
-        redo();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [undo, redo]);
+    React.useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+          if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
+            event.preventDefault();
+            undo();
+          }
+          if ((event.ctrlKey || event.metaKey) && (event.key === 'y' || (event.shiftKey && event.key === 'z')) ) {
+            event.preventDefault();
+            redo();
+          }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+          window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [undo, redo]);
 
 
   React.useEffect(() => {
@@ -322,11 +321,15 @@ export default function ScanOrdersPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Order Actions</DropdownMenuLabel>
+                             <DropdownMenuItem onSelect={() => setSelectedAction('Mark as Shipped')}>
+                                <Truck className="mr-2 h-4 w-4"/>
+                                Mark as Shipped
+                            </DropdownMenuItem>
                              <DropdownMenuSub>
                                 <DropdownMenuSubTrigger>Update Status</DropdownMenuSubTrigger>
                                 <DropdownMenuPortal>
                                     <DropdownMenuSubContent>
-                                        {allStatuses.map(status => (
+                                        {allStatuses.filter(s => s !== 'Shipped').map(status => (
                                             <DropdownMenuItem key={status} onSelect={() => setSelectedAction(`Mark as ${status}`)}>
                                                 Mark as {status}
                                             </DropdownMenuItem>
@@ -346,10 +349,6 @@ export default function ScanOrdersPage() {
                              <DropdownMenuItem onSelect={() => setSelectedAction('Export CSV')}>
                                 <Download className="mr-2 h-4 w-4"/>
                                 Export CSV
-                            </DropdownMenuItem>
-                             <DropdownMenuItem onSelect={() => setSelectedAction('Send to Courier')}>
-                                <Truck className="mr-2 h-4 w-4"/>
-                                Send to Courier
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
