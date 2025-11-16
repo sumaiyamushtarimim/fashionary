@@ -39,9 +39,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { ClerkLoaded, ClerkLoading, UserButton } from "@clerk/nextjs";
+import { UserButton } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoader } from "@/components/ui/page-loader";
 import { getNotifications } from "@/services/notifications";
@@ -199,6 +199,20 @@ function MobileNavLinks({ onLinkClick }: { onLinkClick: () => void }) {
     );
 }
 
+function UserMenu() {
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    if (!isMounted) {
+        return <Skeleton className="h-8 w-8 rounded-full" />;
+    }
+
+    return <UserButton afterSignOutUrl="/" />;
+}
+
 export default function DashboardLayout({
   children,
 }: {
@@ -302,14 +316,7 @@ export default function DashboardLayout({
                 </DropdownMenuFooter>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Suspense fallback={<Skeleton className="h-8 w-8 rounded-full" />}>
-            <ClerkLoaded>
-              <UserButton afterSignOutUrl="/" />
-            </ClerkLoaded>
-            <ClerkLoading>
-              <Skeleton className="h-8 w-8 rounded-full" />
-            </ClerkLoading>
-          </Suspense>
+          <UserMenu />
         </header>
         <main className="flex flex-1 flex-col bg-background">
           {children}
