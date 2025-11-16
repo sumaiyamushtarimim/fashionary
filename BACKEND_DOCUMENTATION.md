@@ -599,7 +599,7 @@ Stock synchronization is status-based, not quantity-based. This approach is high
 
 -   **Instant Stock Out Push:** When a product's inventory quantity in this ERP application reaches `0`, the backend must **immediately** push an `"outofstock"` status to all integrated WooCommerce stores for the corresponding SKU.
 -   **Instant Stock In Push:** When a product's inventory quantity changes from `0` to a positive number (e.g., through a new purchase order or a returned order), the backend must **immediately** push an `"instock"` status to all integrated WooCommerce stores for the corresponding SKU.
--   **Periodic Sanity Check (Twice Daily):** To ensure long-term consistency and correct any potential discrepancies, run a periodic job twice a day (e.g., at 9 AM and 9 PM). This job should:
+-   **Periodic Sanity Check (Twice Daily):** To ensure long-term consistency and correct any potential discrepancies, run a periodic job twice a day, at **9 AM and 9 PM (Dhaka Time, GMT+6)**. This job should:
     1.  Fetch the `stock_status` for all relevant product SKUs from each WooCommerce store.
     2.  Compare it with the stock status in this ERP application.
     3.  **Only push an update if there is a mismatch.** This is far more efficient than blindly pushing updates for all products and avoids hitting API rate limits. This check applies to both "in-stock" and "out-of-stock" products to correct any errors.
