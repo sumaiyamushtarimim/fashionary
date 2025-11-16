@@ -18,6 +18,7 @@ import {
   Printer,
   Download,
   Truck,
+  File as FileIcon,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -39,6 +40,7 @@ import {
     DropdownMenuSub,
     DropdownMenuSubTrigger,
     DropdownMenuPortal,
+    DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
 
 type ScanResult = 'success' | 'duplicate' | 'error' | 'idle';
@@ -322,11 +324,15 @@ export default function ScanOrdersPage() {
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Order Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
+                             <DropdownMenuItem onSelect={() => setSelectedAction('Mark as Shipped')}>
+                                <Truck className="mr-2 h-4 w-4"/>
+                                Mark as Shipped
+                            </DropdownMenuItem>
                              <DropdownMenuSub>
                                 <DropdownMenuSubTrigger>Update Status</DropdownMenuSubTrigger>
                                 <DropdownMenuPortal>
                                     <DropdownMenuSubContent>
-                                        {allStatuses.map(status => (
+                                        {allStatuses.filter(s => s !== 'Shipped').map(status => (
                                             <DropdownMenuItem key={status} onSelect={() => setSelectedAction(`Mark as ${status}`)}>
                                                 Mark as {status}
                                             </DropdownMenuItem>
@@ -334,12 +340,13 @@ export default function ScanOrdersPage() {
                                     </DropdownMenuSubContent>
                                 </DropdownMenuPortal>
                             </DropdownMenuSub>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem onSelect={() => setSelectedAction('Print Invoices')}>
                                 <Printer className="mr-2 h-4 w-4"/>
                                 Print Invoices
                             </DropdownMenuItem>
                              <DropdownMenuItem onSelect={() => setSelectedAction('Print Stickers')}>
-                                <Printer className="mr-2 h-4 w-4"/>
+                                <FileIcon className="mr-2 h-4 w-4"/>
                                 Print Stickers
                             </DropdownMenuItem>
                              <DropdownMenuItem onSelect={() => setSelectedAction('Export CSV')}>
