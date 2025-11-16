@@ -54,6 +54,7 @@ import { getProducts } from '@/services/products';
 import { getBusinesses } from '@/services/partners';
 import type { Product, Order, OrderStatus, Business, OrderPlatform } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 
 const orderFormSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"),
@@ -343,4 +344,3 @@ export default function EditOrderPage() {
     </div>
   );
 }
-
