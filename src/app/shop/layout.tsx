@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { CategorySheet } from "@/components/ui/category-sheet";
+import { CopyLinkButton } from "@/components/ui/copy-link-button";
 
 export default function ShopLayout({
     children,
@@ -11,13 +12,20 @@ export default function ShopLayout({
     return (
         <div className="flex flex-col min-h-screen">
             <header className="sticky top-0 z-40 w-full border-b bg-background">
-                <div className="container flex h-16 items-center px-4 sm:px-8">
-                     <CategorySheet />
-                    <div className="flex flex-1 items-center justify-center sm:justify-start sm:flex-none">
+                <div className="container flex h-16 items-center justify-between px-4 sm:px-8">
+                    <div className="flex items-center gap-2">
+                        <CategorySheet />
+                    </div>
+                    
+                    <div className="flex flex-1 items-center justify-center">
                         <Link href="/shop" className="flex items-center gap-2">
                             <Logo />
-                            <span className="inline-block font-bold font-headline text-xl">Fashionary</span>
+                            <span className="hidden sm:inline-block font-bold font-headline text-xl">Fashionary</span>
                         </Link>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <CopyLinkButton />
                     </div>
                 </div>
             </header>
