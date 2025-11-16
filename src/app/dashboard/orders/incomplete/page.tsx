@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -8,6 +9,7 @@ import {
   FileWarning,
   Undo2,
   Trash2,
+  Edit,
 } from 'lucide-react';
 import Link from 'next/link';
 import { DateRange } from 'react-day-picker';
@@ -131,8 +133,8 @@ export default function IncompleteOrdersPage() {
               <div className="flex justify-end gap-2">
                 <AlertDialog>
                   <Button variant="outline" size="sm" asChild>
-                    <Link href={`/dashboard/orders/${order.id}`}>
-                      <Undo2 className="mr-2 h-4 w-4" />
+                    <Link href={`/dashboard/products/${order.id}/edit`}>
+                      <Edit className="mr-2 h-4 w-4" />
                       Convert
                     </Link>
                   </Button>
@@ -180,8 +182,8 @@ export default function IncompleteOrdersPage() {
                         <div className="flex justify-end gap-2">
                             <AlertDialog>
                                 <Button variant="outline" size="sm" asChild className="flex-1">
-                                    <Link href={`/dashboard/orders/${order.id}`}>
-                                    <Undo2 className="mr-2 h-4 w-4" />
+                                    <Link href={`/dashboard/products/${order.id}/edit`}>
+                                    <Edit className="mr-2 h-4 w-4" />
                                     Convert
                                     </Link>
                                 </Button>

@@ -6,7 +6,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { MoreHorizontal, PlusCircle, Truck, Printer, File as FileIcon, Download, ScanLine } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Truck, Printer, File as FileIcon, Download, ScanLine, Edit } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { format, isWithinInterval } from "date-fns";
 
@@ -462,6 +462,10 @@ export default function OrdersClientPage() {
                              <DropdownMenuItem asChild>
                                 <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
                             </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href={`/dashboard/products/${order.id}/edit`}>Edit</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem>Update Status</DropdownMenuItem>
                             <DropdownMenuItem className="text-red-600">Cancel Order</DropdownMenuItem>
                         </DropdownMenuContent>
@@ -504,6 +508,8 @@ export default function OrdersClientPage() {
                                      <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                         <DropdownMenuItem asChild><Link href={`/dashboard/orders/${order.id}`}>View Details</Link></DropdownMenuItem>
+                                        <DropdownMenuItem asChild><Link href={`/dashboard/products/${order.id}/edit`}>Edit</Link></DropdownMenuItem>
+                                        <DropdownMenuSeparator />
                                         <DropdownMenuItem>Update Status</DropdownMenuItem>
                                         <DropdownMenuItem className="text-red-600">Cancel Order</DropdownMenuItem>
                                     </DropdownMenuContent>
@@ -751,5 +757,6 @@ export default function OrdersClientPage() {
     </div>
   );
 }
+
 
 
