@@ -1,0 +1,137 @@
+
+'use client';
+
+import * as React from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import {
+  ChevronLeft,
+  Copy,
+  Check,
+} from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { getProductById, getCategories } from '@/services/products';
+import type { Product, Category } from '@/types';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
+
+export default function ProductDetailsPage() {
+  const params = useParams();
+  const productId = params.id as string;
+  const { toast } = useToast();
+
+  const [product, setProduct] = React.useState<Product | undefined>(undefined);
+  const [category, setCategory] = React.useState<Category | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (productId) {
+      setIsLoading(true);
+      Promise.all([getProductById(productId), getCategories()]).then(([productData, categoriesData]) => {
+        setProduct(productData);
+        if (productData?.categoryId) {
+          setCategory(categoriesData.find(c => c.id === productData.categoryId) || null);
+        }
+        setIsLoading(false);
+      });
+    }
+  }, [productId]);
+
+  const handleCopyLink = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      toast({
+        title: "Link Copied!",
+        description: "Product link has been copied to your clipboard.",
+      });
+    });
+  };
+
+  if (isLoading) {
+      return (
+          <div className="container py-8">
+              <div className="grid md:grid-cols-2 gap-8 items-start max-w-6xl mx-auto">
+                  <div className="grid gap-4">
+                      <Skeleton className="aspect-square w-full" />
+                      <div className="grid grid-cols-5 gap-4">
+                          {[...Array(4)].map((_, i) => <Skeleton key={i} className="aspect-square w-full" />)}
+                      </div>
+                  </div>
+                  <div className="space-y-6">
+                      <Skeleton className="h-10 w-3/4" />
+                      <Skeleton className="h-6 w-1/4" />
+                      <Skeleton className="h-24 w-full" />
+                      <Skeleton className="h-10 w-1/2" />
+                  </div>
+              </div>
+          </div>
+      );
+  }
+
+  if (!product) {
+    return (
+      <div className="container text-center py-16">
+        <p>Product not found.</p>
+        <Button asChild variant="outline" className="mt-4">
+          <Link href="/shop">Back to Shop</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container py-8">
+        <div className="mb-6">
+             <Button variant="outline" size="sm" asChild>
+                <Link href="/shop">
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Back to Shop
+                </Link>
+            </Button>
+        </div>
+        <div className="grid md:grid-cols-2 gap-8 items-start max-w-6xl mx-auto">
+            <div className="grid gap-4 md:gap-8">
+                <Image
+                src={product.image.imageUrl}
+                alt={product.name}
+                width={600}
+                height={600}
+                className="aspect-square object-cover border w-full rounded-lg overflow-hidden"
+                />
+            </div>
+            <div className="grid gap-6">
+                <div className="space-y-2">
+                    {category && <Badge variant="outline">{category.name}</Badge>}
+                    <h1 className="text-3xl font-bold">{product.name}</h1>
+                    <p className="text-3xl font-bold">৳{product.price.toFixed(2)}</p>
+                </div>
+                
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Description</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground">{product.description}</p>
+                    </CardContent>
+                </Card>
+
+                 <Button size="lg" onClick={handleCopyLink}>
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copy Link to Share
+                </Button>
+            </div>
+        </div>
+    </div>
+  );
+}
