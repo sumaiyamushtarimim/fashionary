@@ -95,16 +95,16 @@ const scanReducer = (state: ScanState, action: ScanAction): ScanState => {
         }
     }
     case 'UNDO': {
-        if (state.currentIndex > 0) {
-            return { ...state, currentIndex: state.currentIndex - 1 };
-        }
-        return state;
+      if (state.currentIndex > 0) {
+        return { ...state, currentIndex: state.currentIndex - 1 };
+      }
+      return state;
     }
     case 'REDO': {
-        if (state.currentIndex < state.history.length - 1) {
-            return { ...state, currentIndex: state.currentIndex + 1 };
-        }
-        return state;
+      if (state.currentIndex < state.history.length - 1) {
+        return { ...state, currentIndex: state.currentIndex + 1 };
+      }
+      return state;
     }
     default:
       return state;
@@ -321,15 +321,12 @@ export default function ScanOrdersPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Order Actions</DropdownMenuLabel>
-                             <DropdownMenuItem onSelect={() => setSelectedAction('Mark as Shipped')}>
-                                <Truck className="mr-2 h-4 w-4"/>
-                                Mark as Shipped
-                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                              <DropdownMenuSub>
                                 <DropdownMenuSubTrigger>Update Status</DropdownMenuSubTrigger>
                                 <DropdownMenuPortal>
                                     <DropdownMenuSubContent>
-                                        {allStatuses.filter(s => s !== 'Shipped').map(status => (
+                                        {allStatuses.map(status => (
                                             <DropdownMenuItem key={status} onSelect={() => setSelectedAction(`Mark as ${status}`)}>
                                                 Mark as {status}
                                             </DropdownMenuItem>
@@ -337,8 +334,7 @@ export default function ScanOrdersPage() {
                                     </DropdownMenuSubContent>
                                 </DropdownMenuPortal>
                             </DropdownMenuSub>
-                            <DropdownMenuSeparator />
-                             <DropdownMenuItem onSelect={() => setSelectedAction('Print Invoices')}>
+                            <DropdownMenuItem onSelect={() => setSelectedAction('Print Invoices')}>
                                 <Printer className="mr-2 h-4 w-4"/>
                                 Print Invoices
                             </DropdownMenuItem>
