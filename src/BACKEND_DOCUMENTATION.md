@@ -432,68 +432,72 @@ Create RESTful API endpoints for each data domain. For example:
 - `GET /api/products`
 - `GET /api/customers`
 
-### **Specialized Endpoints for "All-in-One Scan Mode"**
+### **Specialized Endpoints**
 
-For the "All-in-One Scan Mode" feature, you will need two specific endpoints:
+For certain frontend features, you will need specific endpoints:
 
-#### **Order Validation**
+#### **All-in-One Scan Mode**
 
-This endpoint is used to quickly validate a scanned order code.
-
+**Order Validation:** Quickly validate a scanned order code.
 **Endpoint:** `GET /api/orders/validate-scan?code={barcodeContent}`
 
 **Success Response (200 OK):**
 ```json
 {
   "status": "ok",
-  "order": {
-    "id": "ORD-2024-001",
-    "currentStatus": "RTS (Ready to Ship)"
-  }
+  "order": { "id": "ORD-2024-001", "currentStatus": "RTS (Ready to Ship)" }
 }
 ```
-
-**Error Response (e.g., 404 Not Found, 409 Conflict):**
+**Error Response (e.g., 404, 409):**
 ```json
-{
-  "status": "error",
-  "reason": "Order not found / Status mismatch / Already processed"
-}
+{ "status": "error", "reason": "Order not found / Status mismatch" }
 ```
 
-#### **Bulk Order Action**
-
-This endpoint applies a single action to multiple orders at once.
-
+**Bulk Order Action:** Apply a single action to multiple orders.
 **Endpoint:** `POST /api/orders/bulk-action`
 
 **Request Body:**
 ```json
 {
-  "action": "MARK_AS_SHIPPED", // or "PRINT_INVOICES", "CANCEL", etc.
-  "orderIds": ["ORD-2024-001", "ORD-2024-002", "ORD-2024-003"]
+  "action": "MARK_AS_SHIPPED",
+  "orderIds": ["ORD-2024-001", "ORD-2024-002"]
 }
 ```
 
-**Success Response (200 OK):**
+**Response:**
 ```json
 {
   "status": "success",
-  "message": "Successfully applied action to 3 orders.",
-  "processed": ["ORD-2024-001", "ORD-2024-002", "ORD-2024-003"],
+  "message": "Successfully applied action to 2 orders.",
+  "processed": ["ORD-2024-001", "ORD-2024-002"],
   "failed": []
 }
 ```
 
-**Partial Success Response (207 Multi-Status):**
+#### **Public Order Tracking**
+
+**Get Order by ID or Phone:** This endpoint serves the public order tracking page.
+**Endpoint:** `GET /api/public/track?query={orderId_or_phone}`
+
+**Response (Order Found):**
 ```json
 {
-  "status": "partial_success",
-  "message": "Applied action to 1 of 2 orders.",
-  "processed": ["ORD-2024-001"],
-  "failed": [
-    { "orderId": "ORD-2024-002", "reason": "Invalid status for this action" }
-  ]
+  "type": "order",
+  "data": { ...Order }
+}
+```
+**Response (Phone Number Found):**
+```json
+{
+  "type": "orders",
+  "data": [ ...Order[] ]
+}
+```
+**Response (Not Found):**
+```json
+{
+  "type": "notFound",
+  "data": null
 }
 ```
 
@@ -586,19 +590,30 @@ app.use('/api', protectApi);
 
 ## 5. WooCommerce Integration
 
-The application includes a UI for integrating with WooCommerce stores. The backend must handle the logic for this integration.
+The backend must handle the logic for integrating with WooCommerce stores. The synchronization logic is very specific and must be followed carefully.
 
 ### Required Tasks:
 
 1.  **Store Credentials:** Securely store WooCommerce store URLs, Consumer Keys, and Consumer Secrets in the database, associated with a user or business.
-2.  **API Communication:** Create services to communicate with the WooCommerce REST API using the stored credentials.
-3.  **Data Synchronization:**
-    *   **Products:** Implement endpoints to manually or automatically sync products from WooCommerce to this application. Example: `POST /api/woocommerce/sync-products`.
-    *   **Orders:** Use WooCommerce webhooks to automatically create new orders in this application whenever an order is placed on the connected WooCommerce store.
-    *   **Inventory:** Implement two-way inventory sync. When a sale happens on either platform, the stock level should be updated on the other.
-4.  **Webhook Handling:**
-    *   Create a dedicated webhook endpoint (e.g., `/api/webhooks/woocommerce`) to receive events from WooCommerce.
-    *   This endpoint should handle events like `order.created`, `product.updated`, etc., and update the local database accordingly.
+2.  **API Communication:** Create services to communicate with the WooCommerce REST API using the stored credentials. This application does **not** sync product details from WooCommerce. All synchronization is based on matching **SKUs** between this application and the WooCommerce stores.
+
+### Stock Management Logic
+
+Stock synchronization is status-based, not quantity-based. This approach is highly efficient and reduces API load.
+
+-   **Instant Stock Out Push:** When a product's inventory quantity in this ERP application reaches `0`, the backend must **immediately** push an `"outofstock"` status to all integrated WooCommerce stores for the corresponding SKU.
+-   **Instant Stock In Push:** When a product's inventory quantity changes from `0` to a positive number (e.g., through a new purchase order or a returned order), the backend must **immediately** push an `"instock"` status to all integrated WooCommerce stores for the corresponding SKU.
+-   **Periodic Sanity Check (Twice Daily):** To ensure long-term consistency and correct any potential discrepancies, run a periodic job twice a day, at **9 AM and 9 PM (Dhaka Time, GMT+6)**. This job should:
+    1.  Fetch the `stock_status` for all relevant product SKUs from each WooCommerce store.
+    2.  Compare it with the stock status in this ERP application.
+    3.  **Only push an update if there is a mismatch.** This is far more efficient than blindly pushing updates for all products and avoids hitting API rate limits. This check applies to both "in-stock" and "out-of-stock" products to correct any errors.
+
+### Order Management Logic
+
+Order synchronization is a one-way process from WooCommerce to this application.
+
+-   **New Order Sync:** The backend must listen for new orders from WooCommerce. The recommended way is to create a webhook endpoint in this application and subscribe to the **`woocommerce_new_order`** event in WooCommerce. When this webhook is triggered, the new order details should be fetched from WooCommerce and created in this application's database.
+-   **One-Way Status Updates:** Once an order is synced from WooCommerce to this application, **no further status updates should be pushed back to WooCommerce**. All subsequent order management (status changes, fulfillment, etc.) will be handled exclusively within this ERP application.
 
 ## 6. Handling Existing API Routes
 

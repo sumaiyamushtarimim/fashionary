@@ -35,6 +35,9 @@ This application comes packed with a wide range of pre-built features:
   - **All-in-One Scan Mode:** A dedicated, distraction-free UI for rapidly scanning order barcodes, adding them to a list, and applying bulk actions like "Mark as Shipped".
   - **Courier Services:** Integrated courier report search (Hoorin API) and tools for dispatching orders.
   - **SMS Gateway:** Configurable SMS notifications for various events.
+- **Public-Facing Features:**
+  - **Online Shop:** A clean, responsive, and modern public-facing shop interface (`/shop`) for customers to browse products.
+  - **Order Tracking:** A public page (`/track-order`) for customers to track their order status using an Order ID or phone number.
 - **Settings:** A modular settings panel to configure every aspect of the application, from business details to third-party integrations.
 
 ## Getting Started
@@ -79,6 +82,8 @@ Open [http://localhost:9002](http://localhost:9002) with your browser to see the
 The project follows a standard Next.js App Router structure, with some key directories to note:
 
 - **/src/app/dashboard**: Contains all the pages and layouts for the main application.
+- **/src/app/shop**: Contains the public-facing e-commerce storefront.
+- **/src/app/track-order**: Contains the public-facing order tracking pages.
 - **/src/components**: Shared UI components, including the ShadCN/UI library.
 - **/src/services**: This is a crucial directory for backend integration. It contains functions that fetch placeholder data. **This is where backend API calls will be implemented.**
 - **/src/lib**: Contains utility functions and placeholder data.
@@ -86,4 +91,4 @@ The project follows a standard Next.js App Router structure, with some key direc
 
 ## For Backend Developers
 
-This project is designed to be **"Backend-Ready"**. The frontend is fully functional using mock data, and the data-fetching logic is completely decoupled from the UI. Please refer to the `BACKEND_DOCUMENTATION.md` file for a detailed guide on how to integrate your backend with this application.
+This project is designed to be **"Backend-Ready"**. The frontend is fully functional using mock data, and the data-fetching logic is completely decoupled from the UI. Please refer to the `src/BACKEND_DOCUMENTATION.md` file for a detailed guide on how to integrate your backend with this application.
