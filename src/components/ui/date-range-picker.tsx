@@ -48,14 +48,8 @@ export function DateRangePicker({
   className,
   placeholder = "Select a preset",
 }: DateRangePickerProps) {
-  const [isClient, setIsClient] = React.useState(false);
   const [preset, setPreset] = React.useState<Preset>("all-time");
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
-  const isMobile = useIsMobile();
-
-  React.useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const handlePresetChange = (selectedPreset: Preset) => {
     setPreset(selectedPreset);
@@ -114,28 +108,9 @@ export function DateRangePicker({
     }
     return "Select a date...";
   };
-  
-
-  if (isClient && isMobile) {
-    return (
-        <Select value={preset} onValueChange={(value: Preset) => handlePresetChange(value)}>
-            <SelectTrigger className="w-full">
-                <SelectValue placeholder={placeholder} />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="all-time">All time</SelectItem>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="yesterday">Yesterday</SelectItem>
-                <SelectItem value="last7">Last 7 days</SelectItem>
-                <SelectItem value="last30">Last 30 days</SelectItem>
-                <SelectItem value="last365">Last 365 days</SelectItem>
-            </SelectContent>
-        </Select>
-    )
-  }
 
   return (
-    <div className={cn("grid grid-cols-2 gap-2", className)}>
+    <div className={cn("grid grid-cols-1 sm:grid-cols-2 gap-2", className)}>
         <Select value={preset} onValueChange={(value: Preset) => handlePresetChange(value)}>
             <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder={placeholder} />
@@ -156,9 +131,9 @@ export function DateRangePicker({
             id="date"
             variant={"outline"}
             className={cn(
-              "w-full sm:w-[240px] justify-start text-left font-normal",
+              "w-full sm:w-[240px] justify-start text-left font-normal hidden",
               !date && "text-muted-foreground",
-               preset !== 'custom' && "hidden"
+              preset === 'custom' && "sm:flex"
             )}
             onClick={() => setIsPopoverOpen(true)}
             disabled={preset !== 'custom'}
@@ -167,7 +142,7 @@ export function DateRangePicker({
             {displayValue()}
           </Button>
         </PopoverTrigger>
-         <div className={cn("pl-1 text-sm font-medium text-muted-foreground self-center", preset === 'custom' || preset === 'all-time' ? "hidden" : "")}>
+         <div className={cn("pl-1 text-sm font-medium text-muted-foreground self-center hidden", preset !== 'custom' && preset !== 'all-time' ? "sm:flex": "")}>
            {displayValue()}
         </div>
         <PopoverContent className="w-auto p-0" align="start">
