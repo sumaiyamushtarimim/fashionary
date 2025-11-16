@@ -30,7 +30,7 @@ function ProductCard({ product }: { product: Product }) {
                         />
                     </div>
                     <div className="p-4 border-t">
-                        <h3 className="font-semibold text-lg">{product.name}</h3>
+                        <h3 className="font-semibold text-base">{product.name}</h3>
                         <p className="text-muted-foreground text-sm mt-1">{product.description.substring(0, 50)}...</p>
                         <p className="font-bold text-lg mt-2">৳{product.price.toFixed(2)}</p>
                     </div>
@@ -71,11 +71,11 @@ export default function ShopPage() {
     }, [products, categories, selectedCategoryId]);
 
     return (
-        <div className="container py-8">
+        <div className="container px-4 sm:px-8 py-8">
             <main>
                 <h1 className="text-3xl font-bold mb-6">Our Products</h1>
                 {isLoading ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {[...Array(8)].map((_, i) => (
                             <Card key={i}>
                                 <Skeleton className="aspect-square w-full" />
@@ -88,7 +88,7 @@ export default function ShopPage() {
                         ))}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {filteredProducts.map(product => (
                             <ProductCard key={product.id} product={product} />
                         ))}

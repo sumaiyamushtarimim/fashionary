@@ -11,10 +11,10 @@ export default function ShopLayout({
     return (
         <div className="flex flex-col min-h-screen">
             <header className="sticky top-0 z-40 w-full border-b bg-background">
-                <div className="container flex h-16 items-center">
+                <div className="container flex h-16 items-center px-4 sm:px-8">
                      <CategorySheet />
                     <div className="flex flex-1 items-center justify-center sm:justify-start sm:flex-none">
-                        <Link href="/shop" className="flex items-center space-x-2">
+                        <Link href="/shop" className="flex items-center gap-2">
                             <Logo />
                             <span className="inline-block font-bold font-headline text-xl">Fashionary</span>
                         </Link>
@@ -23,7 +23,7 @@ export default function ShopLayout({
             </header>
             <main className="flex-1">{children}</main>
              <footer className="py-6 md:px-8 md:py-0 border-t">
-                <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+                <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row px-4 sm:px-8">
                     <p className="text-balance text-center text-sm leading-loose text-muted-foreground md:text-left">
                         Built by Fashionary. The source code is available on GitHub.
                     </p>
