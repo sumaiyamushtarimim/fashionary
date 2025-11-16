@@ -185,7 +185,6 @@ export default function ScanOrdersPage() {
         type: 'ADD_ITEM',
         item: { ...result.order, scannedAt: new Date() },
       });
-      new Audio('/sounds/success.mp3').play();
     } else {
       setScanStatus('error');
       toast({
@@ -193,7 +192,6 @@ export default function ScanOrdersPage() {
         title: 'Scan Error',
         description: result.reason || 'Invalid order code.',
       });
-      new Audio('/sounds/error.mp3').play();
     }
 
     setTimeout(() => setScanStatus('idle'), 500);
