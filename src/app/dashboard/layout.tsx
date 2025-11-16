@@ -42,26 +42,35 @@ import { ClerkLoaded, ClerkLoading, UserButton } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoader } from "@/components/ui/page-loader";
 import { getNotifications } from "@/services/notifications";
-import type { Notification } from "@/types";
+import type { Notification, StaffRole } from "@/types";
 
 // In a real app, this would be fetched from a settings service
 const isCourierReportEnabled = true; 
 
+// Mock user role. In a real app, this would come from your auth context (e.g., Clerk session claims).
+const MOCK_USER_ROLE: StaffRole = 'Admin'; // Change to 'Packing Assistant' to test the redirect
+const isPackingAssistant = MOCK_USER_ROLE === 'Packing Assistant';
+
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
-  { href: "/dashboard/orders", icon: ShoppingCart, label: "Orders" },
-  { href: "/dashboard/packing-orders", icon: ClipboardList, label: "Packing Orders" },
-  { href: "/dashboard/products", icon: Package, label: "Products" },
-  { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
-  { href: "/dashboard/customers", icon: Users, label: "Customers" },
-  { href: "/dashboard/purchases", icon: Truck, label: "Purchases" },
-  { href: "/dashboard/expenses", icon: Wallet, label: "Expenses" },
-  { href: "/dashboard/check-passing", icon: Landmark, label: "Check Passing"},
-  { href: "/dashboard/partners", icon: Handshake, label: "Partners" },
-  ...(isCourierReportEnabled ? [{ href: "/dashboard/courier-report", icon: FileSearch, label: "Courier Report" }] : []),
-  { href: "/dashboard/analytics", icon: BarChartHorizontal, label: "Analytics" },
-  { href: "/dashboard/staff", icon: User, label: "Staff" },
-  { href: "/dashboard/settings", icon: Settings, label: "Settings" },
+  { 
+    href: isPackingAssistant ? "/dashboard/packing-orders" : "/dashboard/orders", 
+    icon: isPackingAssistant ? ClipboardList : ShoppingCart, 
+    label: isPackingAssistant ? "Packing Orders" : "Orders" 
+  },
+  ...(!isPackingAssistant ? [
+    { href: "/dashboard/products", icon: Package, label: "Products" },
+    { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
+    { href: "/dashboard/customers", icon: Users, label: "Customers" },
+    { href: "/dashboard/purchases", icon: Truck, label: "Purchases" },
+    { href: "/dashboard/expenses", icon: Wallet, label: "Expenses" },
+    { href: "/dashboard/check-passing", icon: Landmark, label: "Check Passing"},
+    { href: "/dashboard/partners", icon: Handshake, label: "Partners" },
+    ...(isCourierReportEnabled ? [{ href: "/dashboard/courier-report", icon: FileSearch, label: "Courier Report" }] : []),
+    { href: "/dashboard/analytics", icon: BarChartHorizontal, label: "Analytics" },
+    { href: "/dashboard/staff", icon: User, label: "Staff" },
+    { href: "/dashboard/settings", icon: Settings, label: "Settings" },
+  ] : [])
 ];
 
 
@@ -235,4 +244,3 @@ export default function DashboardLayout({
     </div>
   );
 }
-

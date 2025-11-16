@@ -54,10 +54,20 @@ import { allStatuses } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { getOrders } from "@/services/orders";
-import type { Order, OrderStatus } from "@/types";
+import type { Order, OrderStatus, StaffRole } from "@/types";
+
+// Mock user role. In a real app, this would come from your auth context (e.g., Clerk session claims).
+const MOCK_USER_ROLE: StaffRole = 'Admin'; // Change to 'Packing Assistant' to test the redirect
+const isPackingAssistant = MOCK_USER_ROLE === 'Packing Assistant';
 
 const mainQuickAccessItems = [
-    { href: "/dashboard/orders", icon: ShoppingCart, label: "Orders", color: "text-sky-500", bgColor: "bg-sky-500/10" },
+    { 
+        href: isPackingAssistant ? "/dashboard/packing-orders" : "/dashboard/orders", 
+        icon: isPackingAssistant ? ClipboardList : ShoppingCart, 
+        label: isPackingAssistant ? "Packing Orders" : "Orders", 
+        color: "text-sky-500", 
+        bgColor: "bg-sky-500/10" 
+    },
     { href: "/dashboard/products", icon: Package, label: "Products", color: "text-amber-500", bgColor: "bg-amber-500/10" },
     { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory", color: "text-lime-500", bgColor: "bg-lime-500/10" },
     { href: "/dashboard/customers", icon: Users, label: "Customers", color: "text-violet-500", bgColor: "bg-violet-500/10" },
@@ -76,6 +86,7 @@ const secondaryQuickAccessItems = [
 const statusColors: Record<OrderStatus, string> = {
     'New': 'bg-blue-500/20 text-blue-700',
     'Confirmed': 'bg-sky-500/20 text-sky-700',
+    'Packing Hold': 'bg-amber-500/20 text-amber-700',
     'Canceled': 'bg-red-500/20 text-red-700',
     'Hold': 'bg-yellow-500/20 text-yellow-700',
     'In-Courier': 'bg-orange-500/20 text-orange-700',
