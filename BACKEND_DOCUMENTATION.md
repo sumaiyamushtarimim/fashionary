@@ -595,17 +595,20 @@ The backend must handle the logic for integrating with WooCommerce stores. The s
 
 ### Stock Management Logic
 
-Stock synchronization is status-based, not quantity-based.
+Stock synchronization is status-based, not quantity-based. This approach is highly efficient and reduces API load.
 
--   **Stock Out Push (Instant):** When a product's inventory quantity in this ERP application reaches `0`, the backend must immediately push an `"outofstock"` status to all integrated WooCommerce stores for the corresponding SKU.
--   **Stock In Push (Instant):** When a product's inventory quantity changes from `0` to a positive number (e.g., through a new purchase order or a returned order), the backend must immediately push an `"instock"` status to all integrated WooCommerce stores for the corresponding SKU.
--   **Periodic Sync for Out-of-Stock Items:** Every 12 hours, the backend should run a job to re-push the `"outofstock"` status for all products that currently have an inventory of `0`. This ensures consistency across all platforms.
+-   **Instant Stock Out Push:** When a product's inventory quantity in this ERP application reaches `0`, the backend must **immediately** push an `"outofstock"` status to all integrated WooCommerce stores for the corresponding SKU.
+-   **Instant Stock In Push:** When a product's inventory quantity changes from `0` to a positive number (e.g., through a new purchase order or a returned order), the backend must **immediately** push an `"instock"` status to all integrated WooCommerce stores for the corresponding SKU.
+-   **Periodic Sanity Check (Recommended):** To ensure long-term consistency and correct any potential discrepancies (e.g., from a missed instant push or a manual change on WooCommerce), run a periodic job (e.g., every 12 hours). This job should:
+    1.  Fetch the `stock_status` for all relevant product SKUs from each WooCommerce store.
+    2.  Compare it with the stock status in this ERP application.
+    3.  **Only push an update if there is a mismatch.** This is far more efficient than blindly pushing updates for all products and avoids hitting API rate limits.
 
 ### Order Management Logic
 
 Order synchronization is a one-way process from WooCommerce to this application.
 
--   **New Order Sync:** The backend must listen for new orders from WooCommerce. The recommended way is to create a webhook endpoint in this application and subscribe to the `woocommerce_new_order` event in WooCommerce. When this webhook is triggered, the new order details should be fetched from WooCommerce and created in this application's database.
+-   **New Order Sync:** The backend must listen for new orders from WooCommerce. The recommended way is to create a webhook endpoint in this application and subscribe to the **`woocommerce_new_order`** event in WooCommerce. When this webhook is triggered, the new order details should be fetched from WooCommerce and created in this application's database.
 -   **One-Way Status Updates:** Once an order is synced from WooCommerce to this application, **no further status updates should be pushed back to WooCommerce**. All subsequent order management (status changes, fulfillment, etc.) will be handled exclusively within this ERP application.
 
 ## 6. Handling Existing API Routes
