@@ -109,7 +109,7 @@ export function DateRangePicker({
   return (
     <div className={cn("grid grid-cols-2 gap-2", className)}>
         <Select value={preset} onValueChange={(value: Preset) => handlePresetChange(value)}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger>
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>

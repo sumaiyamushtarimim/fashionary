@@ -157,7 +157,9 @@ export default function Dashboard() {
                 <h1 className="text-2xl font-bold font-headline">Dashboard</h1>
                 <p className="text-muted-foreground">An overview of your business operations.</p>
             </div>
-            <DateRangePicker date={dateRange} onDateChange={setDateRange} />
+            <div className="w-full sm:w-auto">
+                <DateRangePicker date={dateRange} onDateChange={setDateRange} />
+            </div>
         </div>
 
         <div className="flex flex-col gap-6">
