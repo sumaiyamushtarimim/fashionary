@@ -43,32 +43,30 @@ import { Printer, Download, Truck } from 'lucide-react';
 
 type ScanResult = 'success' | 'duplicate' | 'error' | 'idle';
 
-type ScanHistory = {
-  items: ScannedItem[];
+type ScanState = {
+  history: ScannedItem[][];
+  currentIndex: number;
 };
 
 type ScanAction =
   | { type: 'ADD_ITEM'; item: ScannedItem }
   | { type: 'REMOVE_ITEM'; id: string }
-  | { type: 'CLEAR_ALL' };
-
-type ScanState = {
-  history: ScanHistory[];
-  currentIndex: number;
-};
+  | { type: 'CLEAR_ALL' }
+  | { type: 'UNDO' }
+  | { type: 'REDO' };
 
 const scanReducer = (state: ScanState, action: ScanAction): ScanState => {
-  const currentHistory = state.history[state.currentIndex];
+  const currentItems = state.history[state.currentIndex];
 
   switch (action.type) {
     case 'ADD_ITEM': {
-      if (currentHistory.items.some((i) => i.id === action.item.id)) {
+      if (currentItems.some((i) => i.id === action.item.id)) {
         return state; // Do not add duplicates
       }
-      const newItems = [action.item, ...currentHistory.items];
+      const newItems = [action.item, ...currentItems];
       const newHistory = [
         ...state.history.slice(0, state.currentIndex + 1),
-        { items: newItems },
+        newItems,
       ];
       return {
         history: newHistory,
@@ -76,10 +74,10 @@ const scanReducer = (state: ScanState, action: ScanAction): ScanState => {
       };
     }
     case 'REMOVE_ITEM': {
-      const newItems = currentHistory.items.filter((i) => i.id !== action.id);
-      const newHistory = [
+      const newItems = currentItems.filter((i) => i.id !== action.id);
+       const newHistory = [
         ...state.history.slice(0, state.currentIndex + 1),
-        { items: newItems },
+        newItems,
       ];
       return {
         history: newHistory,
@@ -89,12 +87,24 @@ const scanReducer = (state: ScanState, action: ScanAction): ScanState => {
     case 'CLEAR_ALL': {
         const newHistory = [
             ...state.history.slice(0, state.currentIndex + 1),
-            { items: [] },
+            [],
         ];
         return {
             history: newHistory,
             currentIndex: newHistory.length - 1,
         }
+    }
+    case 'UNDO': {
+        if (state.currentIndex > 0) {
+            return { ...state, currentIndex: state.currentIndex - 1 };
+        }
+        return state;
+    }
+    case 'REDO': {
+        if (state.currentIndex < state.history.length - 1) {
+            return { ...state, currentIndex: state.currentIndex + 1 };
+        }
+        return state;
     }
     default:
       return state;
@@ -123,44 +133,31 @@ export default function ScanOrdersPage() {
   const [selectedAction, setSelectedAction] = React.useState<string | undefined>();
 
   const [state, dispatch] = React.useReducer(scanReducer, {
-    history: [{ items: [] }],
+    history: [[]],
     currentIndex: 0,
   });
 
-  const { items } = state.history[state.currentIndex];
+  const items = state.history[state.currentIndex];
   
-  const undo = () => {
-    if (state.currentIndex > 0) {
-      dispatch({ type: 'UNDO' } as any); // reducer doesn't have it, but we can do it with state
-       const newIndex = Math.max(0, state.currentIndex - 1);
-       const newState = {...state, currentIndex: newIndex };
-       (window as any)._scanState = newState; // a bit hacky for now
-       window.dispatchEvent(new CustomEvent('scan-state-change', { detail: newState }));
-    }
-  };
+  const undo = React.useCallback(() => dispatch({ type: 'UNDO' }), []);
+  const redo = React.useCallback(() => dispatch({ type: 'REDO' }), []);
 
-  const redo = () => {
-    if (state.currentIndex < state.history.length - 1) {
-       dispatch({ type: 'REDO' } as any); // reducer doesn't have it, but we can do it with state
-       const newIndex = Math.min(state.history.length - 1, state.currentIndex + 1);
-       const newState = {...state, currentIndex: newIndex };
-       (window as any)._scanState = newState; // a bit hacky for now
-       window.dispatchEvent(new CustomEvent('scan-state-change', { detail: newState }));
-    }
-  };
-  
   React.useEffect(() => {
-    (window as any)._scanState = state;
-    const handleStateChange = (e: any) => {
-        const target = (e as CustomEvent).detail;
-        if (target) {
-            const currentHistory = target.history[target.currentIndex];
-            dispatch({ type: 'SET_ITEMS', items: currentHistory.items } as any);
-        }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
+        event.preventDefault();
+        undo();
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key === 'y') {
+        event.preventDefault();
+        redo();
+      }
     };
-    window.addEventListener('scan-state-change', handleStateChange);
-    return () => window.removeEventListener('scan-state-change', handleStateChange);
-  }, []);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [undo, redo]);
 
 
   React.useEffect(() => {
