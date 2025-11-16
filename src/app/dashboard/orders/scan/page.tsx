@@ -27,7 +27,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { validateScannedOrder } from '@/services/orders';
+import { validateScannedOrder, getStatuses } from '@/services/orders';
 import type { OrderStatus, ScannedItem } from '@/types';
 import {
     DropdownMenu,
@@ -41,7 +41,6 @@ import {
     DropdownMenuSubContent,
     DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
-import { allStatuses } from '@/lib/placeholder-data';
 
 type ScanResult = 'success' | 'duplicate' | 'error' | 'idle';
 
@@ -130,6 +129,7 @@ const getStatusColor = (status: ScanResult) => {
 export default function ScanOrdersPage() {
   const { toast } = useToast();
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const [allStatuses, setAllStatuses] = React.useState<OrderStatus[]>([]);
   const [inputValue, setInputValue] = React.useState('');
   const [scanStatus, setScanStatus] = React.useState<ScanResult>('idle');
   const [selectedAction, setSelectedAction] = React.useState<string | undefined>();
@@ -143,6 +143,10 @@ export default function ScanOrdersPage() {
   
   const undo = React.useCallback(() => dispatch({ type: 'UNDO' }), []);
   const redo = React.useCallback(() => dispatch({ type: 'REDO' }), []);
+
+    React.useEffect(() => {
+        getStatuses().then(setAllStatuses);
+    }, []);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -236,7 +240,7 @@ export default function ScanOrdersPage() {
                 <Button variant="ghost" size="sm" onClick={undo} disabled={state.currentIndex === 0}>
                     <Undo2 className="mr-2 h-4 w-4"/> Undo
                 </Button>
-                <Button variant="ghost" size="sm" onClick={redo} disabled={state.currentIndex === state.history.length - 1}>
+                <Button variant="ghost" size="sm" onClick={redo} disabled={state.currentIndex >= state.history.length - 1}>
                     <Redo2 className="mr-2 h-4 w-4"/> Redo
                 </Button>
             </div>
@@ -318,11 +322,18 @@ export default function ScanOrdersPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Order Actions</DropdownMenuLabel>
-                            {allStatuses.map(status => (
-                                <DropdownMenuItem key={status} onSelect={() => setSelectedAction(`Mark as ${status}`)}>
-                                    Mark as {status}
-                                </DropdownMenuItem>
-                            ))}
+                             <DropdownMenuSub>
+                                <DropdownMenuSubTrigger>Update Status</DropdownMenuSubTrigger>
+                                <DropdownMenuPortal>
+                                    <DropdownMenuSubContent>
+                                        {allStatuses.map(status => (
+                                            <DropdownMenuItem key={status} onSelect={() => setSelectedAction(`Mark as ${status}`)}>
+                                                Mark as {status}
+                                            </DropdownMenuItem>
+                                        ))}
+                                    </DropdownMenuSubContent>
+                                </DropdownMenuPortal>
+                            </DropdownMenuSub>
                             <DropdownMenuSeparator />
                              <DropdownMenuItem onSelect={() => setSelectedAction('Print Invoices')}>
                                 <Printer className="mr-2 h-4 w-4"/>
