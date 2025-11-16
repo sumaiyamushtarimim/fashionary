@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 function ProductCard({ product }: { product: Product }) {
     return (
@@ -43,8 +44,10 @@ function CategoryNav({ categories, selectedCategory, onSelectCategory }: { categ
     const mainCategories = categories.filter(c => !c.parentId);
     const subCategories = (parentId: string) => categories.filter(c => c.parentId === parentId);
 
+    const parentOfSelected = selectedCategory ? categories.find(c => c.id === selectedCategory)?.parentId : null;
+
     return (
-        <nav className="flex flex-col gap-1">
+        <nav className="flex flex-col gap-2">
             <Button
                 variant={!selectedCategory ? 'secondary' : 'ghost'}
                 className="justify-start"
@@ -52,31 +55,50 @@ function CategoryNav({ categories, selectedCategory, onSelectCategory }: { categ
             >
                 All Products
             </Button>
-            {mainCategories.map(cat => (
-                <div key={cat.id}>
-                    <Button
-                        variant={selectedCategory === cat.id ? 'secondary' : 'ghost'}
-                        className="justify-start w-full"
-                        onClick={() => onSelectCategory(cat.id)}
-                    >
-                        {cat.name}
-                    </Button>
-                    {subCategories(cat.id).length > 0 && (
-                        <div className="pl-4 mt-1 space-y-1">
-                            {subCategories(cat.id).map(subCat => (
-                                <Button
-                                    key={subCat.id}
-                                    variant={selectedCategory === subCat.id ? 'secondary' : 'ghost'}
-                                    className="justify-start w-full text-muted-foreground hover:text-foreground"
-                                    onClick={() => onSelectCategory(subCat.id)}
-                                >
-                                    {subCat.name}
-                                </Button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            ))}
+            <Accordion type="single" collapsible defaultValue={parentOfSelected || undefined}>
+                {mainCategories.map(cat => {
+                    const children = subCategories(cat.id);
+                    if (children.length === 0) {
+                        return (
+                             <Button
+                                key={cat.id}
+                                variant={selectedCategory === cat.id ? 'secondary' : 'ghost'}
+                                className="justify-start w-full"
+                                onClick={() => onSelectCategory(cat.id)}
+                            >
+                                {cat.name}
+                            </Button>
+                        )
+                    }
+                    return (
+                        <AccordionItem value={cat.id} key={cat.id} className="border-b-0">
+                            <AccordionTrigger 
+                                className={cn(
+                                    "py-2 px-3 text-sm font-medium rounded-md hover:bg-muted hover:no-underline",
+                                    selectedCategory === cat.id && 'bg-secondary'
+                                )}
+                                onClick={() => onSelectCategory(cat.id)}
+                            >
+                                {cat.name}
+                            </AccordionTrigger>
+                            <AccordionContent className="pt-2 pl-4">
+                                <div className="flex flex-col gap-1">
+                                {children.map(subCat => (
+                                    <Button
+                                        key={subCat.id}
+                                        variant={selectedCategory === subCat.id ? 'secondary' : 'ghost'}
+                                        className="justify-start w-full text-muted-foreground hover:text-foreground h-9"
+                                        onClick={() => onSelectCategory(subCat.id)}
+                                    >
+                                        {subCat.name}
+                                    </Button>
+                                ))}
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    )
+                })}
+            </Accordion>
         </nav>
     );
 }
@@ -113,8 +135,14 @@ export default function ShopPage() {
         if (!selectedCategoryId) {
             return products;
         }
+        let currentCategory = categories.find(c => c.id === selectedCategoryId);
+        if (currentCategory && !currentCategory.parentId) {
+             const childCategoryIds = categories.filter(c => c.parentId === selectedCategoryId).map(c => c.id);
+             const allIds = [selectedCategoryId, ...childCategoryIds];
+             return products.filter(p => p.categoryId && allIds.includes(p.categoryId));
+        }
         return products.filter(p => p.categoryId === selectedCategoryId);
-    }, [products, selectedCategoryId]);
+    }, [products, categories, selectedCategoryId]);
 
     return (
         <div className="container py-8">
@@ -163,3 +191,4 @@ export default function ShopPage() {
         </div>
     );
 }
+    
