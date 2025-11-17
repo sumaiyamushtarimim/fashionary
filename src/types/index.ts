@@ -328,3 +328,13 @@ export type WooCommerceIntegration = {
     businessId: string;
     businessName: string;
 };
+
+export type CourierIntegration = {
+    id: string;
+    businessId: string;
+    businessName: string;
+    courierName: CourierService;
+    apiKey: string;
+    secretKey?: string;
+    status: 'Active' | 'Inactive';
+};

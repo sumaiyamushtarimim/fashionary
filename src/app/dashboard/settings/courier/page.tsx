@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Copy, MoreHorizontal, PlusCircle, RefreshCw } from 'lucide-react';
+import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -31,149 +31,146 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
-import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-type Courier = {
-    id: string;
-    name: string;
-    configured: boolean;
-};
-
-const initialCourierServices: Courier[] = [
-    { id: 'pathao', name: 'Pathao', configured: true },
-    { id: 'redx', name: 'RedX', configured: true },
-    { id: 'steadfast', name: 'Steadfast', configured: false },
-];
+import { getCourierIntegrations, getCourierServices } from '@/services/integrations';
+import { getBusinesses } from '@/services/partners';
+import type { CourierIntegration, CourierService, Business } from '@/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const courierFields: Record<string, { label: string; placeholder: string; type?: string }[]> = {
-    pathao: [
+    Pathao: [
         { label: 'Client ID', placeholder: 'Enter your Pathao Client ID' },
         { label: 'Client Secret', placeholder: 'Enter your Pathao Client Secret', type: 'password' },
-        { label: 'Username (Email)', placeholder: 'Enter your Pathao login email', type: 'email' },
-        { label: 'Password', placeholder: 'Enter your Pathao login password', type: 'password' },
     ],
-    redx: [
+    RedX: [
         { label: 'API Access Token', placeholder: 'Enter your RedX API Access Token', type: 'password' },
     ],
-    steadfast: [
+    Steadfast: [
         { label: 'API Key', placeholder: 'Enter your Steadfast API Key' },
         { label: 'Secret Key', placeholder: 'Enter your Steadfast Secret Key', type: 'password' },
     ],
 };
 
-
 export default function CourierSettingsPage() {
-    const { toast } = useToast();
-    const [couriers, setCouriers] = React.useState(initialCourierServices);
+    const [integrations, setIntegrations] = React.useState<CourierIntegration[]>([]);
+    const [businesses, setBusinesses] = React.useState<Business[]>([]);
+    const [courierServices, setCourierServices] = React.useState<CourierService[]>([]);
+    const [isLoading, setIsLoading] = React.useState(true);
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-    const [selectedCourier, setSelectedCourier] = React.useState<Courier | null>(null);
+    const [selectedIntegration, setSelectedIntegration] = React.useState<CourierIntegration | null>(null);
+    const [dialogMode, setDialogMode] = React.useState<'add' | 'edit'>('add');
 
-    const handleEditClick = (courier: Courier) => {
-        setSelectedCourier(courier);
+    React.useEffect(() => {
+        setIsLoading(true);
+        Promise.all([
+            getCourierIntegrations(),
+            getBusinesses(),
+            getCourierServices()
+        ]).then(([integrationsData, businessesData, courierServicesData]) => {
+            setIntegrations(integrationsData);
+            setBusinesses(businessesData);
+            setCourierServices(courierServicesData);
+            setIsLoading(false);
+        });
+    }, []);
+
+    const handleOpenDialog = (mode: 'add' | 'edit', integration?: CourierIntegration) => {
+        setDialogMode(mode);
+        setSelectedIntegration(integration || null);
         setIsDialogOpen(true);
     };
-    
+
     const handleSaveChanges = () => {
-        if(selectedCourier){
-             setCouriers(prevCouriers => 
-                prevCouriers.map(c => 
-                    c.id === selectedCourier.id ? { ...c, configured: true } : c
-                )
-            );
-        }
+        // Logic to save changes would go here
         setIsDialogOpen(false);
-        setSelectedCourier(null);
-    }
-    
-    const handleCopy = (textToCopy: string, fieldName: string) => {
-        navigator.clipboard.writeText(textToCopy);
-        toast({
-            title: "Copied to clipboard",
-            description: `${fieldName} has been copied.`,
-        });
+        setSelectedIntegration(null);
     };
 
-    const generateRandomString = (length: number) => {
-        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        let result = '';
-        for (let i = 0; i < length; i++) {
-            result += characters.charAt(Math.floor(Math.random() * characters.length));
-        }
-        return result;
-    };
-    
-
-    const fields = selectedCourier ? courierFields[selectedCourier.id] : [];
-    const authToken = `Bearer ${generateRandomString(32)}`;
-    const callbackUrl = `https://your-domain.com/api/webhooks/${selectedCourier?.id}/${generateRandomString(12)}`;
+    const fields = selectedIntegration ? courierFields[selectedIntegration.courierName] : [];
 
     return (
         <div className="space-y-6">
             <div>
                 <h2 className="text-2xl font-bold tracking-tight">Courier Settings</h2>
                 <p className="text-muted-foreground">
-                    Manage your shipping and courier service integrations.
+                    Manage your shipping and courier service integrations for each business.
                 </p>
             </div>
             <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle>Courier Services</CardTitle>
+                        <CardTitle>Courier Integrations</CardTitle>
                         <CardDescription>
-                            Connect and manage your courier service providers.
+                            Connect courier services for each of your business entities.
                         </CardDescription>
                     </div>
+                    <Button onClick={() => handleOpenDialog('add')}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Integration
+                    </Button>
                 </CardHeader>
                 <CardContent>
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>Business</TableHead>
                                 <TableHead>Courier</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead>Default</TableHead>
                                 <TableHead>
                                     <span className="sr-only">Actions</span>
                                 </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {couriers.map((courier) => (
-                                <TableRow key={courier.id}>
-                                    <TableCell className="font-medium">{courier.name}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={courier.configured ? 'default' : 'secondary'}>
-                                            {courier.configured ? 'Configured' : 'Not Configured'}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Switch disabled={!courier.configured} checked={courier.id === 'pathao'} />
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex justify-end">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                        <span className="sr-only">Toggle menu</span>
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                    <DropdownMenuItem onClick={() => handleEditClick(courier)}>
-                                                        Edit Configuration
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
+                            {isLoading ? (
+                                [...Array(3)].map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                                        <TableCell><Skeleton className="h-8 w-8 float-right" /></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : integrations.length > 0 ? (
+                                integrations.map((integration) => (
+                                    <TableRow key={integration.id}>
+                                        <TableCell className="font-medium">{integration.businessName}</TableCell>
+                                        <TableCell>{integration.courierName}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={integration.status === 'Active' ? 'default' : 'secondary'}>
+                                                {integration.status}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex justify-end">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                            <span className="sr-only">Toggle menu</span>
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                        <DropdownMenuItem onClick={() => handleOpenDialog('edit', integration)}>
+                                                            Edit Configuration
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="text-center h-24">
+                                        No courier integrations found.
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>
@@ -182,66 +179,47 @@ export default function CourierSettingsPage() {
              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Configure {selectedCourier?.name}</DialogTitle>
+                        <DialogTitle>
+                            {dialogMode === 'edit' ? `Configure ${selectedIntegration?.courierName}` : 'Add New Courier Integration'}
+                        </DialogTitle>
                         <DialogDescription>
-                            Enter the API credentials for {selectedCourier?.name}.
+                            Enter the API credentials for this integration.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
-                        {(selectedCourier?.id === 'pathao' || selectedCourier?.id === 'redx') && (
-                            <div className="space-y-2">
-                                <Label htmlFor="environment">Environment</Label>
-                                <Select defaultValue="sandbox">
-                                    <SelectTrigger id="environment">
-                                        <SelectValue placeholder="Select environment" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="sandbox">Sandbox / Test</SelectItem>
-                                        <SelectItem value="production">Production / Live</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )}
-                        {fields.map((field) => (
+                        <div className="space-y-2">
+                            <Label htmlFor="business">Business</Label>
+                            <Select defaultValue={selectedIntegration?.businessId} disabled={dialogMode==='edit'}>
+                                <SelectTrigger id="business">
+                                    <SelectValue placeholder="Select a business" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {businesses.map(b => (
+                                        <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="courier">Courier Service</Label>
+                            <Select defaultValue={selectedIntegration?.courierName} disabled={dialogMode==='edit'}>
+                                <SelectTrigger id="courier">
+                                    <SelectValue placeholder="Select a courier" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {courierServices.map(c => (
+                                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {selectedIntegration && courierFields[selectedIntegration.courierName]?.map((field) => (
                              <div className="space-y-2" key={field.label}>
                                 <Label htmlFor={field.label}>{field.label}</Label>
                                 <Input id={field.label} placeholder={field.placeholder} type={field.type || 'text'} />
                             </div>
                         ))}
-
-                        {(selectedCourier?.id === 'steadfast' || selectedCourier?.id === 'redx') && (
-                            <>
-                                <Separator />
-                                <div className="space-y-2">
-                                    <Label>Authorization Token (Bearer)</Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        Use this token in your {selectedCourier.name} webhook settings for secure communication.
-                                    </p>
-                                    <div className="flex items-center space-x-2">
-                                        <Input value={authToken} readOnly />
-                                        <Button type="button" size="sm" variant="outline"><RefreshCw className="h-4 w-4" /></Button>
-                                        <Button type="button" size="sm" onClick={() => handleCopy(authToken, 'Auth Token')}>
-                                            <Copy className="h-4 w-4" />
-                                            <span className="sr-only">Copy</span>
-                                        </Button>
-                                    </div>
-                                </div>
-                                 <div className="space-y-2">
-                                    <Label>Callback URL</Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        Paste this URL into your {selectedCourier.name} dashboard to receive automatic status updates.
-                                    </p>
-                                    <div className="flex items-center space-x-2">
-                                        <Input value={callbackUrl} readOnly />
-                                        <Button type="button" size="sm" variant="outline"><RefreshCw className="h-4 w-4" /></Button>
-                                        <Button type="button" size="sm" onClick={() => handleCopy(callbackUrl, 'Callback URL')}>
-                                            <Copy className="h-4 w-4" />
-                                            <span className="sr-only">Copy</span>
-                                        </Button>
-                                    </div>
-                                </div>
-                            </>
-                        )}
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>

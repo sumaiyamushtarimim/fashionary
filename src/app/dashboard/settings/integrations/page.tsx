@@ -34,14 +34,13 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { getWooCommerceIntegrations } from '@/services/integrations';
 import { getBusinesses } from '@/services/partners';
 import type { WooCommerceIntegration, Business } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function WooCommerceIntegrationsPage() {
+export default function IntegrationsPage() {
     const [integrations, setIntegrations] = React.useState<WooCommerceIntegration[]>([]);
     const [businesses, setBusinesses] = React.useState<Business[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
@@ -176,15 +175,15 @@ export default function WooCommerceIntegrationsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-2xl font-bold tracking-tight">WooCommerce Integrations</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Integrations</h2>
                 <p className="text-muted-foreground">
-                    Connect and manage your WooCommerce stores.
+                    Connect and manage your external service integrations like WooCommerce.
                 </p>
             </div>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle>Your Stores</CardTitle>
+                        <CardTitle>WooCommerce Stores</CardTitle>
                         <CardDescription>
                             A list of all connected WooCommerce stores.
                         </CardDescription>
