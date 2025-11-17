@@ -148,63 +148,65 @@ function MobileNavLinks({ onLinkClick }: { onLinkClick: () => void }) {
     const isOrderRelatedPage = pathname.startsWith('/dashboard/orders') || pathname === '/dashboard/packing-orders';
     
     return (
-        <nav className="grid gap-2 text-lg font-medium">
-            <Link
-                href="#"
-                className="flex items-center gap-2 text-lg font-semibold mb-4"
-            >
-                <Logo variant="full" />
-            </Link>
-            {navItems.map((item, index) => {
-                 if ('subItems' in item) {
-                     return (
-                         <Collapsible key={index} defaultOpen={isOrderRelatedPage}>
-                             <CollapsibleTrigger asChild>
-                                <div className="mx-[-0.65rem] flex items-center justify-between gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground">
-                                    <div className="flex items-center gap-4">
-                                         <item.icon className="h-5 w-5" />
-                                        {item.label}
+        <div className="flex-1 overflow-y-auto">
+            <nav className="grid gap-2 text-lg font-medium">
+                <Link
+                    href="#"
+                    className="flex items-center gap-2 text-lg font-semibold mb-4"
+                >
+                    <Logo variant="full" />
+                </Link>
+                {navItems.map((item, index) => {
+                     if ('subItems' in item) {
+                         return (
+                             <Collapsible key={index} defaultOpen={isOrderRelatedPage}>
+                                 <CollapsibleTrigger asChild>
+                                    <div className="mx-[-0.65rem] flex items-center justify-between gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground">
+                                        <div className="flex items-center gap-4">
+                                             <item.icon className="h-5 w-5" />
+                                            {item.label}
+                                        </div>
+                                        <ChevronDown className="h-5 w-5 shrink-0 transition-transform duration-200" />
                                     </div>
-                                    <ChevronDown className="h-5 w-5 shrink-0 transition-transform duration-200" />
-                                </div>
-                             </CollapsibleTrigger>
-                             <CollapsibleContent className="pl-8 pt-1">
-                                 <div className="flex flex-col gap-1">
-                                    {item.subItems.map(subItem => (
-                                        <Link
-                                            key={subItem.href}
-                                            href={subItem.href}
-                                            onClick={onLinkClick}
-                                            className={cn(
-                                                "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground",
-                                                pathname === subItem.href && "bg-muted text-foreground"
-                                            )}
-                                        >
-                                            {subItem.label}
-                                        </Link>
-                                    ))}
-                                 </div>
-                            </CollapsibleContent>
-                         </Collapsible>
-                     )
-                 }
-                return (
-                    <Link
-                        key={item.href}
-                        href={item.href!}
-                        onClick={onLinkClick}
-                        className={cn(
-                            "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground",
-                            pathname.startsWith(item.href!) && item.href! !== "/dashboard" && "bg-muted text-foreground",
-                            pathname === item.href! && "bg-muted text-foreground"
-                        )}
-                    >
-                        <item.icon className="h-5 w-5" />
-                        {item.label}
-                    </Link>
-                )
-            })}
-        </nav>
+                                 </CollapsibleTrigger>
+                                 <CollapsibleContent className="pl-8 pt-1">
+                                     <div className="flex flex-col gap-1">
+                                        {item.subItems.map(subItem => (
+                                            <Link
+                                                key={subItem.href}
+                                                href={subItem.href}
+                                                onClick={onLinkClick}
+                                                className={cn(
+                                                    "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground",
+                                                    pathname === subItem.href && "bg-muted text-foreground"
+                                                )}
+                                            >
+                                                {subItem.label}
+                                            </Link>
+                                        ))}
+                                     </div>
+                                </CollapsibleContent>
+                             </Collapsible>
+                         )
+                     }
+                    return (
+                        <Link
+                            key={item.href}
+                            href={item.href!}
+                            onClick={onLinkClick}
+                            className={cn(
+                                "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground",
+                                pathname.startsWith(item.href!) && item.href! !== "/dashboard" && "bg-muted text-foreground",
+                                pathname === item.href! && "bg-muted text-foreground"
+                            )}
+                        >
+                            <item.icon className="h-5 w-5" />
+                            {item.label}
+                        </Link>
+                    )
+                })}
+            </nav>
+        </div>
     );
 }
 
