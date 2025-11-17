@@ -97,7 +97,7 @@ const statusColors: Record<OrderStatus, string> = {
     'Partial': 'bg-fuchsia-500/20 text-fuchsia-700',
 };
 
-function OrderImages({ products }: { products: OrderProduct[] }) {
+function OrderImages({ products, orderId }: { products: OrderProduct[], orderId: string }) {
     const firstProduct = products[0];
     if (!firstProduct) return null;
 
@@ -122,7 +122,7 @@ function OrderImages({ products }: { products: OrderProduct[] }) {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Products in this Order</DialogTitle>
+                        <DialogTitle>Products in Order {orderId}</DialogTitle>
                         <DialogDescription>
                             All products included in this customer order.
                         </DialogDescription>
@@ -421,7 +421,7 @@ export default function OrdersClientPage() {
                    <TableCell className="font-medium">
                      <div className="flex items-center gap-4">
                         <div>
-                            <OrderImages products={order.products} />
+                            <OrderImages products={order.products} orderId={order.id} />
                         </div>
                         <div>
                             <p className="font-bold">{order.customerName}</p>
@@ -491,7 +491,7 @@ export default function OrdersClientPage() {
                 </div>
                 <CardContent className="p-4 pl-10">
                     <div className="flex items-start gap-4">
-                        <OrderImages products={order.products} />
+                        <OrderImages products={order.products} orderId={order.id} />
                         <div className="flex-1">
                             <div className="flex justify-between items-start">
                                 <div>
@@ -757,6 +757,7 @@ export default function OrdersClientPage() {
     </div>
   );
 }
+
 
 
 

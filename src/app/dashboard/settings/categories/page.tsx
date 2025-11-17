@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -129,6 +130,9 @@ export default function CategoriesSettingsPage() {
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle>Add Product Category</DialogTitle>
+                         <DialogDescription>
+                            Create a new category for your products.
+                        </DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
                         <div className="space-y-2">
@@ -195,6 +199,9 @@ export default function CategoriesSettingsPage() {
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle>Add Expense Category</DialogTitle>
+                        <DialogDescription>
+                            Create a new category for your expenses.
+                        </DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
                         <div className="space-y-2">

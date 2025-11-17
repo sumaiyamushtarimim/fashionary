@@ -1,5 +1,6 @@
 
 
+
 'use client';
 
 import { MoreHorizontal, PlusCircle, History, ArrowRight, Minus, Plus, Package, Warehouse, HardHat, CircleDollarSign, TrendingUp, BarChart, UploadCloud, Search } from "lucide-react";
@@ -410,11 +411,12 @@ export default function InventoryPage() {
       <Dialog open={dialogState.isOpen} onOpenChange={closeDialog}>
         <DialogContent className={cn("sm:max-w-xl", dialogState.mode === 'viewMovement' && 'sm:max-w-3xl')}>
             {dialogState.mode === 'movement' && (
+                <>
+                <DialogHeader>
+                    <DialogTitle>Stock Movement</DialogTitle>
+                    <DialogDescription>Receive, adjust, or transfer inventory.</DialogDescription>
+                </DialogHeader>
                 <Tabs defaultValue="receive" className="w-full">
-                    <DialogHeader>
-                        <DialogTitle>Stock Movement</DialogTitle>
-                        <DialogDescription>Receive, adjust, or transfer inventory.</DialogDescription>
-                    </DialogHeader>
                     <TabsList className="grid w-full grid-cols-3 mt-4">
                         <TabsTrigger value="receive">Receive</TabsTrigger>
                         <TabsTrigger value="adjust">Adjust</TabsTrigger>
@@ -543,6 +545,7 @@ export default function InventoryPage() {
                         </DialogFooter>
                     </TabsContent>
                 </Tabs>
+                </>
             )}
 
             {dialogState.mode === 'viewMovement' && currentItem && (

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
@@ -59,7 +60,7 @@ export default function CourierSettingsPage() {
     const [courierServices, setCourierServices] = React.useState<CourierService[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-    const [selectedIntegration, setSelectedIntegration] = React.useState<CourierIntegration | null>(null);
+    const [selectedIntegration, setSelectedIntegration] = React.useState<Partial<CourierIntegration> | null>(null);
     const [dialogMode, setDialogMode] = React.useState<'add' | 'edit'>('add');
 
     React.useEffect(() => {
@@ -78,7 +79,7 @@ export default function CourierSettingsPage() {
 
     const handleOpenDialog = (mode: 'add' | 'edit', integration?: CourierIntegration) => {
         setDialogMode(mode);
-        setSelectedIntegration(integration || null);
+        setSelectedIntegration(integration || {});
         setIsDialogOpen(true);
     };
 
@@ -87,8 +88,8 @@ export default function CourierSettingsPage() {
         setIsDialogOpen(false);
         setSelectedIntegration(null);
     };
-
-    const fields = selectedIntegration ? courierFields[selectedIntegration.courierName] : [];
+    
+    const fields = selectedIntegration?.courierName ? courierFields[selectedIntegration.courierName] : [];
 
     return (
         <div className="space-y-6">
@@ -189,7 +190,11 @@ export default function CourierSettingsPage() {
                     <div className="grid gap-4 py-4">
                         <div className="space-y-2">
                             <Label htmlFor="business">Business</Label>
-                            <Select defaultValue={selectedIntegration?.businessId} disabled={dialogMode==='edit'}>
+                            <Select 
+                                value={selectedIntegration?.businessId} 
+                                onValueChange={(value) => setSelectedIntegration(prev => ({...prev, businessId: value}))}
+                                disabled={dialogMode==='edit'}
+                            >
                                 <SelectTrigger id="business">
                                     <SelectValue placeholder="Select a business" />
                                 </SelectTrigger>
@@ -202,7 +207,11 @@ export default function CourierSettingsPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="courier">Courier Service</Label>
-                            <Select defaultValue={selectedIntegration?.courierName} disabled={dialogMode==='edit'}>
+                            <Select 
+                                value={selectedIntegration?.courierName} 
+                                onValueChange={(value: CourierService) => setSelectedIntegration(prev => ({...prev, courierName: value}))}
+                                disabled={dialogMode==='edit'}
+                            >
                                 <SelectTrigger id="courier">
                                     <SelectValue placeholder="Select a courier" />
                                 </SelectTrigger>
@@ -214,7 +223,7 @@ export default function CourierSettingsPage() {
                             </Select>
                         </div>
 
-                        {selectedIntegration && courierFields[selectedIntegration.courierName]?.map((field) => (
+                        {fields?.map((field) => (
                              <div className="space-y-2" key={field.label}>
                                 <Label htmlFor={field.label}>{field.label}</Label>
                                 <Input id={field.label} placeholder={field.placeholder} type={field.type || 'text'} />
