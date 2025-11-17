@@ -41,7 +41,7 @@ import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import React, { Suspense, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoader } from "@/components/ui/page-loader";
 import { getNotifications } from "@/services/notifications";
@@ -145,6 +145,8 @@ function NavLinks() {
 
 function MobileNavLinks({ onLinkClick }: { onLinkClick: () => void }) {
     const pathname = usePathname();
+    const isOrderRelatedPage = pathname.startsWith('/dashboard/orders') || pathname === '/dashboard/packing-orders';
+    
     return (
         <nav className="grid gap-2 text-lg font-medium">
             <Link
@@ -156,27 +158,34 @@ function MobileNavLinks({ onLinkClick }: { onLinkClick: () => void }) {
             {navItems.map((item, index) => {
                  if ('subItems' in item) {
                      return (
-                         <div key={index} className="flex flex-col">
-                             <span className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground">
-                                 <item.icon className="h-5 w-5" />
-                                 {item.label}
-                             </span>
-                             <div className="pl-8 flex flex-col gap-1">
-                                {item.subItems.map(subItem => (
-                                    <Link
-                                        key={subItem.href}
-                                        href={subItem.href}
-                                        onClick={onLinkClick}
-                                        className={cn(
-                                            "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground",
-                                            pathname === subItem.href && "bg-muted text-foreground"
-                                        )}
-                                    >
-                                        {subItem.label}
-                                    </Link>
-                                ))}
-                             </div>
-                         </div>
+                         <Collapsible key={index} defaultOpen={isOrderRelatedPage}>
+                             <CollapsibleTrigger asChild>
+                                <div className="mx-[-0.65rem] flex items-center justify-between gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground">
+                                    <div className="flex items-center gap-4">
+                                         <item.icon className="h-5 w-5" />
+                                        {item.label}
+                                    </div>
+                                    <ChevronDown className="h-5 w-5 shrink-0 transition-transform duration-200" />
+                                </div>
+                             </CollapsibleTrigger>
+                             <CollapsibleContent className="pl-8 pt-1">
+                                 <div className="flex flex-col gap-1">
+                                    {item.subItems.map(subItem => (
+                                        <Link
+                                            key={subItem.href}
+                                            href={subItem.href}
+                                            onClick={onLinkClick}
+                                            className={cn(
+                                                "mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground",
+                                                pathname === subItem.href && "bg-muted text-foreground"
+                                            )}
+                                        >
+                                            {subItem.label}
+                                        </Link>
+                                    ))}
+                                 </div>
+                            </CollapsibleContent>
+                         </Collapsible>
                      )
                  }
                 return (
