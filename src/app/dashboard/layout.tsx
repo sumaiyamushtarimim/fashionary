@@ -148,7 +148,7 @@ function MobileNavLinks({ onLinkClick }: { onLinkClick: () => void }) {
     const isOrderRelatedPage = pathname.startsWith('/dashboard/orders') || pathname === '/dashboard/packing-orders';
     
     return (
-        <nav className="flex-1 grid gap-2 text-lg font-medium">
+        <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
             <Link
                 href="#"
                 className="flex items-center gap-2 text-lg font-semibold mb-4"
@@ -158,7 +158,7 @@ function MobileNavLinks({ onLinkClick }: { onLinkClick: () => void }) {
             {navItems.map((item, index) => {
                  if ('subItems' in item) {
                      return (
-                         <Collapsible key={index}>
+                         <Collapsible key={index} defaultOpen={pathname.startsWith('/dashboard/orders')}>
                              <CollapsibleTrigger asChild>
                                 <div className="mx-[-0.65rem] flex items-center justify-between gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground">
                                     <div className="flex items-center gap-4">
@@ -274,10 +274,7 @@ export default function DashboardLayout({
                 <span className="sr-only">Toggle navigation menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col p-0">
-              <SheetHeader className="p-4 border-b">
-                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-              </SheetHeader>
+            <SheetContent side="left" className="flex flex-col">
               <div className="flex-1 overflow-y-auto">
                 <MobileNavLinks onLinkClick={() => setIsMobileNavOpen(false)} />
               </div>
