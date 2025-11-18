@@ -607,13 +607,44 @@ async function protectApi(req, res, next) {
 app.use('/api', protectApi);
 ```
 
-## 5. WooCommerce & Courier Integration
+## 5. Stock Management Logic
+
+**All stock management logic must be handled by the backend.** The frontend should only trigger actions (e.g., changing an order status), and the backend will be responsible for adjusting inventory levels accordingly. This ensures data integrity and security.
+
+### When to Decrease Stock:
+
+Stock should be considered "reserved" or "deducted" from the available inventory when an order is confirmed and ready to be processed.
+
+-   **Trigger:** An order's status changes from `New` to `Confirmed`, or from `New` to `RTS (Ready to Ship)`.
+-   **Action:** For each product in the order, the backend must decrease the `inventory` count in the `Product` table by the `quantity` specified in the order. This should be an atomic transaction.
+
+### When to Increase (Return) Stock:
+
+Stock should be returned to the inventory in cases of cancellation, returns, or order edits.
+
+-   **Trigger 1: Order Cancellation**
+    -   **Condition:** An order with a status of `Confirmed`, `Packing Hold`, or `RTS (Ready to Ship)` is changed to `Canceled`.
+    -   **Action:** The backend must add the quantities of all products in that order back to the inventory. Orders that are already `Shipped` should not automatically have their stock returned upon cancellation; this should be handled through the `Returned` status flow.
+
+-   **Trigger 2: Order Return**
+    -   **Condition:** A `Shipped` or `Delivered` order's status is changed to `Returned` or `Paid Returned`.
+    -   **Action:** The backend should increase the inventory for the returned products. It is recommended to have a Quality Check (QC) process. Stock may be returned to a "sellable" location or a "quarantine/damaged" location based on the condition of the items.
+
+-   **Trigger 3: Editing an Order**
+    -   **Condition:** A `Confirmed` order is edited, and the quantity of a product is *decreased*.
+    -   **Action:** The backend should calculate the difference between the old and new quantity for the edited product line item. The difference should be added back to the `Product`'s inventory. For example, if quantity changes from 5 to 2, 3 units should be returned to stock.
+    -   **Condition:** A product is *removed* from a `Confirmed` order.
+    -   **Action:** The entire quantity of the removed product should be added back to the inventory.
+
+It is critical that all these operations are logged in the `InventoryMovement` table to maintain a clear audit trail of every stock change.
+
+## 6. WooCommerce & Courier Integration
 
 The backend must handle the logic for integrating with WooCommerce stores and courier services.
 
 ### Courier Integration
 
--   **Business-Specific Credentials:** The backend must store courier credentials (`apiKey`, `secretKey`, etc.) on a per-business basis, using the `CourierIntegration` model. The `credentials` field is a JSON blob to accommodate different API requirements (e.g., Pathao needs a `storeId`, `clientId`, etc., while others may only need an API key).
+-   **Business-Specific Credentials:** The backend must store courier credentials (`apiKey`, `secretKey`, etc.) on a per-business basis, using the `CourierIntegration` model.
 -   **Dynamic Credential Selection:** When an order is dispatched to a courier (e.g., Pathao), the backend must:
     1.  Get the `businessId` from the `Order`.
     2.  Find the corresponding `CourierIntegration` entry for that business and the selected courier.
@@ -634,7 +665,7 @@ The synchronization logic is very specific and must be followed carefully.
     -   Create new orders in the ERP.
     -   **No status updates are pushed back to WooCommerce.** All order management happens within this ERP.
 
-## 6. Handling Existing API Routes
+## 7. Handling Existing API Routes
 
 The frontend already contains some server-side logic in the `src/app/api/` directory.
 
