@@ -194,8 +194,8 @@ export const customers: Omit<Customer, 'totalOrders' | 'totalSpent'>[] = [
 
 export const allStatuses: OrderStatus[] = [
     'New', 'Confirmed', 'Packing Hold', 'Canceled', 'Hold', 'In-Courier',
-    'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 'Return Pending',
-    'Paid Returned', 'Partial'
+    'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Return Pending', 'Returned',
+    'Partial'
 ];
 
 export const orders: Order[] = [
@@ -511,7 +511,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-27T10:00:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 50000, frequency: 'Monthly' },
-        performance: { ordersCreated: 50, ordersConfirmed: 45, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Return Pending': 0, 'Paid Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
+        performance: { ordersCreated: 50, ordersConfirmed: 45, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Return Pending': 0, 'Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
         financials: { totalEarned: 250000, totalPaid: 250000, dueAmount: 0 },
         paymentHistory: [{ date: '2024-05-01', amount: 50000, notes: 'April Salary' }],
         incomeHistory: [],
@@ -526,7 +526,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-26T14:30:00Z',
         paymentType: 'Commission',
         commissionDetails: { onOrderCreate: 50, onOrderConfirm: 100 },
-        performance: { ordersCreated: 120, ordersConfirmed: 110, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Return Pending': 0, 'Paid Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
+        performance: { ordersCreated: 120, ordersConfirmed: 110, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Return Pending': 0, 'Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
         financials: { totalEarned: 17000, totalPaid: 15000, dueAmount: 2000 },
         paymentHistory: [{ date: '2024-05-15', amount: 15000, notes: 'Commission Payout' }],
         incomeHistory: [
@@ -544,7 +544,7 @@ export const staff: StaffMember[] = [
         lastLogin: '2024-05-27T09:00:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 15000, frequency: 'Monthly' },
-        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 150, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Return Pending': 0, 'Paid Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 150, 'Shipped': 0, 'Delivered': 0, 'Return Pending': 0, 'Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
         financials: { totalEarned: 75000, totalPaid: 60000, dueAmount: 15000 },
         paymentHistory: [{ date: '2024-05-01', amount: 15000, notes: 'April Salary' }],
         incomeHistory: [],

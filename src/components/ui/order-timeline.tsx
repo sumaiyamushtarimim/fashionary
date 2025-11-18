@@ -12,9 +12,6 @@ import {
   Edit,
   PackageSearch,
   Clock,
-  PackageCheck,
-  Ban,
-  RotateCcw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -31,8 +28,8 @@ const statusIcons: Record<string, React.ElementType> = {
     'Shipped': Truck,
     'Delivered': CheckCircle,
     'Returned': History,
+    'Return Pending': History,
     'Partial': Truck,
-    'Paid Returned': History,
     'Notes updated': FileText, 
     'Order Edited': Edit,
     'Sent to Pathao': Truck,

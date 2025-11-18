@@ -60,17 +60,16 @@ export type OrderStatus =
   | 'RTS (Ready to Ship)'
   | 'Shipped'
   | 'Delivered'
-  | 'Returned'
   | 'Return Pending'
-  | 'Paid Returned'
+  | 'Returned'
   | 'Partial'
   | 'Incomplete'
   | 'Incomplete-Cancelled';
 
 export const allStatuses: OrderStatus[] = [
     'New', 'Confirmed', 'Packing Hold', 'Canceled', 'Hold', 'In-Courier',
-    'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 'Return Pending',
-    'Paid Returned', 'Partial', 'Incomplete', 'Incomplete-Cancelled'
+    'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Return Pending', 'Returned', 'Partial', 
+    'Incomplete', 'Incomplete-Cancelled'
 ];
 
 export type OrderPlatform = 'TikTok' | 'Messenger' | 'Facebook' | 'Instagram' | 'Website';

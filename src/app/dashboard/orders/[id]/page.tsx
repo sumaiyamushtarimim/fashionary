@@ -73,7 +73,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -114,9 +113,8 @@ const statusColors: Record<OrderType['status'], string> = {
     'RTS (Ready to Ship)': 'bg-purple-500/20 text-purple-700',
     'Shipped': 'bg-cyan-500/20 text-cyan-700',
     'Delivered': 'bg-green-500/20 text-green-700',
-    'Returned': 'bg-gray-500/20 text-gray-700',
     'Return Pending': 'bg-pink-500/20 text-pink-700',
-    'Paid Returned': 'bg-amber-500/20 text-amber-700',
+    'Returned': 'bg-gray-500/20 text-gray-700',
     'Partial': 'bg-fuchsia-500/20 text-fuchsia-700',
     'Incomplete': 'bg-gray-500/20 text-gray-700',
     'Incomplete-Cancelled': 'bg-red-500/20 text-red-700'
@@ -134,7 +132,6 @@ const statusIcons: Record<string, React.ElementType> = {
     'Returned': History,
     'Return Pending': RotateCcw,
     'Partial': Truck,
-    'Paid Returned': History,
     'Notes updated': FileText, 
     'Order Edited': Edit,
     'Sent to Pathao': Truck,
@@ -274,7 +271,7 @@ export default function OrderDetailsPage() {
     const totalOrders = customerHistory.length;
     const delivered = customerHistory.filter(o => o.status === 'Delivered').length;
     const canceled = customerHistory.filter(o => o.status === 'Canceled').length;
-    const returned = customerHistory.filter(o => o.status === 'Returned' || o.status === 'Paid Returned').length;
+    const returned = customerHistory.filter(o => o.status === 'Returned').length;
     const processing = totalOrders - (delivered + canceled + returned);
     const recentDate = subHours(new Date(), 48);
     const recentOrders = customerHistory.filter(o => isAfter(new Date(o.date), recentDate));
@@ -358,6 +355,18 @@ export default function OrderDetailsPage() {
                     </Link>
                 </Button>
             </div>
+             <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" className="h-8 w-8 md:hidden">
+                        <MoreVertical className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/${order.id}/edit`}>Edit Order</Link></DropdownMenuItem>
+                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/print/invoice/${order.id}`} target="_blank">Print Invoice</Link></DropdownMenuItem>
+                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/print/sticker/${order.id}`} target="_blank">Print Sticker</Link></DropdownMenuItem>
+                </DropdownMenuContent>
+             </DropdownMenu>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
             <div className="grid auto-rows-max items-start gap-6 md:col-span-2">
@@ -366,7 +375,7 @@ export default function OrderDetailsPage() {
                         <CardTitle>Order Items</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className='hidden sm:block'>
+                        <div className="hidden sm:block">
                             <Table>
                                 <TableHeader>
                                 <TableRow>
@@ -447,9 +456,6 @@ export default function OrderDetailsPage() {
                         <div><Label className='text-muted-foreground'>Office Note</Label><p className="text-sm">{order.officeNote || 'No office note provided.'}</p></div>
                     </CardContent>
                 </Card>
-                <div className="md:col-span-2">
-                    <OrderHistory logs={order.logs} />
-                </div>
             </div>
             <div className="md:col-span-1 grid auto-rows-max gap-6">
                 <Card>
@@ -577,6 +583,7 @@ export default function OrderDetailsPage() {
                         )}
                     </CardContent>
                 </Card>
+                 <OrderHistory logs={order.logs} />
             </div>
         </div>
     </div>

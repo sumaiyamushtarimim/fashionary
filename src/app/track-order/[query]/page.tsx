@@ -27,9 +27,8 @@ const statusColors: Record<Order['status'], string> = {
     'RTS (Ready to Ship)': 'bg-purple-500/20 text-purple-700',
     'Shipped': 'bg-cyan-500/20 text-cyan-700',
     'Delivered': 'bg-green-500/20 text-green-700',
-    'Returned': 'bg-gray-500/20 text-gray-700',
     'Return Pending': 'bg-pink-500/20 text-pink-700',
-    'Paid Returned': 'bg-amber-500/20 text-amber-700',
+    'Returned': 'bg-gray-500/20 text-gray-700',
     'Partial': 'bg-fuchsia-500/20 text-fuchsia-700',
 };
 
