@@ -73,6 +73,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -320,41 +321,41 @@ export default function OrderDetailsPage() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
         <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" className="h-7 w-7" asChild>
-            <Link href="/dashboard/orders">
-            <ChevronLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
-            </Link>
-        </Button>
-        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-            {order.id}
-        </h1>
-        <Badge
-            variant="outline"
-            className={cn('ml-auto sm:ml-0', statusColors[order.status])}
-        >
-            {order.status}
-        </Badge>
-        <div className="hidden items-center gap-2 md:ml-auto md:flex">
-            <Button variant="outline" size="sm" asChild>
-                <Link href={`/dashboard/orders/print/invoice/${order.id}`} target="_blank">
-                    <Printer className="mr-2 h-4 w-4" />
-                    Print Invoice
+            <Button variant="outline" size="icon" className="h-7 w-7" asChild>
+                <Link href="/dashboard/orders">
+                    <ChevronLeft className="h-4 w-4" />
+                    <span className="sr-only">Back</span>
                 </Link>
             </Button>
-            <Button variant="outline" size="sm" asChild>
-                <Link href={`/dashboard/orders/print/sticker/${order.id}`} target="_blank">
-                    <File className="mr-2 h-4 w-4" />
-                    Print Sticker
-                </Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-                <Link href={`/dashboard/orders/${order.id}/edit`}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Order
-                </Link>
-            </Button>
-        </div>
+            <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+                {order.id}
+            </h1>
+            <Badge
+                variant="outline"
+                className={cn('ml-auto sm:ml-0', statusColors[order.status])}
+            >
+                {order.status}
+            </Badge>
+            <div className="hidden items-center gap-2 md:ml-auto md:flex">
+                <Button variant="outline" size="sm" asChild>
+                    <Link href={`/dashboard/orders/print/invoice/${order.id}`} target="_blank">
+                        <Printer className="mr-2 h-4 w-4" />
+                        Print Invoice
+                    </Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                    <Link href={`/dashboard/orders/print/sticker/${order.id}`} target="_blank">
+                        <File className="mr-2 h-4 w-4" />
+                        Print Sticker
+                    </Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                    <Link href={`/dashboard/orders/${order.id}/edit`}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit Order
+                    </Link>
+                </Button>
+            </div>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
             <div className="grid auto-rows-max items-start gap-6 md:col-span-2">
@@ -363,7 +364,6 @@ export default function OrderDetailsPage() {
                         <CardTitle>Order Items</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        {/* Table for larger screens */}
                         <div className='hidden sm:block'>
                             <Table>
                                 <TableHeader>
@@ -398,7 +398,6 @@ export default function OrderDetailsPage() {
                                 </TableBody>
                             </Table>
                         </div>
-                        {/* Cards for smaller screens */}
                         <div className="sm:hidden grid gap-4">
                              {order.products.map((product) => (
                                 <Card key={product.productId} className="overflow-hidden">
@@ -446,6 +445,9 @@ export default function OrderDetailsPage() {
                         <div><Label className='text-muted-foreground'>Office Note</Label><p className="text-sm">{order.officeNote || 'No office note provided.'}</p></div>
                     </CardContent>
                 </Card>
+                <div className="md:col-span-2">
+                    <OrderHistory logs={order.logs} />
+                </div>
             </div>
             <div className="md:col-span-1 grid auto-rows-max gap-6">
                 <Card>
@@ -574,10 +576,7 @@ export default function OrderDetailsPage() {
                     </CardContent>
                 </Card>
             </div>
-          </div>
-           <div className="mt-6">
-              <OrderHistory logs={order.logs} />
-           </div>
         </div>
+    </div>
   );
 }
