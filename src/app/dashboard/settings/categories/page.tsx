@@ -34,7 +34,8 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getCategories, getExpenseCategories } from '@/services/products';
+import { getCategories } from '@/services/products';
+import { getExpenseCategories } from '@/services/expenses';
 import type { Category, ExpenseCategory } from '@/types';
 
 const CategoryRow = ({ category, allCategories, level = 0 }: { category: Category, allCategories: Category[], level?: number }) => {
