@@ -363,59 +363,65 @@ export default function OrderDetailsPage() {
                         <CardTitle>Order Items</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableHeader className="hidden sm:table-header-group">
-                            <TableRow>
-                                <TableHead className="w-[80px]">Image</TableHead>
-                                <TableHead>Name</TableHead>
-                                <TableHead>SKU</TableHead>
-                                <TableHead className="text-right">Qty</TableHead>
-                                <TableHead className="text-right">Price</TableHead>
-                                <TableHead className="text-right">Total</TableHead>
-                            </TableRow>
-                            </TableHeader>
-                            <TableBody className="flex flex-col sm:table-row-group gap-4">
-                            {order.products.map((product) => (
-                                <TableRow key={product.productId} className="flex sm:table-row flex-col sm:flex-row rounded-lg border sm:border-0 p-4 sm:p-0">
-                                <TableCell className="p-0 sm:p-4 w-full sm:w-[80px]">
-                                    <div className='flex gap-4 items-center'>
-                                        <Image
+                        {/* Table for larger screens */}
+                        <div className='hidden sm:block'>
+                            <Table>
+                                <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[80px]">Image</TableHead>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>SKU</TableHead>
+                                    <TableHead className="text-right">Qty</TableHead>
+                                    <TableHead className="text-right">Price</TableHead>
+                                    <TableHead className="text-right">Total</TableHead>
+                                </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                {order.products.map((product) => (
+                                    <TableRow key={product.productId}>
+                                        <TableCell>
+                                            <Image
+                                                alt={product.name}
+                                                className="aspect-square rounded-md object-cover"
+                                                height="64"
+                                                src={product.image.imageUrl}
+                                                width="64"
+                                            />
+                                        </TableCell>
+                                        <TableCell className="font-medium">{product.name}</TableCell>
+                                        <TableCell>SKU-452-187</TableCell>
+                                        <TableCell className="text-right">{product.quantity}</TableCell>
+                                        <TableCell className="text-right font-mono">৳{product.price.toFixed(2)}</TableCell>
+                                        <TableCell className="text-right font-mono">৳{(product.price * product.quantity).toFixed(2)}</TableCell>
+                                    </TableRow>
+                                ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                        {/* Cards for smaller screens */}
+                        <div className="sm:hidden grid gap-4">
+                             {order.products.map((product) => (
+                                <Card key={product.productId} className="overflow-hidden">
+                                    <CardContent className="p-4 flex gap-4">
+                                         <Image
                                             alt={product.name}
                                             className="aspect-square rounded-md object-cover"
                                             height="64"
                                             src={product.image.imageUrl}
                                             width="64"
                                         />
-                                        <div className="sm:hidden flex-1">
+                                        <div className="flex-1">
                                             <p className="font-medium">{product.name}</p>
                                             <p className="text-sm text-muted-foreground">SKU-452-187</p>
+                                             <div className="flex justify-between items-center mt-2">
+                                                <p className="text-sm">Qty: {product.quantity}</p>
+                                                <p className="font-medium font-mono">৳{(product.price * product.quantity).toFixed(2)}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </TableCell>
-                                <TableCell className="font-medium hidden sm:table-cell">{product.name}</TableCell>
-                                <TableCell className="hidden sm:table-cell">SKU-452-187</TableCell>
-                                <TableCell className="text-right p-0 sm:p-4 hidden sm:table-cell">{product.quantity}</TableCell>
-                                <TableCell className="text-right p-0 sm:p-4 hidden sm:table-cell font-mono">৳{product.price.toFixed(2)}</TableCell>
-                                <TableCell className="text-right p-0 sm:p-4 hidden sm:table-cell font-mono">৳{(product.price * product.quantity).toFixed(2)}</TableCell>
-
-                                <div className="sm:hidden pt-4 mt-4 border-t w-full grid grid-cols-3 gap-2">
-                                    <div className="col-span-1">
-                                        <p className="text-sm text-muted-foreground">Qty</p>
-                                        <p className="font-medium">{product.quantity}</p>
-                                    </div>
-                                    <div className="col-span-1 text-right">
-                                        <p className="text-sm text-muted-foreground">Price</p>
-                                        <p className="font-medium font-mono">৳{product.price.toFixed(2)}</p>
-                                    </div>
-                                    <div className="col-span-1 text-right">
-                                        <p className="text-sm text-muted-foreground">Total</p>
-                                        <p className="font-medium font-mono">৳{(product.price * product.quantity).toFixed(2)}</p>
-                                    </div>
-                                </div>
-                                </TableRow>
-                            ))}
-                            </TableBody>
-                        </Table>
+                                    </CardContent>
+                                </Card>
+                             ))}
+                        </div>
                     </CardContent>
                 </Card>
 
