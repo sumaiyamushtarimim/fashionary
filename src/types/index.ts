@@ -1,4 +1,5 @@
 
+
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import type { LucideIcon } from 'lucide-react';
 
@@ -60,6 +61,7 @@ export type OrderStatus =
   | 'Shipped'
   | 'Delivered'
   | 'Returned'
+  | 'Return Pending'
   | 'Paid Returned'
   | 'Partial'
   | 'Incomplete'
@@ -67,7 +69,7 @@ export type OrderStatus =
 
 export const allStatuses: OrderStatus[] = [
     'New', 'Confirmed', 'Packing Hold', 'Canceled', 'Hold', 'In-Courier',
-    'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 
+    'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 'Return Pending',
     'Paid Returned', 'Partial', 'Incomplete', 'Incomplete-Cancelled'
 ];
 

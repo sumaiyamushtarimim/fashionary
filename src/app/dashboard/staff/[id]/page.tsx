@@ -40,8 +40,10 @@ const statusColors: Record<OrderStatus, string> = {
     'Shipped': 'bg-cyan-500/20 text-cyan-700',
     'Delivered': 'bg-green-500/20 text-green-700',
     'Returned': 'bg-gray-500/20 text-gray-700',
+    'Return Pending': 'bg-pink-500/20 text-pink-700',
     'Paid Returned': 'bg-amber-500/20 text-amber-700',
     'Partial': 'bg-fuchsia-500/20 text-fuchsia-700',
+    'Packing Hold': 'bg-amber-500/20 text-amber-700',
 };
 
 const chartColors = [

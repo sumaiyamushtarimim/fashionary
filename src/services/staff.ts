@@ -1,4 +1,5 @@
 
+
 import { staff, orders } from '@/lib/placeholder-data';
 import { StaffMember, OrderStatus } from '@/types';
 
@@ -19,7 +20,7 @@ export async function getStaffMemberById(id: string): Promise<StaffMember | unde
     const statusBreakdown: Record<OrderStatus, number> = {
         'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 
         'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 
-        'Returned': 0, 'Paid Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0
+        'Returned': 0, 'Return Pending': 0, 'Paid Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0
     };
 
     [...createdOrders, ...confirmedOrders].forEach(order => {
