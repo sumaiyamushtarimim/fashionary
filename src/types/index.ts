@@ -329,12 +329,30 @@ export type WooCommerceIntegration = {
     businessName: string;
 };
 
+export type PathaoCredentials = {
+    clientId: string;
+    clientSecret: string;
+    username: string;
+    password?: string;
+    storeId: string;
+};
+
+export type SteadfastCredentials = {
+    apiKey: string;
+    secretKey: string;
+};
+
+export type RedXCredentials = {
+    accessToken: string;
+};
+
 export type CourierIntegration = {
     id: string;
     businessId: string;
     businessName: string;
     courierName: CourierService;
-    apiKey: string;
-    secretKey?: string;
     status: 'Active' | 'Inactive';
+    credentials: PathaoCredentials | SteadfastCredentials | RedXCredentials;
+    deliveryType?: 48 | 12; // For Pathao: 48 for Normal, 12 for On Demand
+    itemType?: 1 | 2; // For Pathao: 1 for Document, 2 for Parcel
 };

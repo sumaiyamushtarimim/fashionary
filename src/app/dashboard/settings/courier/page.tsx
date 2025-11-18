@@ -40,19 +40,23 @@ import { getBusinesses } from '@/services/partners';
 import type { CourierIntegration, CourierService, Business } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const courierFields: Record<string, { label: string; placeholder: string; type?: string }[]> = {
-    Pathao: [
-        { label: 'Client ID', placeholder: 'Enter your Pathao Client ID' },
-        { label: 'Client Secret', placeholder: 'Enter your Pathao Client Secret', type: 'password' },
-    ],
-    RedX: [
-        { label: 'API Access Token', placeholder: 'Enter your RedX API Access Token', type: 'password' },
-    ],
-    Steadfast: [
-        { label: 'API Key', placeholder: 'Enter your Steadfast API Key' },
-        { label: 'Secret Key', placeholder: 'Enter your Steadfast Secret Key', type: 'password' },
-    ],
-};
+const pathaoFields = [
+    { name: 'clientId', label: 'Client ID', placeholder: 'Enter your Pathao Client ID' },
+    { name: 'clientSecret', label: 'Client Secret', placeholder: 'Enter your Pathao Client Secret', type: 'password' },
+    { name: 'username', label: 'Username (Email)', placeholder: 'Your Pathao Login Email' },
+    { name: 'password', label: 'Password', placeholder: 'Your Pathao Login Password', type: 'password' },
+    { name: 'storeId', label: 'Store ID', placeholder: 'Your Pathao Store ID' },
+];
+
+const steadfastFields = [
+    { name: 'apiKey', label: 'API Key', placeholder: 'Enter your Steadfast API Key' },
+    { name: 'secretKey', label: 'Secret Key', placeholder: 'Enter your Steadfast Secret Key', type: 'password' },
+];
+
+const redxFields = [
+     { name: 'accessToken', label: 'API Access Token', placeholder: 'Enter your RedX API Access Token', type: 'password' },
+];
+
 
 export default function CourierSettingsPage() {
     const [integrations, setIntegrations] = React.useState<CourierIntegration[]>([]);
@@ -89,7 +93,14 @@ export default function CourierSettingsPage() {
         setSelectedIntegration(null);
     };
     
-    const fields = selectedIntegration?.courierName ? courierFields[selectedIntegration.courierName] : [];
+    let fields: { name: string; label: string; placeholder: string; type?: string }[] = [];
+    if (selectedIntegration?.courierName === 'Pathao') {
+        fields = pathaoFields;
+    } else if (selectedIntegration?.courierName === 'Steadfast') {
+        fields = steadfastFields;
+    } else if (selectedIntegration?.courierName === 'RedX') {
+        fields = redxFields;
+    }
 
     return (
         <div className="space-y-6">
@@ -224,11 +235,46 @@ export default function CourierSettingsPage() {
                         </div>
 
                         {fields?.map((field) => (
-                             <div className="space-y-2" key={field.label}>
-                                <Label htmlFor={field.label}>{field.label}</Label>
-                                <Input id={field.label} placeholder={field.placeholder} type={field.type || 'text'} />
+                             <div className="space-y-2" key={field.name}>
+                                <Label htmlFor={field.name}>{field.label}</Label>
+                                <Input id={field.name} placeholder={field.placeholder} type={field.type || 'text'} />
                             </div>
                         ))}
+
+                        {selectedIntegration?.courierName === 'Pathao' && (
+                            <>
+                                <div className="space-y-2">
+                                    <Label htmlFor="deliveryType">Delivery Type</Label>
+                                    <Select 
+                                        value={String(selectedIntegration.deliveryType || 48)}
+                                        onValueChange={(value) => setSelectedIntegration(prev => ({...prev, deliveryType: Number(value) as (12|48)}))}
+                                    >
+                                        <SelectTrigger id="deliveryType">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="48">Normal Delivery (48 hours)</SelectItem>
+                                            <SelectItem value="12">On Demand Delivery (12 hours)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="itemType">Item Type</Label>
+                                     <Select 
+                                        value={String(selectedIntegration.itemType || 2)}
+                                        onValueChange={(value) => setSelectedIntegration(prev => ({...prev, itemType: Number(value) as (1|2)}))}
+                                    >
+                                        <SelectTrigger id="itemType">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="2">Parcel</SelectItem>
+                                            <SelectItem value="1">Document</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>

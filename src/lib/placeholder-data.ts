@@ -45,26 +45,36 @@ export const courierIntegrations: CourierIntegration[] = [
         businessId: 'BIZ001',
         businessName: 'Fashionary Main',
         courierName: 'Pathao',
-        apiKey: 'pk_xxxxxxxxxxxxxx_1234',
-        secretKey: 'ps_xxxxxxxxxxxxxx_5678',
         status: 'Active',
+        credentials: {
+            clientId: 'pathao_client_id_main',
+            clientSecret: 'pathao_client_secret_main',
+            username: 'main@fashionary.com',
+            storeId: '12345'
+        },
+        deliveryType: 48,
+        itemType: 2,
     },
     {
         id: 'ci-2',
         businessId: 'BIZ002',
         businessName: 'Urban Threads',
         courierName: 'RedX',
-        apiKey: 'rx_xxxxxxxxxxxxxx_abcd',
         status: 'Active',
+        credentials: {
+            accessToken: 'redx_access_token_urban'
+        }
     },
      {
         id: 'ci-3',
         businessId: 'BIZ001',
         businessName: 'Fashionary Main',
         courierName: 'Steadfast',
-        apiKey: 'sf_xxxxxxxxxxxxxx_abcd',
-        secretKey: 'ss_xxxxxxxxxxxxxx_efgh',
         status: 'Inactive',
+        credentials: {
+            apiKey: 'steadfast_api_key_main',
+            secretKey: 'steadfast_secret_key_main'
+        }
     }
 ];
 
@@ -994,5 +1004,6 @@ export const bdDistricts: string[] = [
 
 
     
+
 
 
