@@ -1,7 +1,7 @@
 
 
 import { PlaceHolderImages } from './placeholder-images';
-import type { Order, Product, Customer, Category, ExpenseCategory, Business, PurchaseOrder, StaffMember, Supplier, Vendor, Expense, InventoryItem, InventoryMovement, WooCommerceIntegration, OrderStatus, CourierService, Permission, StaffRole, StockLocation } from '@/types';
+import type { Order, Product, Customer, Category, ExpenseCategory, Business, PurchaseOrder, StaffMember, Supplier, Vendor, Expense, InventoryItem, InventoryMovement, WooCommerceIntegration, OrderStatus, CourierService, Permission, StaffRole, StockLocation, CourierIntegration } from '@/types';
 
 
 export const businesses: Business[] = [
@@ -36,6 +36,35 @@ export const wooCommerceIntegrations: WooCommerceIntegration[] = [
         status: 'Inactive',
         businessId: 'BIZ002',
         businessName: 'Urban Threads',
+    }
+];
+
+export const courierIntegrations: CourierIntegration[] = [
+    {
+        id: 'ci-1',
+        businessId: 'BIZ001',
+        businessName: 'Fashionary Main',
+        courierName: 'Pathao',
+        apiKey: 'pk_xxxxxxxxxxxxxx_1234',
+        secretKey: 'ps_xxxxxxxxxxxxxx_5678',
+        status: 'Active',
+    },
+    {
+        id: 'ci-2',
+        businessId: 'BIZ002',
+        businessName: 'Urban Threads',
+        courierName: 'RedX',
+        apiKey: 'rx_xxxxxxxxxxxxxx_abcd',
+        status: 'Active',
+    },
+     {
+        id: 'ci-3',
+        businessId: 'BIZ001',
+        businessName: 'Fashionary Main',
+        courierName: 'Steadfast',
+        apiKey: 'sf_xxxxxxxxxxxxxx_abcd',
+        secretKey: 'ss_xxxxxxxxxxxxxx_efgh',
+        status: 'Inactive',
     }
 ];
 
@@ -965,4 +994,5 @@ export const bdDistricts: string[] = [
 
 
     
+
 
