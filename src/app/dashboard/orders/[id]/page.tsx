@@ -572,6 +572,8 @@ export default function OrderDetailsPage() {
               <OrderHistory logs={order.logs} />
            </div>
         </div>
-    </form>
   );
 }
+
+
+    
