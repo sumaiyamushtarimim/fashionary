@@ -1,3 +1,4 @@
+
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import type { LucideIcon } from 'lucide-react';
 
@@ -246,6 +247,7 @@ export type StaffMember = {
     name: string;
     email: string;
     role: StaffRole;
+    accessibleBusinessIds?: string[];
     lastLogin: string;
     paymentType: 'Salary' | 'Commission' | 'Both';
     salaryDetails?: {

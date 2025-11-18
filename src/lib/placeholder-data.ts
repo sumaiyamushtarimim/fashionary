@@ -1,5 +1,4 @@
 
-
 import { PlaceHolderImages } from './placeholder-images';
 import type { Order, Product, Customer, Category, ExpenseCategory, Business, PurchaseOrder, StaffMember, Supplier, Vendor, Expense, InventoryItem, InventoryMovement, WooCommerceIntegration, OrderStatus, CourierService, Permission, StaffRole, StockLocation, CourierIntegration } from '@/types';
 
@@ -480,6 +479,7 @@ export const staff: StaffMember[] = [
         name: 'Admin User',
         email: 'admin@fashionary.com',
         role: 'Admin',
+        accessibleBusinessIds: ['BIZ001', 'BIZ002', 'BIZ003'],
         lastLogin: '2024-05-27T10:00:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 50000, frequency: 'Monthly' },
@@ -508,6 +508,7 @@ export const staff: StaffMember[] = [
         name: 'Saleha Akter',
         email: 'saleha@fashionary.com',
         role: 'Moderator',
+        accessibleBusinessIds: ['BIZ001', 'BIZ003'],
         lastLogin: '2024-05-26T14:30:00Z',
         paymentType: 'Commission',
         commissionDetails: { onOrderCreate: 50, onOrderConfirm: 100 },
@@ -525,6 +526,7 @@ export const staff: StaffMember[] = [
         name: 'Kamrul Hasan',
         email: 'kamrul@fashionary.com',
         role: 'Packing Assistant',
+        accessibleBusinessIds: ['BIZ001'],
         lastLogin: '2024-05-27T09:00:00Z',
         paymentType: 'Salary',
         salaryDetails: { amount: 15000, frequency: 'Monthly' },
