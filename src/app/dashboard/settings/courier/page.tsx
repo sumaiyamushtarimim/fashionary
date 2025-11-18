@@ -36,7 +36,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getCourierIntegrations } from '@/services/integrations';
 import { getCourierServices, getBusinesses } from '@/services/partners';
-import type { CourierIntegration, CourierService, Business, PathaoCredentials } from '@/types';
+import type { CourierIntegration, CourierService, Business, PathaoCredentials, SteadfastCredentials, RedXCredentials, CarrybeeCredentials } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const pathaoFields = [
@@ -90,7 +90,7 @@ function CourierIntegrationDialog({
         setCurrentIntegration(prev => (prev ? { ...prev, [field]: value } : { [field]: value }));
     };
 
-    const handleCredentialChange = (field: keyof PathaoCredentials, value: any) => {
+    const handleCredentialChange = (field: keyof (PathaoCredentials | SteadfastCredentials | RedXCredentials | CarrybeeCredentials), value: any) => {
          setCurrentIntegration(prev => ({
             ...prev,
             credentials: {
@@ -100,20 +100,20 @@ function CourierIntegrationDialog({
         }));
     };
     
-    let fields: { name: keyof PathaoCredentials; label: string; placeholder: string; type?: string }[] = [];
+    let fields: { name: string; label: string; placeholder: string; type?: string }[] = [];
     if (currentIntegration?.courierName === 'Pathao') {
-        fields = pathaoFields as any;
+        fields = pathaoFields;
     } else if (currentIntegration?.courierName === 'Steadfast') {
-        fields = steadfastFields as any;
+        fields = steadfastFields;
     } else if (currentIntegration?.courierName === 'RedX') {
-        fields = redxFields as any;
+        fields = redxFields;
     } else if (currentIntegration?.courierName === 'Carrybee') {
-        fields = carrybeeFields as any;
+        fields = carrybeeFields;
     }
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent>
+            <DialogContent className="sm:max-w-lg flex flex-col max-h-[90vh]">
                 <DialogHeader>
                     <DialogTitle>
                         {mode === 'edit' ? `Configure ${currentIntegration?.courierName}` : 'Add New Courier Integration'}
@@ -122,7 +122,7 @@ function CourierIntegrationDialog({
                         Enter the API credentials for this integration.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
+                <div className="grid gap-4 py-4 overflow-y-auto px-1">
                     <div className="space-y-2">
                         <Label htmlFor="business">Business</Label>
                         <Select
@@ -166,7 +166,7 @@ function CourierIntegrationDialog({
                                 placeholder={field.placeholder}
                                 type={field.type || 'text'}
                                 value={(currentIntegration?.credentials as any)?.[field.name] || ''}
-                                onChange={(e) => handleCredentialChange(field.name, e.target.value)}
+                                onChange={(e) => handleCredentialChange(field.name as any, e.target.value)}
                             />
                         </div>
                     ))}
@@ -202,7 +202,7 @@ function CourierIntegrationDialog({
                         </>
                     )}
                 </div>
-                <DialogFooter>
+                <DialogFooter className="mt-auto pt-4 border-t">
                     <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                     <Button onClick={() => onSave(currentIntegration)}>Save Configuration</Button>
                 </DialogFooter>
