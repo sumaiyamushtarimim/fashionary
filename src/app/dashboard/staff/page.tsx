@@ -46,7 +46,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getStaff } from "@/services/staff";
-import type { StaffMember, Permission, StaffRole } from "@/types";
+import { getBusinesses } from "@/services/partners";
+import type { StaffMember, Permission, StaffRole, Business } from "@/types";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const ITEMS_PER_PAGE = 10;
@@ -84,6 +85,7 @@ const permissionActions: (keyof Permission)[] = ['create', 'read', 'update', 'de
 
 export default function StaffPage() {
     const [allStaff, setAllStaff] = useState<StaffMember[]>([]);
+    const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [isLoading, setIsLoading] = React.useState(true);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -92,8 +94,12 @@ export default function StaffPage() {
 
     useEffect(() => {
         setIsLoading(true);
-        getStaff().then(data => {
-            setAllStaff(data);
+        Promise.all([
+            getStaff(),
+            getBusinesses()
+        ]).then(([staffData, businessData]) => {
+            setAllStaff(staffData);
+            setAllBusinesses(businessData);
             setIsLoading(false);
         });
     }, []);
@@ -122,9 +128,10 @@ export default function StaffPage() {
         return allStaff.slice(startIndex, startIndex + ITEMS_PER_PAGE);
     }, [currentPage, allStaff]);
 
-  const StaffForm = ({ staffMember, isEdit = false }: { staffMember?: StaffMember | null, isEdit?: boolean }) => {
+  const StaffForm = ({ staffMember, isEdit = false, businesses }: { staffMember?: StaffMember | null, isEdit?: boolean, businesses: Business[] }) => {
     const [role, setRole] = useState<StaffRole | undefined>(staffMember?.role);
     const [paymentType, setPaymentType] = useState<PaymentType | undefined>(staffMember?.paymentType);
+    const [accessibleBusinesses, setAccessibleBusinesses] = useState<string[]>(staffMember?.accessibleBusinessIds || []);
     const [permissions, setPermissions] = useState<StaffMember['permissions']>(
         staffMember?.permissions || {
             orders: { create: false, read: true, update: false, delete: false },
@@ -134,7 +141,7 @@ export default function StaffPage() {
             customers: { create: false, read: true, update: false, delete: false },
             purchases: { create: false, read: true, update: false, delete: false },
             expenses: { create: false, read: true, update: false, delete: false },
-            checkPassing: { create: false, read: true, update: false, delete: false },
+            checkPassing: { create: false, read: true, update: true, delete: false },
             partners: { create: false, read: true, update: false, delete: false },
             courierReport: { create: false, read: true, update: false, delete: false },
             staff: { create: false, read: false, update: false, delete: false },
@@ -142,6 +149,14 @@ export default function StaffPage() {
             analytics: { create: false, read: true, update: false, delete: false },
         }
     );
+     useEffect(() => {
+        if(staffMember){
+            setRole(staffMember.role);
+            setPaymentType(staffMember.paymentType);
+            setPermissions(staffMember.permissions);
+            setAccessibleBusinesses(staffMember.accessibleBusinessIds || []);
+        }
+    }, [staffMember])
 
     const handlePermissionChange = (module: keyof StaffMember['permissions'], action: keyof Permission, value: boolean) => {
         setPermissions(prev => ({
@@ -152,6 +167,12 @@ export default function StaffPage() {
             },
         }));
     };
+    
+    const handleBusinessAccessChange = (businessId: string, checked: boolean) => {
+        setAccessibleBusinesses(prev => 
+            checked ? [...prev, businessId] : prev.filter(id => id !== businessId)
+        );
+    }
         
         return (
             <div className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto px-2 -mr-2">
@@ -166,6 +187,31 @@ export default function StaffPage() {
                     </div>
                 </div>
                 
+                <Card>
+                    <CardHeader className="p-4 flex flex-row items-center gap-4">
+                        <ShieldCheck className="w-6 h-6 text-muted-foreground"/>
+                        <div>
+                            <CardTitle className="text-base">Business Access</CardTitle>
+                            <CardDescription className="text-xs">Control which business entities this staff can access.</CardDescription>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-4 grid grid-cols-2 gap-4">
+                         {businesses.map(business => (
+                            <div key={business.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                    id={`biz-${business.id}`}
+                                    checked={accessibleBusinesses.includes(business.id)}
+                                    onCheckedChange={(checked) => handleBusinessAccessChange(business.id, !!checked)}
+                                />
+                                <label htmlFor={`biz-${business.id}`} className="text-sm font-medium leading-none">
+                                    {business.name}
+                                </label>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+
+
                 <Card>
                     <CardHeader className="p-4 flex flex-row items-center gap-4">
                         <KeyRound className="w-6 h-6 text-muted-foreground"/>
@@ -316,14 +362,14 @@ export default function StaffPage() {
                         Invite Staff
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-2xl">
+                <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>Invite New Staff</DialogTitle>
                         <DialogDescription>
                             Fill in the details to add a new staff member to your team.
                         </DialogDescription>
                     </DialogHeader>
-                    <StaffForm />
+                    <StaffForm businesses={allBusinesses} />
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
                         <Button onClick={() => setIsAddDialogOpen(false)}>Send Invitation</Button>
@@ -502,14 +548,14 @@ export default function StaffPage() {
       </Card>
 
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent className="sm:max-w-2xl">
+            <DialogContent className="sm:max-w-3xl">
                 <DialogHeader>
                     <DialogTitle>Edit Staff: {selectedStaff?.name}</DialogTitle>
                     <DialogDescription>
                         Update the details for this staff member.
                     </DialogDescription>
                 </DialogHeader>
-                <StaffForm staffMember={selectedStaff} isEdit={true} />
+                <StaffForm staffMember={selectedStaff} isEdit={true} businesses={allBusinesses}/>
                 <DialogFooter>
                     <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
                     <Button onClick={() => setIsEditDialogOpen(false)}>Save Changes</Button>
