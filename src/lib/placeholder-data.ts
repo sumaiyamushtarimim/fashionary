@@ -74,6 +74,18 @@ export const courierIntegrations: CourierIntegration[] = [
             apiKey: 'steadfast_api_key_main',
             secretKey: 'steadfast_secret_key_main'
         }
+    },
+    {
+        id: 'ci-4',
+        businessId: 'BIZ001',
+        businessName: 'Fashionary Main',
+        courierName: 'Carrybee',
+        status: 'Active',
+        credentials: {
+            clientId: 'carrybee_client_id_main',
+            clientSecret: 'carrybee_client_secret_main',
+            clientContext: 'fashionary'
+        }
     }
 ];
 
@@ -458,20 +470,36 @@ export const purchaseOrders: PurchaseOrder[] = [
     },
 ];
 
-const defaultPermissions: Omit<StaffMember['permissions'], 'packingOrders'> = {
-    orders: { create: true, read: true, update: true, delete: false },
-    products: { create: true, read: true, update: true, delete: false },
-    inventory: { create: true, read: true, update: true, delete: false },
-    customers: { create: true, read: true, update: true, delete: false },
-    purchases: { create: true, read: true, update: true, delete: false },
-    expenses: { create: true, read: true, update: false, delete: false },
-    checkPassing: { create: false, read: true, update: true, delete: false },
-    partners: { create: true, read: true, update: true, delete: false },
-    courierReport: { create: false, read: true, update: false, delete: false },
-    staff: { create: false, read: true, update: false, delete: false },
-    settings: { create: false, read: true, update: false, delete: false },
-    analytics: { create: false, read: true, update: false, delete: false },
-};
+// --- PERMISSIONS PRESETS ---
+const NO_ACCESS: Permission = { create: false, read: false, update: false, delete: false };
+const READ_ONLY: Permission = { create: false, read: true, update: false, delete: false };
+const CREATE_READ_UPDATE: Permission = { create: true, read: true, update: true, delete: false };
+const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: true };
+
+const PERMISSIONS = {
+    admin: {
+        orders: FULL_ACCESS, packingOrders: FULL_ACCESS, products: FULL_ACCESS, inventory: FULL_ACCESS,
+        customers: FULL_ACCESS, purchases: FULL_ACCESS, expenses: FULL_ACCESS, checkPassing: FULL_ACCESS,
+        partners: FULL_ACCESS, courierReport: FULL_ACCESS, staff: FULL_ACCESS, settings: FULL_ACCESS, analytics: FULL_ACCESS,
+    },
+    manager: {
+        orders: CREATE_READ_UPDATE, packingOrders: READ_ONLY, products: CREATE_READ_UPDATE, inventory: CREATE_READ_UPDATE,
+        customers: CREATE_READ_UPDATE, purchases: CREATE_READ_UPDATE, expenses: CREATE_READ_UPDATE, checkPassing: { ...CREATE_READ_UPDATE, create: false },
+        partners: CREATE_READ_UPDATE, courierReport: READ_ONLY, staff: { ...CREATE_READ_UPDATE, delete: false }, settings: READ_ONLY, analytics: NO_ACCESS,
+    },
+    moderator: {
+        orders: CREATE_READ_UPDATE, packingOrders: NO_ACCESS, products: NO_ACCESS, inventory: NO_ACCESS,
+        customers: READ_ONLY, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
+        partners: NO_ACCESS, courierReport: READ_ONLY, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
+    },
+    packingAssistant: {
+        orders: NO_ACCESS, packingOrders: { ...CREATE_READ_UPDATE, create: false, delete: false }, products: NO_ACCESS, inventory: NO_ACCESS,
+        customers: NO_ACCESS, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
+        partners: NO_ACCESS, courierReport: NO_ACCESS, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
+    }
+}
+// --- END OF PERMISSIONS PRESETS ---
+
 
 export const staff: StaffMember[] = [
     {
@@ -487,21 +515,7 @@ export const staff: StaffMember[] = [
         financials: { totalEarned: 250000, totalPaid: 250000, dueAmount: 0 },
         paymentHistory: [{ date: '2024-05-01', amount: 50000, notes: 'April Salary' }],
         incomeHistory: [],
-        permissions: { 
-            orders: true,
-            packingOrders: true,
-            products: true,
-            inventory: true,
-            customers: true,
-            purchases: true,
-            expenses: true,
-            checkPassing: true,
-            partners: true,
-            courierReport: true,
-            staff: true,
-            settings: true,
-            analytics: true,
-        },
+        permissions: PERMISSIONS.admin,
     },
     {
         id: 'STAFF002',
@@ -519,7 +533,7 @@ export const staff: StaffMember[] = [
             { date: '2024-05-24', orderId: 'ORD-2024-001', action: 'Created', amount: 50 },
             { date: '2024-05-24', orderId: 'ORD-2024-001', action: 'Confirmed', amount: 100 },
         ],
-        permissions: { ...defaultPermissions, packingOrders: true },
+        permissions: PERMISSIONS.moderator,
     },
      {
         id: 'STAFF003',
@@ -534,7 +548,7 @@ export const staff: StaffMember[] = [
         financials: { totalEarned: 75000, totalPaid: 60000, dueAmount: 15000 },
         paymentHistory: [{ date: '2024-05-01', amount: 15000, notes: 'April Salary' }],
         incomeHistory: [],
-        permissions: { ...defaultPermissions, packingOrders: true, orders: false, products: false, inventory: false, customers: false, purchases: false, expenses: false, checkPassing: false, partners: false, courierReport: false, staff: false, settings: false, analytics: false },
+        permissions: PERMISSIONS.packingAssistant,
     },
 ];
 
@@ -542,3 +556,5 @@ export const bdDistricts: string[] = ["Bagerhat", "Bandarban", "Barguna", "Baris
 export const courierServices: CourierService[] = ['Pathao', 'RedX', 'Steadfast', 'Carrybee'];
 export const paymentMethods: PaymentMethod[] = ['Cash on Delivery', 'bKash', 'Nagad'];
 export const orderPlatforms: OrderPlatform[] = ['TikTok', 'Messenger', 'Facebook', 'Instagram', 'Website'];
+
+    
