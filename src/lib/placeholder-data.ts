@@ -158,10 +158,385 @@ export const products: Product[] = [
     name: 'Leather Biker Jacket', 
     description: 'Timeless style with a modern edge.', 
     price: 350.00, 
-    inventory: 20, _page.tsx`, `src/services/delivery-score.ts`, `src/services/sms.ts`, `src/app/dashboard/products/page.tsx`, `src/app/dashboard/purchases/new/page.tsx`, `src/app/dashboard/settings/page.tsx`, `src/app/dashboard/settings/courier/page.tsx`, `src/app/track-order/page.tsx`, `src/app/dashboard/orders/[id]/edit/page.tsx`, `src/app/dashboard/products/new/page.tsx`, `src/app/dashboard/orders/scan/page.tsx`, `src/app/dashboard/layout.tsx`, `src/app/dashboard/settings/integrations/page.tsx`, `src/app/dashboard/staff/[id]/page.tsx`, `src/components/ui/sidebar.tsx`, `src/app/dashboard/orders/[id]/page.tsx`, `src/app/dashboard/orders/page.tsx`, `src/app/dashboard/orders/new/page.tsx`, `src/app/dashboard/orders/incomplete/page.tsx`, `src/app/dashboard/orders/print/sticker-template.tsx`, `src/app/dashboard/orders/print/sticker/[id]/page.tsx`, `src/app/dashboard/orders/client-page.tsx`, `src/app/dashboard/orders/print/invoice/[id]/page.tsx`, `src/app/dashboard/orders/print/invoice-template.tsx`, `src/app/dashboard/orders/print/bulk/page.tsx`
-*   Modified `src/types/index.ts` to add `Carrybee` to `CourierService` and define `CarrybeeCredentials`.
-*   Modified `src/lib/placeholder-data.ts` to include `Carrybee` in the `courierServices` array.
-*   Modified `src/app/dashboard/settings/courier/page.tsx` to dynamically render fields for Carrybee.
-*   Modified `BACKEND_DOCUMENTATION.md` and `src/BACKEND_DOCUMENTATION.md` to update the Prisma schema and documentation for the new courier service.
+    inventory: 20,
+    image: PlaceHolderImages[3], 
+    categoryId: 'cat-2'
+  },
+  { 
+    id: 'PROD005', 
+    name: 'Linen Blend Blazer', 
+    description: 'Lightweight and perfect for summer.', 
+    price: 150.00, 
+    inventory: 30, 
+    image: PlaceHolderImages[4], 
+    categoryId: 'cat-2-1' 
+  },
+];
 
-The user will now see "Carrybee" as an option when adding a new courier integration, and the correct fields for its credentials will be displayed. This makes the system more extensible for future courier additions.
+export const customers: Omit<Customer, 'totalOrders' | 'totalSpent'>[] = [
+  { id: 'CUST001', name: 'Alice Johnson', email: 'alice.j@example.com', phone: '01712345678', joinDate: '2023-01-15', address: '123 Maple St', district: 'Dhaka', country: 'Bangladesh' },
+  { id: 'CUST002', name: 'Bob Williams', email: 'bob.w@example.com', phone: '01812345679', joinDate: '2023-02-20', address: '456 Oak Ave', district: 'Chittagong', country: 'Bangladesh' },
+  { id: 'CUST003', name: 'Charlie Brown', email: 'charlie.b@example.com', phone: '01912345680', joinDate: '2023-03-10', address: '789 Pine Ln', district: 'Sylhet', country: 'Bangladesh' },
+  { id: 'CUST004', name: 'Diana Prince', email: 'diana.p@example.com', phone: '01612345681', joinDate: '2023-04-05', address: '101 Wonder Rd', district: 'Dhaka', country: 'Bangladesh' },
+  { id: 'CUST005', name: 'Ethan Hunt', email: 'ethan.h@example.com', phone: '01512345682', joinDate: '2023-05-25', address: '202 Mission St', district: 'Khulna', country: 'Bangladesh' },
+];
+
+export const allStatuses: OrderStatus[] = [
+    'New', 'Confirmed', 'Packing Hold', 'Canceled', 'Hold', 'In-Courier',
+    'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Returned', 
+    'Paid Returned', 'Partial'
+];
+
+export const orders: Order[] = [
+    {
+        id: 'ORD-2024-001',
+        customerName: 'Alice Johnson',
+        customerEmail: 'alice.j@example.com',
+        customerPhone: '01712345678',
+        date: '2024-05-24',
+        status: 'Delivered',
+        total: 104.99,
+        shipping: 5.00,
+        products: [
+            { productId: 'PROD001', name: 'Organic Cotton T-Shirt', quantity: 1, price: 25.00, image: PlaceHolderImages[0] },
+            { productId: 'PROD002', name: 'Slim Fit Denim Jeans', quantity: 1, price: 79.99, image: PlaceHolderImages[1] },
+        ],
+        logs: [
+            { title: 'New', timestamp: '2024-05-24T10:00:00Z', description: 'Order created.', user: 'Alice Johnson' },
+            { title: 'Confirmed', timestamp: '2024-05-24T10:05:00Z', description: 'Payment confirmed.', user: 'Admin' },
+            { title: 'RTS (Ready to Ship)', timestamp: '2024-05-24T14:00:00Z', description: 'Order packed.', user: 'Packing Team' },
+            { title: 'Shipped', timestamp: '2024-05-24T18:00:00Z', description: 'Shipped via Pathao.', user: 'Logistics' },
+            { title: 'Delivered', timestamp: '2024-05-25T12:00:00Z', description: 'Delivered to customer.', user: 'Pathao' },
+        ],
+        customerNote: 'Please deliver after 5 PM.',
+        officeNote: 'Customer called to confirm address.',
+        createdBy: 'Alice Johnson',
+        confirmedBy: 'Admin',
+        businessId: 'BIZ001',
+        platform: 'Website',
+        shippingAddress: { address: '123 Maple St', district: 'Dhaka', country: 'Bangladesh' },
+        paymentMethod: 'Cash on Delivery',
+        paidAmount: 104.99,
+    },
+    {
+        id: 'ORD-2024-002',
+        customerName: 'Bob Williams',
+        customerEmail: 'bob.w@example.com',
+        customerPhone: '01812345679',
+        date: '2024-05-23',
+        status: 'Shipped',
+        total: 120.50,
+        shipping: 5.00,
+        products: [
+            { productId: 'PROD003', name: 'Cotton Three-Piece', quantity: 1, price: 120.50, image: PlaceHolderImages[2] },
+        ],
+        logs: [
+            { title: 'New', timestamp: '2024-05-23T11:00:00Z', description: 'Order created.', user: 'Bob Williams' },
+            { title: 'Confirmed', timestamp: '2024-05-23T11:10:00Z', description: 'Payment confirmed.', user: 'Admin' },
+            { title: 'RTS (Ready to Ship)', timestamp: '2024-05-23T15:00:00Z', description: 'Order packed.', user: 'Packing Team' },
+            { title: 'Shipped', timestamp: '2024-05-23T19:00:00Z', description: 'Shipped via RedX.', user: 'Logistics' },
+        ],
+        customerNote: '',
+        officeNote: '',
+        createdBy: 'Bob Williams',
+        confirmedBy: 'Admin',
+        businessId: 'BIZ002',
+        platform: 'Facebook',
+        shippingAddress: { address: '456 Oak Ave', district: 'Chittagong', country: 'Bangladesh' },
+        paymentMethod: 'bKash',
+        paidAmount: 125.50
+    },
+    {
+        id: 'ORD-2024-003',
+        customerName: 'Charlie Brown',
+        customerEmail: 'charlie.b@example.com',
+        customerPhone: '01912345680',
+        date: '2024-05-22',
+        status: 'Confirmed',
+        total: 350.00,
+        shipping: 5.00,
+        products: [
+            { productId: 'PROD004', name: 'Leather Biker Jacket', quantity: 1, price: 350.00, image: PlaceHolderImages[3] },
+        ],
+        logs: [
+            { title: 'New', timestamp: '2024-05-22T09:30:00Z', description: 'Order created.', user: 'Charlie Brown' },
+            { title: 'Confirmed', timestamp: '2024-05-22T09:35:00Z', description: 'Payment confirmed.', user: 'Admin' },
+        ],
+        customerNote: 'Gift wrap please.',
+        officeNote: 'VIP Customer.',
+        createdBy: 'Charlie Brown',
+        confirmedBy: 'Admin',
+        businessId: 'BIZ001',
+        platform: 'Instagram',
+        shippingAddress: { address: '789 Pine Ln', district: 'Sylhet', country: 'Bangladesh' },
+        paymentMethod: 'Nagad',
+        paidAmount: 355.00,
+    },
+    {
+        id: 'ORD-2024-004',
+        customerName: 'Diana Prince',
+        customerEmail: 'diana.p@example.com',
+        customerPhone: '01612345681',
+        date: '2024-05-21',
+        status: 'Canceled',
+        total: 25.00,
+        shipping: 5.00,
+        products: [
+            { productId: 'PROD001', name: 'Organic Cotton T-Shirt', quantity: 1, price: 25.00, image: PlaceHolderImages[0] },
+        ],
+        logs: [
+             { title: 'New', timestamp: '2024-05-21T12:00:00Z', description: 'Order created.', user: 'Diana Prince' },
+             { title: 'Canceled', timestamp: '2024-05-21T12:30:00Z', description: 'Canceled by customer request.', user: 'Admin' },
+        ],
+        customerNote: '',
+        officeNote: 'Customer wanted a different color.',
+        createdBy: 'Diana Prince',
+        confirmedBy: '',
+        businessId: 'BIZ003',
+        platform: 'TikTok',
+        shippingAddress: { address: '101 Wonder Rd', district: 'Dhaka', country: 'Bangladesh' },
+        paymentMethod: 'Cash on Delivery',
+        paidAmount: 0.00,
+    },
+     {
+        id: 'ORD-2024-005',
+        customerName: 'Alice Johnson',
+        customerEmail: 'alice.j@example.com',
+        customerPhone: '01712345678',
+        date: '2024-05-26',
+        status: 'New',
+        total: 150.00,
+        shipping: 5.00,
+        products: [
+            { productId: 'PROD005', name: 'Linen Blend Blazer', quantity: 1, price: 150.00, image: PlaceHolderImages[4] },
+        ],
+        logs: [
+            { title: 'New', timestamp: '2024-05-26T15:00:00Z', description: 'Order created.', user: 'Alice Johnson' },
+        ],
+        customerNote: 'Urgent delivery requested.',
+        officeNote: '',
+        createdBy: 'Alice Johnson',
+        confirmedBy: '',
+        businessId: 'BIZ001',
+        platform: 'Website',
+        shippingAddress: { address: '123 Maple St', district: 'Dhaka', country: 'Bangladesh' },
+        paymentMethod: 'Cash on Delivery',
+        paidAmount: 0.00,
+    },
+     {
+        id: 'INC-2024-001',
+        customerName: 'Bruce Wayne',
+        customerEmail: 'bruce.w@example.com',
+        customerPhone: '01711111111',
+        date: '2024-05-25',
+        status: 'Incomplete',
+        total: 350.00,
+        shipping: 0.00,
+        products: [
+            { productId: 'PROD004', name: 'Leather Biker Jacket', quantity: 1, price: 350.00, image: PlaceHolderImages[3] },
+        ],
+        logs: [],
+        customerNote: '',
+        officeNote: 'Customer abandoned checkout.',
+        createdBy: '',
+        confirmedBy: '',
+        businessId: '',
+        platform: 'Website',
+        shippingAddress: { address: '', district: '', country: '' },
+        paymentMethod: 'Cash on Delivery',
+        paidAmount: 0.00,
+    }
+];
+
+export const inventory: InventoryItem[] = [
+    { id: 'INV001', productId: 'PROD001', productName: 'Organic Cotton T-Shirt', sku: 'OCT-W-S', quantity: 50, locationId: 'LOC001', locationName: 'Godown', lotNumber: 'LOT2401', receivedDate: '2024-01-10' },
+    { id: 'INV002', productId: 'PROD001', productName: 'Organic Cotton T-Shirt', sku: 'OCT-W-M', quantity: 50, locationId: 'LOC001', locationName: 'Godown', lotNumber: 'LOT2401', receivedDate: '2024-01-10' },
+    { id: 'INV003', productId: 'PROD001', productName: 'Organic Cotton T-Shirt', sku: 'OCT-W-L', quantity: 5, locationId: 'LOC002', locationName: 'Showroom 1', lotNumber: 'LOT2401', receivedDate: '2024-01-10' },
+    { id: 'INV004', productId: 'PROD002', productName: 'Slim Fit Denim Jeans', sku: 'SFDJ-3230', quantity: 80, locationId: 'LOC002', locationName: 'Showroom 1', lotNumber: 'LOT2402', receivedDate: '2024-02-15' },
+    { id: 'INV005', productId: 'PROD003', productName: 'Cotton Three-Piece', sku: 'CTP-UNS', quantity: 45, locationId: 'LOC003', locationName: 'Showroom 2', lotNumber: 'LOT2403', receivedDate: '2024-03-20' },
+    { id: 'INV006', productId: 'PROD004', productName: 'Leather Biker Jacket', sku: 'LBJ-BLK-M', quantity: 9, locationId: 'LOC002', locationName: 'Showroom 1', lotNumber: 'LOT2404', receivedDate: '2024-04-05' },
+    { id: 'INV007', productId: 'PROD005', productName: 'Linen Blend Blazer', sku: 'LBB-BEI-M', quantity: 30, locationId: 'LOC001', locationName: 'Godown', lotNumber: 'LOT2405', receivedDate: '2024-05-01' },
+];
+
+export const inventoryMovements: Record<string, InventoryMovement[]> = {
+    'INV006': [
+        { id: 'MOV001', date: '2024-04-05', type: 'Received', quantityChange: 20, balance: 20, notes: 'Initial stock from PO-2024-004', user: 'Admin', reference: 'PO-2024-004' },
+        { id: 'MOV002', date: '2024-04-10', type: 'Transfer', quantityChange: -10, balance: 10, notes: 'Transfer to Showroom 1', user: 'Logistics', toLocationId: 'LOC002' },
+        { id: 'MOV003', date: '2024-05-22', type: 'Sold', quantityChange: -1, balance: 9, notes: 'Sold via order ORD-2024-003', user: 'System', reference: 'ORD-2024-003' },
+    ],
+     'INV003': [
+        { id: 'MOV004', date: '2024-01-10', type: 'Received', quantityChange: 20, balance: 20, notes: 'Initial stock', user: 'Admin', reference: 'PO-2024-001' },
+        { id: 'MOV005', date: '2024-01-15', type: 'Adjusted', quantityChange: -5, balance: 15, notes: 'Damaged goods', user: 'QA Team', reference: 'ADJ-001' },
+        { id: 'MOV006', date: '2024-03-01', type: 'Transfer', quantityChange: -10, balance: 5, notes: 'Sent to Showroom 1', user: 'Logistics', toLocationId: 'LOC002' },
+    ],
+};
+
+
+export const suppliers: Supplier[] = [
+    { id: 'SUP001', name: 'Fabric House Ltd.', contactPerson: 'Mr. Rahim', email: 'rahim@fabric-house.com', phone: '01711223344', address: 'Tejgaon, Dhaka' },
+    { id: 'SUP002', name: 'Textile Mania', contactPerson: 'Ms. Salma', email: 'salma@textilemania.com', phone: '01811223355', address: 'Narayanganj' },
+];
+
+export const vendors: Vendor[] = [
+    { id: 'VEN001', name: 'Dhaka Printers', type: 'Printing', contactPerson: 'Kamal', email: 'kamal@dhakaprinters.com', phone: '01911223366', rate: '15/yard' },
+    { id: 'VEN002', name: 'Perfect Cutters', type: 'Cutting', contactPerson: 'Jamal', email: 'jamal@perfectcut.com', phone: '01611223377', rate: '5/pc' },
+];
+
+export const purchaseOrders: PurchaseOrder[] = [
+    { 
+        id: 'PO-2024-001', 
+        supplier: 'Fabric House Ltd.', 
+        date: '2024-04-15', 
+        status: 'Received', 
+        total: 150000, 
+        items: 100, 
+        logs: [
+            { status: 'Fabric Ordered', timestamp: '2024-04-15T10:00:00Z', description: 'Order placed with supplier.', user: 'Admin'},
+            { status: 'Received', timestamp: '2024-04-25T14:00:00Z', description: 'Fabric received in godown.', user: 'Storekeeper'},
+        ],
+        fabricPayment: {
+            cash: 50000,
+            check: 100000,
+            checkDate: '2024-05-15',
+            checkStatus: 'Passed',
+        }
+    },
+    { 
+        id: 'PO-2024-002', 
+        supplier: 'Textile Mania', 
+        date: '2024-05-01', 
+        status: 'Printing', 
+        total: 250000, 
+        items: 200, 
+        logs: [
+            { status: 'Fabric Ordered', timestamp: '2024-05-01T11:00:00Z', description: 'Order placed with supplier.', user: 'Admin'},
+            { status: 'Printing', timestamp: '2024-05-10T16:00:00Z', description: 'Fabric sent to Dhaka Printers.', user: 'Admin'},
+        ],
+        fabricPayment: {
+            cash: 250000,
+            check: 0,
+            checkDate: '',
+        },
+        printingVendor: 'Dhaka Printers',
+        printingPayment: {
+            cash: 10000,
+            check: 20000,
+            checkDate: '2024-06-10',
+            checkStatus: 'Pending',
+        }
+    },
+    { 
+        id: 'PO-2024-003', 
+        supplier: 'Fabric House Ltd.', 
+        date: '2024-05-20', 
+        status: 'Cutting', 
+        total: 75000, 
+        items: 50, 
+        logs: [
+            { status: 'Fabric Ordered', timestamp: '2024-05-20T12:00:00Z', description: 'Order placed with supplier.', user: 'Admin'},
+            { status: 'Printing', timestamp: '2024-05-25T14:00:00Z', description: 'Fabric sent to Dhaka Printers.', user: 'Admin'},
+            { status: 'Cutting', timestamp: '2024-05-30T14:00:00Z', description: 'Printed fabric sent to Perfect Cutters.', user: 'Admin'},
+        ],
+        fabricPayment: {
+            cash: 0,
+            check: 75000,
+            checkDate: '2024-06-20',
+            checkStatus: 'Pending'
+        },
+        printingVendor: 'Dhaka Printers',
+        printingPayment: {
+            cash: 0,
+            check: 15000,
+            checkDate: '2024-06-25',
+            checkStatus: 'Pending'
+        },
+        cuttingVendor: 'Perfect Cutters',
+        cuttingPayment: {
+            cash: 2500,
+            check: 0,
+            checkDate: '',
+        }
+    },
+];
+
+const defaultPermissions: Omit<StaffMember['permissions'], 'packingOrders'> = {
+    orders: { create: true, read: true, update: true, delete: false },
+    products: { create: true, read: true, update: true, delete: false },
+    inventory: { create: true, read: true, update: true, delete: false },
+    customers: { create: true, read: true, update: true, delete: false },
+    purchases: { create: true, read: true, update: true, delete: false },
+    expenses: { create: true, read: true, update: false, delete: false },
+    checkPassing: { create: false, read: true, update: true, delete: false },
+    partners: { create: true, read: true, update: true, delete: false },
+    courierReport: { create: false, read: true, update: false, delete: false },
+    staff: { create: false, read: true, update: false, delete: false },
+    settings: { create: false, read: true, update: false, delete: false },
+    analytics: { create: false, read: true, update: false, delete: false },
+};
+
+export const staff: StaffMember[] = [
+    {
+        id: 'STAFF001',
+        name: 'Admin User',
+        email: 'admin@fashionary.com',
+        role: 'Admin',
+        lastLogin: '2024-05-27T10:00:00Z',
+        paymentType: 'Salary',
+        salaryDetails: { amount: 50000, frequency: 'Monthly' },
+        performance: { ordersCreated: 50, ordersConfirmed: 45, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
+        financials: { totalEarned: 250000, totalPaid: 250000, dueAmount: 0 },
+        paymentHistory: [{ date: '2024-05-01', amount: 50000, notes: 'April Salary' }],
+        incomeHistory: [],
+        permissions: { 
+            orders: true,
+            packingOrders: true,
+            products: true,
+            inventory: true,
+            customers: true,
+            purchases: true,
+            expenses: true,
+            checkPassing: true,
+            partners: true,
+            courierReport: true,
+            staff: true,
+            settings: true,
+            analytics: true,
+        },
+    },
+    {
+        id: 'STAFF002',
+        name: 'Saleha Akter',
+        email: 'saleha@fashionary.com',
+        role: 'Moderator',
+        lastLogin: '2024-05-26T14:30:00Z',
+        paymentType: 'Commission',
+        commissionDetails: { onOrderCreate: 50, onOrderConfirm: 100 },
+        performance: { ordersCreated: 120, ordersConfirmed: 110, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
+        financials: { totalEarned: 17000, totalPaid: 15000, dueAmount: 2000 },
+        paymentHistory: [{ date: '2024-05-15', amount: 15000, notes: 'Commission Payout' }],
+        incomeHistory: [
+            { date: '2024-05-24', orderId: 'ORD-2024-001', action: 'Created', amount: 50 },
+            { date: '2024-05-24', orderId: 'ORD-2024-001', action: 'Confirmed', amount: 100 },
+        ],
+        permissions: { ...defaultPermissions, packingOrders: true },
+    },
+     {
+        id: 'STAFF003',
+        name: 'Kamrul Hasan',
+        email: 'kamrul@fashionary.com',
+        role: 'Packing Assistant',
+        lastLogin: '2024-05-27T09:00:00Z',
+        paymentType: 'Salary',
+        salaryDetails: { amount: 15000, frequency: 'Monthly' },
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 150, 'Shipped': 0, 'Delivered': 0, 'Returned': 0, 'Paid Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
+        financials: { totalEarned: 75000, totalPaid: 60000, dueAmount: 15000 },
+        paymentHistory: [{ date: '2024-05-01', amount: 15000, notes: 'April Salary' }],
+        incomeHistory: [],
+        permissions: { ...defaultPermissions, packingOrders: true, orders: false, products: false, inventory: false, customers: false, purchases: false, expenses: false, checkPassing: false, partners: false, courierReport: false, staff: false, settings: false, analytics: false },
+    },
+];
+
+export const bdDistricts: string[] = ["Bagerhat", "Bandarban", "Barguna", "Barisal", "Bhola", "Bogra", "Brahmanbaria", "Chandpur", "Chapai Nawabganj", "Chittagong", "Chuadanga", "Comilla", "Cox's Bazar", "Dhaka", "Dinajpur", "Faridpur", "Feni", "Gaibandha", "Gazipur", "Gopalganj", "Habiganj", "Jamalpur", "Jessore", "Jhalokati", "Jhenaidah", "Joypurhat", "Khagrachhari", "Khulna", "Kishoreganj", "Kurigram", "Kushtia", "Lakshmipur", "Lalmonirhat", "Madaripur", "Magura", "Manikganj", "Meherpur", "Moulvibazar", "Munshiganj", "Mymensingh", "Naogaon", "Narail", "Narayanganj", "Narsingdi", "Natore", "Netrokona", "Nilphamari", "Noakhali", "Pabna", "Panchagarh", "Patuakhali", "Pirojpur", "Rajbari", "Rajshahi", "Rangamati", "Rangpur", "Satkhira", "Shariatpur", "Sherpur", "Sirajganj", "Sunamganj", "Sylhet", "Tangail", "Thakurgaon"];
+export const courierServices: CourierService[] = ['Pathao', 'RedX', 'Steadfast', 'Carrybee'];
+export const paymentMethods: PaymentMethod[] = ['Cash on Delivery', 'bKash', 'Nagad'];
+export const orderPlatforms: OrderPlatform[] = ['TikTok', 'Messenger', 'Facebook', 'Instagram', 'Website'];
