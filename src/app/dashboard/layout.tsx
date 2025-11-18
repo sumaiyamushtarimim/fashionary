@@ -66,6 +66,7 @@ const navItems = [
             { href: "/dashboard/packing-orders", label: "Packing Orders" },
         ]
     },
+    ...(isCourierReportEnabled ? [{ href: "/dashboard/courier-report", icon: FileSearch, label: "Courier Report" }] : []),
     { href: "/dashboard/products", icon: Package, label: "Products" },
     { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
     { href: "/dashboard/customers", icon: Users, label: "Customers" },
@@ -73,7 +74,6 @@ const navItems = [
     { href: "/dashboard/expenses", icon: Wallet, label: "Expenses" },
     { href: "/dashboard/check-passing", icon: Landmark, label: "Check Passing"},
     { href: "/dashboard/partners", icon: Handshake, label: "Partners" },
-    ...(isCourierReportEnabled ? [{ href: "/dashboard/courier-report", icon: FileSearch, label: "Courier Report" }] : []),
     { href: "/dashboard/analytics", icon: BarChartHorizontal, label: "Analytics" },
     { href: "/dashboard/staff", icon: User, label: "Staff" },
     { href: "/dashboard/settings", icon: Settings, label: "Settings" },
