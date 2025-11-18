@@ -38,6 +38,7 @@ import { getCourierIntegrations } from '@/services/integrations';
 import { getCourierServices, getBusinesses } from '@/services/partners';
 import type { CourierIntegration, CourierService, Business, PathaoCredentials, SteadfastCredentials, RedXCredentials, CarrybeeCredentials } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 
 const pathaoFields = [
     { name: 'clientId', label: 'Client ID', placeholder: 'Enter your Pathao Client ID' },
@@ -256,6 +257,29 @@ export default function CourierSettingsPage() {
                     Manage your shipping and courier service integrations for each business.
                 </p>
             </div>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle>General Settings</CardTitle>
+                    <CardDescription>
+                        Set default values to be used across all courier dispatches.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="default-note">Default Office Note</Label>
+                        <Textarea 
+                            id="default-note" 
+                            placeholder="e.g., Please call before delivery. Fragile item, handle with care." 
+                        />
+                        <p className="text-xs text-muted-foreground">
+                            This note will be added to the office note field for new orders or when dispatching to a courier.
+                        </p>
+                    </div>
+                    <Button>Save Settings</Button>
+                </CardContent>
+            </Card>
+
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
