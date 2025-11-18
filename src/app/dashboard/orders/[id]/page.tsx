@@ -28,7 +28,8 @@ import {
   Ban,
   RotateCcw,
   MessageSquare,
-  StickyNote
+  StickyNote,
+  PackageSearch,
 } from 'lucide-react';
 import { format, isAfter, subHours } from 'date-fns';
 import * as React from 'react';
@@ -522,7 +523,7 @@ export default function OrderDetailsPage() {
                     <CardHeader><CardTitle>Order Actions</CardTitle></CardHeader>
                     <CardContent className="space-y-4">
                         <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                            <div className="space-y-4">
                                 <FormField control={form.control} name="status" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Update Status</FormLabel>
@@ -534,8 +535,8 @@ export default function OrderDetailsPage() {
                                 <FormField control={form.control} name="officeNote" render={({ field }) => (
                                     <FormItem><FormLabel>Update Office Note</FormLabel><FormControl><Textarea {...field} /></FormControl></FormItem>
                                 )} />
-                                <Button className='w-full' type="submit"><Save className="mr-2 h-4 w-4" /> Save Changes</Button>
-                            </form>
+                                <Button className='w-full' onClick={form.handleSubmit(onSubmit)}><Save className="mr-2 h-4 w-4" /> Save Changes</Button>
+                            </div>
                         </Form>
                         <Separator />
                         <div className="space-y-2">
@@ -574,6 +575,3 @@ export default function OrderDetailsPage() {
         </div>
   );
 }
-
-
-    
