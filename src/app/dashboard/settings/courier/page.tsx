@@ -35,8 +35,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getCourierIntegrations, getCourierServices } from '@/services/integrations';
-import { getBusinesses } from '@/services/partners';
+import { getCourierIntegrations } from '@/services/integrations';
+import { getCourierServices, getBusinesses } from '@/services/partners';
 import type { CourierIntegration, CourierService, Business } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -55,6 +55,12 @@ const steadfastFields = [
 
 const redxFields = [
      { name: 'accessToken', label: 'API Access Token', placeholder: 'Enter your RedX API Access Token', type: 'password' },
+];
+
+const carrybeeFields = [
+    { name: 'clientId', label: 'Client ID', placeholder: 'Enter your Carrybee Client ID' },
+    { name: 'clientSecret', label: 'Client Secret', placeholder: 'Enter your Carrybee Client Secret', type: 'password' },
+    { name: 'clientContext', label: 'Client Context', placeholder: 'Enter your Carrybee Client Context' },
 ];
 
 
@@ -100,6 +106,8 @@ export default function CourierSettingsPage() {
         fields = steadfastFields;
     } else if (selectedIntegration?.courierName === 'RedX') {
         fields = redxFields;
+    } else if (selectedIntegration?.courierName === 'Carrybee') {
+        fields = carrybeeFields;
     }
 
     return (
@@ -280,8 +288,4 @@ export default function CourierSettingsPage() {
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
                         <Button onClick={handleSaveChanges}>Save Configuration</Button>
                     </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </div>
-    );
-}
+                </

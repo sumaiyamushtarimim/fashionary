@@ -1,5 +1,3 @@
-
-
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import type { LucideIcon } from 'lucide-react';
 
@@ -74,7 +72,7 @@ export const allStatuses: OrderStatus[] = [
 
 export type OrderPlatform = 'TikTok' | 'Messenger' | 'Facebook' | 'Instagram' | 'Website';
 export type PaymentMethod = 'Cash on Delivery' | 'bKash' | 'Nagad';
-export type CourierService = 'Pathao' | 'RedX' | 'Steadfast';
+export type CourierService = 'Pathao' | 'RedX' | 'Steadfast' | 'Carrybee';
 
 export type Business = {
     id: string;
@@ -346,13 +344,19 @@ export type RedXCredentials = {
     accessToken: string;
 };
 
+export type CarrybeeCredentials = {
+    clientId: string;
+    clientSecret: string;
+    clientContext: string;
+};
+
 export type CourierIntegration = {
     id: string;
     businessId: string;
     businessName: string;
     courierName: CourierService;
     status: 'Active' | 'Inactive';
-    credentials: PathaoCredentials | SteadfastCredentials | RedXCredentials;
+    credentials: PathaoCredentials | SteadfastCredentials | RedXCredentials | CarrybeeCredentials;
     deliveryType?: 48 | 12; // For Pathao: 48 for Normal, 12 for On Demand
     itemType?: 1 | 2; // For Pathao: 1 for Document, 2 for Parcel
 };
