@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import Image from 'next/image';
@@ -8,7 +7,6 @@ import { useParams, useRouter } from 'next/navigation';
 import {
   ChevronLeft,
   Copy,
-  CreditCard,
   MoreVertical,
   Truck,
   Package,
@@ -22,14 +20,6 @@ import {
   Store,
   Globe,
   Edit,
-  Trash2,
-  PlusCircle,
-  TrendingUp,
-  TrendingDown,
-  ArrowRight,
-  PackageSearch,
-  BookUser,
-  StickyNote,
   Printer,
   File,
   Loader2,
@@ -37,10 +27,12 @@ import {
   PackageCheck,
   Ban,
   RotateCcw,
+  MessageSquare,
+  StickyNote
 } from 'lucide-react';
-import { format, formatDistanceToNow, isAfter, subHours } from 'date-fns';
+import { format, isAfter, subHours } from 'date-fns';
 import * as React from 'react';
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
@@ -80,7 +72,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -103,15 +94,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { getOrderById, getStatuses, getOrdersByCustomerPhone } from '@/services/orders';
-import { getProducts } from '@/services/products';
 import { getBusinesses, getCourierServices } from '@/services/partners';
 import { getDeliveryReport, type DeliveryReport } from '@/services/delivery-score';
-import type { Product, Business, OrderPlatform, OrderProduct, OrderLog, Order as OrderType, OrderStatus, CourierService } from '@/types';
+import type { OrderProduct, OrderLog, Order as OrderType, OrderStatus, CourierService, Business } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -128,6 +115,8 @@ const statusColors: Record<OrderType['status'], string> = {
     'Returned': 'bg-gray-500/20 text-gray-700',
     'Paid Returned': 'bg-amber-500/20 text-amber-700',
     'Partial': 'bg-fuchsia-500/20 text-fuchsia-700',
+    'Incomplete': 'bg-gray-500/20 text-gray-700',
+    'Incomplete-Cancelled': 'bg-red-500/20 text-red-700'
 };
 
 const statusIcons: Record<string, React.ElementType> = {
@@ -145,10 +134,8 @@ const statusIcons: Record<string, React.ElementType> = {
     'Notes updated': FileText, 
     'Order Edited': Edit,
     'Sent to Pathao': Truck,
+    'Packing Hold': Clock,
 };
-
-
-const allPlatforms: OrderPlatform[] = ['TikTok', 'Messenger', 'Facebook', 'Instagram', 'Website'];
 
 
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -169,7 +156,7 @@ function OrderHistory({ logs }: { logs: OrderLog[] }) {
     const sortedLogs = React.useMemo(() => logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()), [logs]);
 
     return (
-        <Card className="lg:col-span-2 xl:col-span-1">
+        <Card>
             <CardHeader>
                 <CardTitle>Order History</CardTitle>
             </CardHeader>
@@ -221,26 +208,11 @@ function OrderHistory({ logs }: { logs: OrderLog[] }) {
     );
 }
 
-const orderFormSchema = z.object({
-  customerName: z.string().min(1, "Customer name is required"),
-  customerPhone: z.string().min(1, "Phone number is required"),
-  customerEmail: z.string().email().optional().or(z.literal('')),
-  shippingAddress: z.string().min(1, "Shipping address is required"),
-  products: z.array(z.object({
-    productId: z.string(),
-    name: z.string(),
-    image: z.any(),
-    quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
-    price: z.number(),
-  })).min(1, "Order must have at least one product"),
-  shipping: z.coerce.number().min(0, "Shipping cost cannot be negative"),
-  status: z.string(), // or z.enum(allStatuses)
-  businessId: z.string().optional(),
-  platform: z.string().optional(),
-  customerNote: z.string().optional(),
+const statusUpdateSchema = z.object({
+  status: z.string().min(1, "Status is required."),
   officeNote: z.string().optional(),
 });
-type OrderFormValues = z.infer<typeof orderFormSchema>;
+type StatusUpdateFormValues = z.infer<typeof statusUpdateSchema>;
 
 export default function OrderDetailsPage() {
   const params = useParams();
@@ -251,60 +223,29 @@ export default function OrderDetailsPage() {
   const [customerHistory, setCustomerHistory] = React.useState<OrderType[]>([]);
   const [deliveryReport, setDeliveryReport] = React.useState<DeliveryReport | null>(null);
   const [isReportLoading, setIsReportLoading] = React.useState(true);
-  const [allProducts, setAllProducts] = React.useState<Product[]>([]);
   const [allStatuses, setAllStatuses] = React.useState<OrderStatus[]>([]);
   const [businesses, setBusinesses] = React.useState<Business[]>([]);
   const [courierServices, setCourierServices] = React.useState<CourierService[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [isEditing, setIsEditing] = React.useState(false);
-  const [isSaving, setIsSaving] = React.useState(false);
   const [isSending, setIsSending] = React.useState(false);
   const [selectedCourier, setSelectedCourier] = React.useState<string | undefined>();
   const [includeCustomerNote, setIncludeCustomerNote] = React.useState(false);
   
-  const form = useForm<OrderFormValues>({
-    resolver: zodResolver(orderFormSchema),
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "products",
-  });
-  
-  const productsWatcher = form.watch("products");
-  const shippingWatcher = form.watch("shipping");
-
-  const subtotal = React.useMemo(() => 
-    productsWatcher?.reduce((acc, p) => acc + (p.price * p.quantity), 0) || 0, 
-    [productsWatcher]
-  );
-  const tax = subtotal * 0.08;
-  const total = subtotal + (shippingWatcher || 0) + tax;
-
+  const form = useForm<StatusUpdateFormValues>();
 
   React.useEffect(() => {
     if (orderId) {
         setIsLoading(true);
         Promise.all([
             getOrderById(orderId),
-            getProducts(),
-            getBusinesses(),
             getStatuses(),
+            getBusinesses(),
             getCourierServices()
-        ]).then(([orderData, productsData, businessesData, statusesData, couriersData]) => {
+        ]).then(([orderData, statusesData, businessesData, couriersData]) => {
             if (orderData) {
                 setOrder(orderData);
                 form.reset({
-                  customerName: orderData.customerName,
-                  customerPhone: orderData.customerPhone,
-                  customerEmail: orderData.customerEmail,
-                  shippingAddress: orderData.shippingAddress.address,
-                  products: orderData.products,
-                  shipping: orderData.shipping || 5.0,
                   status: orderData.status,
-                  businessId: orderData.businessId,
-                  platform: orderData.platform,
-                  customerNote: orderData.customerNote,
                   officeNote: orderData.officeNote,
                 });
                 
@@ -316,11 +257,9 @@ export default function OrderDetailsPage() {
                 getOrdersByCustomerPhone(orderData.customerPhone).then(history => {
                     setCustomerHistory(history);
                 })
-
             }
-            setAllProducts(productsData);
-            setBusinesses(businessesData);
             setAllStatuses(statusesData);
+            setBusinesses(businessesData);
             setCourierServices(couriersData);
             setIsLoading(false);
         });
@@ -339,62 +278,11 @@ export default function OrderDetailsPage() {
     return { totalOrders, delivered, canceled, returned, processing, recentOrders };
   }, [customerHistory]);
 
-
-  const courierStatsData = React.useMemo(() => {
-    if (!deliveryReport || !deliveryReport.Summaries) return [];
-    return Object.entries(deliveryReport.Summaries).map(([name, data]) => ({
-        name,
-        total: data["Total Parcels"] || data["Total Delivery"] || 0,
-        delivered: data["Delivered Parcels"] || data["Successful Delivery"] || 0,
-        canceled: data["Canceled Parcels"] || data["Canceled Delivery"] || 0,
-    }));
-  }, [deliveryReport]);
-  
-    const { totalParcels, totalDelivered, totalCanceled } = React.useMemo(() => {
-        return courierStatsData.reduce((acc, courier) => {
-            acc.totalParcels += courier.total;
-            acc.totalDelivered += courier.delivered;
-            acc.totalCanceled += courier.canceled;
-            return acc;
-        }, { totalParcels: 0, totalDelivered: 0, totalCanceled: 0 });
-    }, [courierStatsData]);
-
-  const deliveryRatio = totalParcels > 0 ? (totalDelivered / totalParcels) * 100 : 0;
-  const cancelRatio = totalParcels > 0 ? (totalCanceled / totalParcels) * 100 : 0;
-
-  
-  const handleEditToggle = () => {
-    if (isEditing && order) { // Cancel logic
-        form.reset({
-          customerName: order.customerName,
-          customerPhone: order.customerPhone,
-          customerEmail: order.customerEmail,
-          shippingAddress: order.shippingAddress.address,
-          products: order.products,
-          shipping: order.shipping || 5.0,
-          status: order.status,
-          businessId: order.businessId,
-          platform: order.platform,
-          customerNote: order.customerNote,
-          officeNote: order.officeNote,
-        });
-    }
-    setIsEditing(!isEditing);
-  };
-  
-  function onSubmit(data: OrderFormValues) {
-    setIsSaving(true);
-    console.log("Saving changes...", data);
-    // Here you would call an API to save the order
-    // e.g., updateOrder(orderId, data).then(...)
-    setTimeout(() => {
-        setIsEditing(false);
-        setIsSaving(false);
-        toast({
-            title: "Order Updated",
-            description: `Changes for order ${orderId} have been saved.`,
-        });
-    }, 1500);
+  function onSubmit(data: StatusUpdateFormValues) {
+    toast({
+        title: "Order Updated",
+        description: `Status changed to ${data.status}.`,
+    });
   }
 
   function handleSendToCourier() {
@@ -407,19 +295,6 @@ export default function OrderDetailsPage() {
         });
     }, 1500)
   }
-
-  const handleAddProduct = () => {
-      const firstProduct = allProducts[0];
-      if (!firstProduct) return;
-      
-      append({
-          productId: firstProduct.id,
-          name: firstProduct.name,
-          image: firstProduct.image,
-          quantity: 1,
-          price: firstProduct.price
-      });
-  };
 
   if (isLoading) {
     return <div className="p-6">Loading order details...</div>;
@@ -437,492 +312,237 @@ export default function OrderDetailsPage() {
   }
   
   const whatsappMessage = `Hello ${order.customerName}, regarding your order ${order.id}:\n- Total: ৳${order.total.toFixed(2)}\n- Status: ${order.status}\n\nWe will update you shortly. Thank you!`;
+  const subtotal = order.products.reduce((acc, p) => acc + p.price * p.quantity, 0);
+  const tax = subtotal * 0.08;
+  const total = subtotal + order.shipping + tax;
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon" className="h-7 w-7" asChild>
-              <Link href="/dashboard/orders">
-                <ChevronLeft className="h-4 w-4" />
-                <span className="sr-only">Back</span>
-              </Link>
+    <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+        <div className="flex items-center gap-4">
+        <Button variant="outline" size="icon" className="h-7 w-7" asChild>
+            <Link href="/dashboard/orders">
+            <ChevronLeft className="h-4 w-4" />
+            <span className="sr-only">Back</span>
+            </Link>
+        </Button>
+        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+            {order.id}
+        </h1>
+        <Badge
+            variant="outline"
+            className={cn('ml-auto sm:ml-0', statusColors[order.status])}
+        >
+            {order.status}
+        </Badge>
+        <div className="hidden items-center gap-2 md:ml-auto md:flex">
+            <Button variant="outline" size="sm" asChild>
+                <Link href={`/dashboard/orders/print/invoice/${order.id}`} target="_blank">
+                    <Printer className="mr-2 h-4 w-4" />
+                    Print Invoice
+                </Link>
             </Button>
-            <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-              {order.id}
-            </h1>
-            <Badge
-              variant="outline"
-              className={cn('ml-auto sm:ml-0', statusColors[order.status])}
-            >
-              {order.status}
-            </Badge>
-            <div className="hidden items-center gap-2 md:ml-auto md:flex">
-                <Button variant="outline" size="sm" asChild>
-                    <Link href={`/print/orders/invoice/${order.id}`} target="_blank">
-                        <Printer className="mr-2 h-4 w-4" />
-                        Print Invoice
-                    </Link>
-                </Button>
-                 <Button variant="outline" size="sm" asChild>
-                    <Link href={`/print/orders/sticker/${order.id}`} target="_blank">
-                        <File className="mr-2 h-4 w-4" />
-                        Print Sticker
-                    </Link>
-                </Button>
-              {isEditing ? (
-                <>
-                  <Button variant="outline" size="sm" type="button" onClick={handleEditToggle} disabled={isSaving}>Cancel</Button>
-                  <Button size="sm" type="submit" disabled={isSaving}>
-                      {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                      {isSaving ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                </>
-              ) : (
-                <Button variant="outline" size="sm" type="button" onClick={handleEditToggle}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit Order
-                </Button>
-              )}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-8 w-8">
-                    <MoreVertical className="h-3.5 w-3.5" />
-                    <span className="sr-only">More</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>Export</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="grid auto-rows-max items-start gap-4 md:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Order Items</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader className="hidden sm:table-header-group">
-                      <TableRow>
-                        <TableHead className="w-[80px]">Image</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>SKU</TableHead>
-                        <TableHead className="text-right">Qty</TableHead>
-                        <TableHead className="text-right">Price</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
-                        {isEditing && <TableHead><span className="sr-only">Actions</span></TableHead>}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody className="flex flex-col sm:table-row-group gap-4">
-                      {fields.map((product, index) => (
-                        <TableRow key={product.id} className="flex sm:table-row flex-col sm:flex-row rounded-lg border sm:border-0 p-4 sm:p-0">
-                          <TableCell className="p-0 sm:p-4 w-[80px] hidden sm:table-cell">
-                            <Image
-                              alt={product.name}
-                              className="aspect-square rounded-md object-cover"
-                              height="64"
-                              src={product.image.imageUrl}
-                              width="64"
-                            />
-                          </TableCell>
-                           <TableCell className="font-medium p-0 sm:p-4 w-full">
-                                <div className="flex items-start gap-4 pb-4 sm:pb-0 border-b sm:border-0">
-                                    <Image
-                                        alt={product.name}
-                                        className="aspect-square rounded-md object-cover sm:hidden"
-                                        height="64"
-                                        src={product.image.imageUrl}
-                                        width="64"
-                                    />
-                                    <div className="flex-1">
-                                        <p className="font-medium">{product.name}</p>
-                                        <p className="text-sm text-muted-foreground">SKU-452-187</p>
-                                    </div>
-                                    {isEditing && (
-                                        <Button variant="ghost" size="icon" className="text-destructive" type="button" onClick={() => remove(index)}>
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    )}
-                                </div>
-                                <div className="sm:hidden pt-4">
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <div className="col-span-1">
-                                            <p className="text-sm text-muted-foreground">Qty</p>
-                                             {isEditing ? (
-                                                <FormField
-                                                  control={form.control}
-                                                  name={`products.${index}.quantity`}
-                                                  render={({ field }) => (
-                                                    <Input type="number" {...field} className="h-8 w-16 text-center"/>
-                                                  )}
-                                                />
-                                            ) : (
-                                                <p className="font-medium">{product.quantity}</p>
-                                            )}
-                                        </div>
-                                        <div className="col-span-1 text-right">
-                                            <p className="text-sm text-muted-foreground">Price</p>
-                                            <p className="font-medium">৳{product.price.toFixed(2)}</p>
-                                        </div>
-                                         <div className="col-span-1 text-right">
-                                            <p className="text-sm text-muted-foreground">Total</p>
-                                            <p className="font-medium">৳{(product.price * product.quantity).toFixed(2)}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </TableCell>
-                          <TableCell className="hidden sm:table-cell">SKU-452-187</TableCell>
-                          <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
-                              {isEditing ? (
-                                <FormField
-                                  control={form.control}
-                                  name={`products.${index}.quantity`}
-                                  render={({ field }) => (
-                                    <Input type="number" {...field} className="h-8 w-16 text-center ml-auto"/>
-                                  )}
-                                />
-                              ) : (
-                                product.quantity
-                              )}
-                          </TableCell>
-                          <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
-                            ৳{product.price.toFixed(2)}
-                          </TableCell>
-                          <TableCell className="p-0 sm:p-4 text-right hidden sm:table-cell">
-                            ৳{(product.price * product.quantity).toFixed(2)}
-                          </TableCell>
-                           {isEditing && (
-                                <TableCell className="hidden sm:table-cell">
-                                    <Button variant="ghost" size="icon" className="text-destructive" type="button" onClick={() => remove(index)}>
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </TableCell>
-                            )}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  {isEditing && (
-                      <div className="mt-4">
-                          <Button variant="outline" size="sm" type="button" onClick={handleAddProduct}><PlusCircle className="mr-2 h-4 w-4" />Add Product</Button>
-                      </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                    <CardTitle>Payment Summary</CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-2'>
-                    <div className="flex items-center justify-between">
-                        <dt className="text-muted-foreground">Subtotal</dt>
-                        <dd>৳{subtotal.toFixed(2)}</dd>
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <dt className="text-muted-foreground">Shipping</dt>
-                            {isEditing ? (
-                            <FormField
-                                control={form.control}
-                                name="shipping"
-                                render={({ field }) => (
-                                <Input type="number" {...field} className="h-8 w-24 text-right" />
-                                )}
-                            />
-                        ) : (
-                            <dd>৳{shippingWatcher.toFixed(2)}</dd>
-                        )}
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <dt className="text-muted-foreground">Tax</dt>
-                        <dd>৳{tax.toFixed(2)}</dd>
-                    </div>
-                    <Separator />
-                    <div className="flex items-center justify-between font-semibold text-lg">
-                        <dt>Total</dt>
-                        <dd>৳{total.toFixed(2)}</dd>
-                    </div>
-                </CardContent>
-              </Card>
-
-              <Card className="lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle>Delivery & Courier Report</CardTitle>
-                        <CardDescription>
-                            Parcel history for customer phone number: {order.customerPhone}
-                        </CardDescription>
-                    </CardHeader>
-                     <CardContent className="grid gap-4">
-                        {isReportLoading ? (
-                             <div className="space-y-4">
-                                <Skeleton className="h-4 w-full" />
-                                <Skeleton className="h-8 w-full" />
-                                <Skeleton className="h-8 w-full" />
-                                <Skeleton className="h-8 w-full" />
-                            </div>
-                        ) : deliveryReport ? (
-                            <>
-                                <div className="grid grid-cols-4 gap-x-4 border-b pb-2 text-xs font-medium text-muted-foreground">
-                                    <div className="col-span-1">Courier</div>
-                                    <div className="col-span-1 text-center">Total</div>
-                                    <div className="col-span-1 text-center">Delivered</div>
-                                    <div className="col-span-1 text-center">Canceled</div>
-                                </div>
-                                {courierStatsData.map(courier => (
-                                    <div key={courier.name} className="grid grid-cols-4 gap-x-4 items-center text-sm">
-                                        <div className="col-span-1 font-semibold">{courier.name}</div>
-                                        <div className="col-span-1 text-center font-medium">{courier.total}</div>
-                                        <div className="col-span-1 text-center font-medium text-green-600">{courier.delivered}</div>
-                                        <div className="col-span-1 text-center font-medium text-red-500">{courier.canceled}</div>
-                                    </div>
-                                ))}
-                                <Separator />
-                                <div className="grid grid-cols-4 gap-x-4 items-center text-sm font-bold">
-                                    <div className="col-span-1">Total</div>
-                                    <div className="col-span-1 text-center">{totalParcels}</div>
-                                    <div className="col-span-1 text-center text-green-600">{totalDelivered}</div>
-                                    <div className="col-span-1 text-center text-red-500">{totalCanceled}</div>
-                                </div>
-                                <Separator />
-                                <div className="space-y-2">
-                                    <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                                        <div className="bg-green-500 h-2.5 rounded-l-full" style={{ width: `${deliveryRatio}%`, display: 'inline-block' }}></div>
-                                        <div className="bg-red-500 h-2.5 rounded-r-full" style={{ width: `${cancelRatio}%`, display: 'inline-block' }}></div>
-                                    </div>
-                                    <div className="flex justify-between text-sm mt-2">
-                                        <div className="flex items-center gap-2">
-                                            <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                                            <span>Delivery: <strong>{deliveryRatio.toFixed(1)}%</strong></span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="h-2 w-2 rounded-full bg-red-500"></span>
-                                            <span>Cancel: <strong>{cancelRatio.toFixed(1)}%</strong></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <p className="text-muted-foreground text-center">Could not load delivery report.</p>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
-            <div className="md:col-span-1 grid auto-rows-max gap-4">
+            <Button variant="outline" size="sm" asChild>
+                <Link href={`/dashboard/orders/print/sticker/${order.id}`} target="_blank">
+                    <File className="mr-2 h-4 w-4" />
+                    Print Sticker
+                </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+                <Link href={`/dashboard/orders/${order.id}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Order
+                </Link>
+            </Button>
+        </div>
+        </div>
+        <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid auto-rows-max items-start gap-6 md:col-span-2">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Order Details</CardTitle>
+                        <CardTitle>Order Items</CardTitle>
                     </CardHeader>
-                    <CardContent className="grid gap-4">
-                        <div className="space-y-2">
-                            <p className="font-medium">Order Date</p>
-                            <p className="text-muted-foreground">{format(new Date(order.date), "MMM d, yyyy")}</p>
-                        </div>
-                         <Separator />
-                         <FormField
-                            control={form.control}
-                            name="status"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Update Status</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSaving}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select a status" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {allStatuses.map(status => (
-                                                <SelectItem key={status} value={status}>{status}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </FormItem>
-                            )}
-                        />
-                         <Button className='w-full' type="submit" disabled={isSaving}>
-                             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                             {isSaving ? 'Saving...' : 'Save Changes'}
-                        </Button>
+                    <CardContent>
+                        <Table>
+                            <TableHeader className="hidden sm:table-header-group">
+                            <TableRow>
+                                <TableHead className="w-[80px]">Image</TableHead>
+                                <TableHead>Name</TableHead>
+                                <TableHead>SKU</TableHead>
+                                <TableHead className="text-right">Qty</TableHead>
+                                <TableHead className="text-right">Price</TableHead>
+                                <TableHead className="text-right">Total</TableHead>
+                            </TableRow>
+                            </TableHeader>
+                            <TableBody className="flex flex-col sm:table-row-group gap-4">
+                            {order.products.map((product) => (
+                                <TableRow key={product.productId} className="flex sm:table-row flex-col sm:flex-row rounded-lg border sm:border-0 p-4 sm:p-0">
+                                <TableCell className="p-0 sm:p-4 w-full sm:w-[80px]">
+                                    <div className='flex gap-4 items-center'>
+                                        <Image
+                                            alt={product.name}
+                                            className="aspect-square rounded-md object-cover"
+                                            height="64"
+                                            src={product.image.imageUrl}
+                                            width="64"
+                                        />
+                                        <div className="sm:hidden flex-1">
+                                            <p className="font-medium">{product.name}</p>
+                                            <p className="text-sm text-muted-foreground">SKU-452-187</p>
+                                        </div>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="font-medium hidden sm:table-cell">{product.name}</TableCell>
+                                <TableCell className="hidden sm:table-cell">SKU-452-187</TableCell>
+                                <TableCell className="text-right p-0 sm:p-4 hidden sm:table-cell">{product.quantity}</TableCell>
+                                <TableCell className="text-right p-0 sm:p-4 hidden sm:table-cell font-mono">৳{product.price.toFixed(2)}</TableCell>
+                                <TableCell className="text-right p-0 sm:p-4 hidden sm:table-cell font-mono">৳{(product.price * product.quantity).toFixed(2)}</TableCell>
+
+                                <div className="sm:hidden pt-4 mt-4 border-t w-full grid grid-cols-3 gap-2">
+                                    <div className="col-span-1">
+                                        <p className="text-sm text-muted-foreground">Qty</p>
+                                        <p className="font-medium">{product.quantity}</p>
+                                    </div>
+                                    <div className="col-span-1 text-right">
+                                        <p className="text-sm text-muted-foreground">Price</p>
+                                        <p className="font-medium font-mono">৳{product.price.toFixed(2)}</p>
+                                    </div>
+                                    <div className="col-span-1 text-right">
+                                        <p className="text-sm text-muted-foreground">Total</p>
+                                        <p className="font-medium font-mono">৳{(product.price * product.quantity).toFixed(2)}</p>
+                                    </div>
+                                </div>
+                                </TableRow>
+                            ))}
+                            </TableBody>
+                        </Table>
                     </CardContent>
                 </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Customer & Shipping</CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                    {isEditing ? (
-                        <>
-                            <FormField name="customerName" control={form.control} render={({ field }) => (<FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} disabled={isSaving} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField name="customerPhone" control={form.control} render={({ field }) => (<FormItem><FormLabel>Phone</FormLabel><FormControl><Input {...field} disabled={isSaving} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField name="customerEmail" control={form.control} render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input {...field} disabled={isSaving} /></FormControl><FormMessage /></FormItem>)} />
-                            <FormField name="shippingAddress" control={form.control} render={({ field }) => (<FormItem><FormLabel>Shipping Address</FormLabel><FormControl><Textarea {...field} disabled={isSaving} /></FormControl><FormMessage /></FormItem>)} />
-                        </>
-                    ) : (
-                        <>
-                            <div className="flex items-center justify-between">
-                                <div className="font-medium">{order.customerName}</div>
-                                <Button variant="ghost" size="icon" className="h-8 w-8" type="button"><Copy className="h-4 w-4" /><span className="sr-only">Copy</span></Button>
-                            </div>
-                            <div className="text-sm text-muted-foreground"><p>1 order</p></div>
-                            <Separator />
-                            <div className="grid gap-2">
-                                <div className="font-medium">Contact Information</div>
-                                <div className="text-muted-foreground">
-                                {order.customerEmail && (
-                                    <div className="flex items-center gap-2"><p>{order.customerEmail}</p>
-                                        <Button variant="ghost" size="icon" className="h-7 w-7" asChild><a href={`mailto:${order.customerEmail}?subject=Regarding your order ${order.id}`}><Mail className="h-4 w-4" /></a></Button>
-                                    </div>
-                                )}
-                                <div className="flex items-center gap-2">
-                                    <p>{order.customerPhone}</p>
-                                    <Button variant="ghost" size="icon" className="h-7 w-7" asChild><a href={`tel:${order.customerPhone}`}><Phone className="h-4 w-4" /></a></Button>
-                                    <Button variant="ghost" size="icon" className="h-7 w-7" asChild><a href={`https://wa.me/${order.customerPhone.replace(/\+/g, '')}?text=${encodeURIComponent(whatsappMessage)}`} target="_blank" rel="noopener noreferrer"><WhatsAppIcon className="h-4 w-4" /></a></Button>
-                                </div>
-                                </div>
-                            </div>
-                            <Separator />
-                             <Card>
-                                <CardHeader className="p-2 pt-0">
-                                    <CardTitle className="text-sm">Customer History</CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-2 pt-0 text-xs">
-                                     <div className="flex flex-wrap gap-x-4 gap-y-2">
-                                        <div className="flex items-center gap-2">
-                                            <Package className="w-4 h-4 text-muted-foreground" />
-                                            <span>Total: {customerHistoryStats.totalOrders}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <PackageCheck className="w-4 h-4 text-green-600" />
-                                            <span>Delivered: {customerHistoryStats.delivered}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Ban className="w-4 h-4 text-red-500" />
-                                            <span>Canceled: {customerHistoryStats.canceled}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <RotateCcw className="w-4 h-4 text-orange-500" />
-                                            <span>Returned: {customerHistoryStats.returned}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Clock className="w-4 h-4 text-blue-500" />
-                                            <span>Processing: {customerHistoryStats.processing}</span>
-                                        </div>
-                                    </div>
-                                    {customerHistoryStats.recentOrders.length > 0 && (
-                                        <Dialog>
-                                            <DialogTrigger asChild>
-                                                <Button variant="link" className="p-0 h-auto text-xs mt-2">
-                                                    Recent Orders: {customerHistoryStats.recentOrders.length} in last 48h
-                                                </Button>
-                                            </DialogTrigger>
-                                            <DialogContent>
-                                                <DialogHeader>
-                                                    <DialogTitle>Recent Orders (Last 48 Hours)</DialogTitle>
-                                                    <DialogDescription>
-                                                        Orders placed by {order.customerName} in the last 48 hours.
-                                                    </DialogDescription>
-                                                </DialogHeader>
-                                                <div className="max-h-80 overflow-y-auto">
-                                                    <Table>
-                                                        <TableHeader>
-                                                            <TableRow>
-                                                                <TableHead>Order ID</TableHead>
-                                                                <TableHead>Status</TableHead>
-                                                                <TableHead className="text-right">Total</TableHead>
-                                                            </TableRow>
-                                                        </TableHeader>
-                                                        <TableBody>
-                                                            {customerHistoryStats.recentOrders.map(o => (
-                                                                <TableRow key={o.id}>
-                                                                    <TableCell>
-                                                                        <Link href={`/dashboard/orders/${o.id}`} className="text-primary hover:underline">{o.id}</Link>
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        <Badge variant="outline" className={cn(statusColors[o.status])}>
-                                                                            {o.status}
-                                                                        </Badge>
-                                                                    </TableCell>
-                                                                    <TableCell className="text-right font-mono">৳{o.total.toFixed(2)}</TableCell>
-                                                                </TableRow>
-                                                            ))}
-                                                        </TableBody>
-                                                    </Table>
-                                                </div>
-                                            </DialogContent>
-                                        </Dialog>
-                                    )}
-                                </CardContent>
-                            </Card>
-                            <Separator />
-                            <div className="grid gap-2">
-                                <div className="font-medium">Shipping Information</div>
-                                <address className="not-italic text-muted-foreground">{order.shippingAddress.address}</address>
-                            </div>
-                        </>
-                    )}
-                </CardContent>
-              </Card>
-               <Card>
+
+                <Card>
                     <CardHeader>
-                        <CardTitle>Order Source</CardTitle>
+                        <CardTitle>Payment Summary</CardTitle>
                     </CardHeader>
+                    <CardContent className='space-y-2 text-sm'>
+                        <div className="flex items-center justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd className='font-mono'>৳{subtotal.toFixed(2)}</dd></div>
+                        <div className="flex items-center justify-between"><dt className="text-muted-foreground">Shipping</dt><dd className='font-mono'>৳{order.shipping.toFixed(2)}</dd></div>
+                        <div className="flex items-center justify-between"><dt className="text-muted-foreground">Tax</dt><dd className='font-mono'>৳{tax.toFixed(2)}</dd></div>
+                        <Separator />
+                        <div className="flex items-center justify-between font-semibold"><dt>Total</dt><dd className='font-mono'>৳{total.toFixed(2)}</dd></div>
+                        <div className="flex items-center justify-between"><dt className="text-muted-foreground">Paid</dt><dd className='font-mono text-green-600'>৳{order.paidAmount.toFixed(2)}</dd></div>
+                        <div className="flex items-center justify-between font-semibold"><dt className={cn(total - order.paidAmount > 0 && "text-destructive")}>Amount Due</dt><dd className={cn("font-mono", total - order.paidAmount > 0 && "text-destructive")}>৳{(total - order.paidAmount).toFixed(2)}</dd></div>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader><CardTitle className='flex items-center gap-2'><StickyNote className='w-5 h-5 text-muted-foreground' /> Notes</CardTitle></CardHeader>
                     <CardContent className="space-y-4">
-                        <FormField control={form.control} name="businessId" render={({ field }) => (
-                            <FormItem><FormLabel>Business</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing || isSaving}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a business" /></SelectTrigger></FormControl>
-                                    <SelectContent>{businesses.map(b => (<SelectItem key={b.id} value={b.id}><div className="flex items-center gap-2"><Store className="h-4 w-4 text-muted-foreground" /><span>{b.name}</span></div></SelectItem>))}</SelectContent>
-                                </Select>
-                            </FormItem>
-                        )}/>
-                        <FormField control={form.control} name="platform" render={({ field }) => (
-                            <FormItem><FormLabel>Platform</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing || isSaving}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select a platform" /></SelectTrigger></FormControl>
-                                    <SelectContent>{allPlatforms.map(p => (<SelectItem key={p} value={p}><div className="flex items-center gap-2"><Globe className="h-4 w-4 text-muted-foreground" /><span>{p}</span></div></SelectItem>))}</SelectContent>
-                                </Select>
-                            </FormItem>
-                        )}/>
+                        <div><Label className='text-muted-foreground'>Customer Note</Label><p className="text-sm">{order.customerNote || 'No customer note provided.'}</p></div>
+                        <div><Label className='text-muted-foreground'>Office Note</Label><p className="text-sm">{order.officeNote || 'No office note provided.'}</p></div>
                     </CardContent>
                 </Card>
             </div>
-          </div>
-           <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 mt-4">
-              <OrderHistory logs={order.logs} />
-              <Card>
-                <CardHeader>
-                    <CardTitle>Courier Management</CardTitle>
-                    <CardDescription>Send this order to a courier service for delivery.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="courier">Courier Service</Label>
-                            <Select value={selectedCourier} onValueChange={setSelectedCourier}>
-                                <SelectTrigger id="courier">
-                                    <SelectValue placeholder="Select a courier" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {courierServices.map(c => (
-                                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+            <div className="md:col-span-1 grid auto-rows-max gap-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Customer & Shipping</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid gap-4">
+                        <div className="font-medium flex items-center justify-between">
+                            <Link href={`/dashboard/customers/${order.customerPhone}`} className='hover:underline'>{order.customerName}</Link>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" type="button"><Copy className="h-4 w-4" /><span className="sr-only">Copy</span></Button>
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <Checkbox id="include-customer-note" checked={includeCustomerNote} onCheckedChange={(checked) => setIncludeCustomerNote(!!checked)} />
-                            <label
-                                htmlFor="include-customer-note"
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                                Include Customer Note
-                            </label>
+                        <Separator />
+                        <div className="grid gap-2">
+                            <div className="font-medium">Contact Information</div>
+                            <div className="text-muted-foreground">
+                            {order.customerEmail && (
+                                <div className="flex items-center gap-2"><p>{order.customerEmail}</p>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" asChild><a href={`mailto:${order.customerEmail}?subject=Regarding your order ${order.id}`}><Mail className="h-4 w-4" /></a></Button>
+                                </div>
+                            )}
+                            <div className="flex items-center gap-2">
+                                <p>{order.customerPhone}</p>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" asChild><a href={`tel:${order.customerPhone}`}><Phone className="h-4 w-4" /></a></Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" asChild><a href={`https://wa.me/${order.customerPhone.replace(/\+/g, '')}?text=${encodeURIComponent(whatsappMessage)}`} target="_blank" rel="noopener noreferrer"><WhatsAppIcon className="h-4 w-4 text-green-500" /></a></Button>
+                            </div>
+                            </div>
+                        </div>
+                        <Separator />
+                        <Card>
+                            <CardHeader className="p-2 pt-0">
+                                <CardTitle className="text-sm">Customer History</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-2 pt-0 text-xs">
+                                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                                    <div className="flex items-center gap-2"><Package className="w-4 h-4 text-muted-foreground" /><span>Total: {customerHistoryStats.totalOrders}</span></div>
+                                    <div className="flex items-center gap-2"><PackageCheck className="w-4 h-4 text-green-600" /><span>Delivered: {customerHistoryStats.delivered}</span></div>
+                                    <div className="flex items-center gap-2"><Ban className="w-4 h-4 text-red-500" /><span>Canceled: {customerHistoryStats.canceled}</span></div>
+                                    <div className="flex items-center gap-2"><RotateCcw className="w-4 h-4 text-orange-500" /><span>Returned: {customerHistoryStats.returned}</span></div>
+                                </div>
+                                {customerHistoryStats.recentOrders.length > 0 && (
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant="link" className="p-0 h-auto text-xs mt-2">
+                                                Recent Orders: {customerHistoryStats.recentOrders.length} in last 48h
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Recent Orders (Last 48 Hours)</DialogTitle>
+                                                <DialogDescription>Orders placed by {order.customerName} in the last 48 hours.</DialogDescription>
+                                            </DialogHeader>
+                                            <div className="max-h-80 overflow-y-auto">
+                                                <Table>
+                                                    <TableHeader>
+                                                        <TableRow><TableHead>Order ID</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Total</TableHead></TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        {customerHistoryStats.recentOrders.map(o => (
+                                                            <TableRow key={o.id}>
+                                                                <TableCell><Link href={`/dashboard/orders/${o.id}`} className="text-primary hover:underline">{o.id}</Link></TableCell>
+                                                                <TableCell><Badge variant="outline" className={cn(statusColors[o.status])}>{o.status}</Badge></TableCell>
+                                                                <TableCell className="text-right font-mono">৳{o.total.toFixed(2)}</TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
+                                )}
+                            </CardContent>
+                        </Card>
+                        <Separator />
+                        <div className="grid gap-2">
+                            <div className="font-medium">Shipping Address</div>
+                            <address className="not-italic text-muted-foreground">{order.shippingAddress.address}</address>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader><CardTitle>Order Actions</CardTitle></CardHeader>
+                    <CardContent className="space-y-4">
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                                <FormField control={form.control} name="status" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Update Status</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger></FormControl>
+                                            <SelectContent>{allStatuses.map(status => (<SelectItem key={status} value={status}>{status}</SelectItem>))}</SelectContent>
+                                        </Select>
+                                    </FormItem>
+                                )} />
+                                <FormField control={form.control} name="officeNote" render={({ field }) => (
+                                    <FormItem><FormLabel>Update Office Note</FormLabel><FormControl><Textarea {...field} /></FormControl></FormItem>
+                                )} />
+                                <Button className='w-full' type="submit"><Save className="mr-2 h-4 w-4" /> Save Changes</Button>
+                            </form>
+                        </Form>
+                        <Separator />
+                        <div className="space-y-2">
+                            <Label>Courier Management</Label>
+                            <Select value={selectedCourier} onValueChange={setSelectedCourier}><SelectTrigger><SelectValue placeholder="Select a courier" /></SelectTrigger>
+                                <SelectContent>{courierServices.map(c => (<SelectItem key={c} value={c}>{c}</SelectItem>))}</SelectContent>
+                            </Select>
                         </div>
                         {selectedCourier && (
                             <AlertDialog>
@@ -935,9 +555,7 @@ export default function OrderDetailsPage() {
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>Confirm Order Dispatch</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This will send the order details for <strong>{order.id}</strong> to <strong>{selectedCourier}</strong> for delivery. Are you sure you want to proceed?
-                                        </AlertDialogDescription>
+                                        <AlertDialogDescription>This will send the order details for <strong>{order.id}</strong> to <strong>{selectedCourier}</strong> for delivery. Are you sure?</AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -946,19 +564,14 @@ export default function OrderDetailsPage() {
                                 </AlertDialogContent>
                             </AlertDialog>
                         )}
-                    </div>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader><CardTitle>Notes</CardTitle></CardHeader>
-                <CardContent className="space-y-4">
-                    <FormField control={form.control} name="customerNote" render={({ field }) => (<FormItem><FormLabel>Customer Note</FormLabel><FormControl><Textarea placeholder="No customer note provided." {...field} readOnly={!isEditing}/></FormControl></FormItem>)} />
-                    <FormField control={form.control} name="officeNote" render={({ field }) => (<FormItem><FormLabel>Office Note</FormLabel><FormControl><Textarea placeholder="Add an internal note..." {...field} readOnly={!isEditing}/></FormControl></FormItem>)} />
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+            </div>
+          </div>
+           <div className="mt-6">
+              <OrderHistory logs={order.logs} />
            </div>
         </div>
-      </form>
-    </Form>
+    </form>
   );
 }
