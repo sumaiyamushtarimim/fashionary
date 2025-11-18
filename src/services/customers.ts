@@ -6,17 +6,28 @@ import { Customer, Order } from '@/types';
 // e.g. export async function getCustomers() { const res = await fetch('/api/customers'); return res.json(); }
 
 export async function getCustomers(): Promise<Customer[]> {
-  return Promise.resolve(customers);
+  const customerData = customers.map(c => {
+    const customerOrders = orders.filter(o => o.customerPhone === c.phone);
+    return {
+      ...c,
+      totalOrders: customerOrders.length,
+      totalSpent: customerOrders.reduce((acc, order) => acc + order.total, 0),
+    }
+  });
+  return Promise.resolve(customerData);
 }
 
 export async function getCustomerById(id: string): Promise<Customer | undefined> {
-  const customer = customers.find((c) => c.id === id);
+  const customer = customers.find((c) => c.id === id || c.phone === id);
   if (customer) {
     const customerOrders = orders.filter(o => o.customerPhone === customer.phone);
-    customer.totalOrders = customerOrders.length;
-    customer.totalSpent = customerOrders.reduce((acc, order) => acc + order.total, 0);
+    return Promise.resolve({
+        ...customer,
+        totalOrders: customerOrders.length,
+        totalSpent: customerOrders.reduce((acc, order) => acc + order.total, 0)
+    });
   }
-  return Promise.resolve(customer);
+  return Promise.resolve(undefined);
 }
 
 export async function getOrdersByCustomer(customerId: string): Promise<Order[]> {
