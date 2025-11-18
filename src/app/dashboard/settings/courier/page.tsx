@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
@@ -37,7 +36,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getCourierIntegrations } from '@/services/integrations';
 import { getCourierServices, getBusinesses } from '@/services/partners';
-import type { CourierIntegration, CourierService, Business } from '@/types';
+import type { CourierIntegration, CourierService, Business, PathaoCredentials } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const pathaoFields = [
@@ -62,6 +61,155 @@ const carrybeeFields = [
     { name: 'clientSecret', label: 'Client Secret', placeholder: 'Enter your Carrybee Client Secret', type: 'password' },
     { name: 'clientContext', label: 'Client Context', placeholder: 'Enter your Carrybee Client Context' },
 ];
+
+
+function CourierIntegrationDialog({
+    isOpen,
+    onOpenChange,
+    mode,
+    integration,
+    businesses,
+    courierServices,
+    onSave,
+}: {
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
+    mode: 'add' | 'edit';
+    integration: Partial<CourierIntegration> | null;
+    businesses: Business[];
+    courierServices: CourierService[];
+    onSave: (integration: Partial<CourierIntegration> | null) => void;
+}) {
+    const [currentIntegration, setCurrentIntegration] = React.useState(integration);
+
+    React.useEffect(() => {
+        setCurrentIntegration(integration);
+    }, [integration]);
+
+    const handleValueChange = (field: keyof CourierIntegration, value: any) => {
+        setCurrentIntegration(prev => (prev ? { ...prev, [field]: value } : { [field]: value }));
+    };
+
+    const handleCredentialChange = (field: keyof PathaoCredentials, value: any) => {
+         setCurrentIntegration(prev => ({
+            ...prev,
+            credentials: {
+                ...(prev?.credentials || {}),
+                [field]: value
+            }
+        }));
+    };
+    
+    let fields: { name: keyof PathaoCredentials; label: string; placeholder: string; type?: string }[] = [];
+    if (currentIntegration?.courierName === 'Pathao') {
+        fields = pathaoFields as any;
+    } else if (currentIntegration?.courierName === 'Steadfast') {
+        fields = steadfastFields as any;
+    } else if (currentIntegration?.courierName === 'RedX') {
+        fields = redxFields as any;
+    } else if (currentIntegration?.courierName === 'Carrybee') {
+        fields = carrybeeFields as any;
+    }
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>
+                        {mode === 'edit' ? `Configure ${currentIntegration?.courierName}` : 'Add New Courier Integration'}
+                    </DialogTitle>
+                    <DialogDescription>
+                        Enter the API credentials for this integration.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="business">Business</Label>
+                        <Select
+                            value={currentIntegration?.businessId}
+                            onValueChange={(value) => handleValueChange('businessId', value)}
+                            disabled={mode === 'edit'}
+                        >
+                            <SelectTrigger id="business">
+                                <SelectValue placeholder="Select a business" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {businesses.map(b => (
+                                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="courier">Courier Service</Label>
+                        <Select
+                            value={currentIntegration?.courierName}
+                            onValueChange={(value: CourierService) => handleValueChange('courierName', value)}
+                            disabled={mode === 'edit'}
+                        >
+                            <SelectTrigger id="courier">
+                                <SelectValue placeholder="Select a courier" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {courierServices.map(c => (
+                                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {fields?.map((field) => (
+                         <div className="space-y-2" key={field.name}>
+                            <Label htmlFor={field.name}>{field.label}</Label>
+                            <Input
+                                id={field.name}
+                                placeholder={field.placeholder}
+                                type={field.type || 'text'}
+                                value={(currentIntegration?.credentials as any)?.[field.name] || ''}
+                                onChange={(e) => handleCredentialChange(field.name, e.target.value)}
+                            />
+                        </div>
+                    ))}
+
+                    {currentIntegration?.courierName === 'Pathao' && (
+                        <>
+                            <div className="space-y-2">
+                                <Label htmlFor="deliveryType">Delivery Type</Label>
+                                <Select
+                                    value={String(currentIntegration.deliveryType || 48)}
+                                    onValueChange={(value) => handleValueChange('deliveryType', Number(value))}
+                                >
+                                    <SelectTrigger id="deliveryType"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="48">Normal Delivery (48 hours)</SelectItem>
+                                        <SelectItem value="12">On Demand Delivery (12 hours)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="itemType">Item Type</Label>
+                                 <Select
+                                    value={String(currentIntegration.itemType || 2)}
+                                    onValueChange={(value) => handleValueChange('itemType', Number(value))}
+                                >
+                                    <SelectTrigger id="itemType"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="2">Parcel</SelectItem>
+                                        <SelectItem value="1">Document</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </>
+                    )}
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                    <Button onClick={() => onSave(currentIntegration)}>Save Configuration</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
 
 
 export default function CourierSettingsPage() {
@@ -93,23 +241,13 @@ export default function CourierSettingsPage() {
         setIsDialogOpen(true);
     };
 
-    const handleSaveChanges = () => {
+    const handleSaveChanges = (integration: Partial<CourierIntegration> | null) => {
         // Logic to save changes would go here
+        console.log("Saving integration:", integration);
         setIsDialogOpen(false);
         setSelectedIntegration(null);
     };
     
-    let fields: { name: string; label: string; placeholder: string; type?: string }[] = [];
-    if (selectedIntegration?.courierName === 'Pathao') {
-        fields = pathaoFields;
-    } else if (selectedIntegration?.courierName === 'Steadfast') {
-        fields = steadfastFields;
-    } else if (selectedIntegration?.courierName === 'RedX') {
-        fields = redxFields;
-    } else if (selectedIntegration?.courierName === 'Carrybee') {
-        fields = carrybeeFields;
-    }
-
     return (
         <div className="space-y-6">
             <div>
@@ -196,96 +334,15 @@ export default function CourierSettingsPage() {
                 </CardContent>
             </Card>
 
-             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>
-                            {dialogMode === 'edit' ? `Configure ${selectedIntegration?.courierName}` : 'Add New Courier Integration'}
-                        </DialogTitle>
-                        <DialogDescription>
-                            Enter the API credentials for this integration.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="business">Business</Label>
-                            <Select 
-                                value={selectedIntegration?.businessId} 
-                                onValueChange={(value) => setSelectedIntegration(prev => ({...prev, businessId: value}))}
-                                disabled={dialogMode==='edit'}
-                            >
-                                <SelectTrigger id="business">
-                                    <SelectValue placeholder="Select a business" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {businesses.map(b => (
-                                        <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="courier">Courier Service</Label>
-                            <Select 
-                                value={selectedIntegration?.courierName} 
-                                onValueChange={(value: CourierService) => setSelectedIntegration(prev => ({...prev, courierName: value}))}
-                                disabled={dialogMode==='edit'}
-                            >
-                                <SelectTrigger id="courier">
-                                    <SelectValue placeholder="Select a courier" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {courierServices.map(c => (
-                                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {fields?.map((field) => (
-                             <div className="space-y-2" key={field.name}>
-                                <Label htmlFor={field.name}>{field.label}</Label>
-                                <Input id={field.name} placeholder={field.placeholder} type={field.type || 'text'} />
-                            </div>
-                        ))}
-
-                        {selectedIntegration?.courierName === 'Pathao' && (
-                            <>
-                                <div className="space-y-2">
-                                    <Label htmlFor="deliveryType">Delivery Type</Label>
-                                    <Select 
-                                        value={String(selectedIntegration.deliveryType || 48)}
-                                        onValueChange={(value) => setSelectedIntegration(prev => ({...prev, deliveryType: Number(value) as (12|48)}))}
-                                    >
-                                        <SelectTrigger id="deliveryType">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="48">Normal Delivery (48 hours)</SelectItem>
-                                            <SelectItem value="12">On Demand Delivery (12 hours)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="itemType">Item Type</Label>
-                                     <Select 
-                                        value={String(selectedIntegration.itemType || 2)}
-                                        onValueChange={(value) => setSelectedIntegration(prev => ({...prev, itemType: Number(value) as (1|2)}))}
-                                    >
-                                        <SelectTrigger id="itemType">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="2">Parcel</SelectItem>
-                                            <SelectItem value="1">Document</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleSaveChanges}>Save Configuration</Button>
-                    </DialogFooter>
-                </
+             <CourierIntegrationDialog
+                isOpen={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                mode={dialogMode}
+                integration={selectedIntegration}
+                businesses={businesses}
+                courierServices={courierServices}
+                onSave={handleSaveChanges}
+            />
+        </div>
+    );
+}
