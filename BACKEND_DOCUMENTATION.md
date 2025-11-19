@@ -216,7 +216,7 @@ model OrderLog {
 model Customer {
   id          String   @id @default(cuid())
   name        String
-  email       String?  @unique
+  email       String?
   phone       String   @unique
   joinDate    DateTime
   address     String

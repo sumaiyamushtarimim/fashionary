@@ -64,11 +64,6 @@ export type OrderStatus =
   | 'Returned'
   | 'Partial';
 
-export const allStatuses: OrderStatus[] = [
-    'New', 'Confirmed', 'Packing Hold', 'Canceled', 'Hold', 'In-Courier',
-    'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Return Pending', 'Returned', 'Partial'
-];
-
 export type OrderPlatform = 'TikTok' | 'Messenger' | 'Facebook' | 'Instagram' | 'Website';
 export type PaymentMethod = 'Cash on Delivery' | 'bKash' | 'Nagad';
 export type CourierService = 'Pathao' | 'RedX' | 'Steadfast' | 'Carrybee';
@@ -96,7 +91,7 @@ export type OrderLog = {
 export type Order = {
   id: string;
   customerName: string;
-  customerEmail: string;
+  customerEmail?: string;
   customerPhone: string;
   date: string;
   status: OrderStatus;
@@ -122,7 +117,7 @@ export type Order = {
 export type Customer = {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   phone: string;
   totalOrders: number;
   totalSpent: number;
