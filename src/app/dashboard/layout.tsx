@@ -53,42 +53,43 @@ const isPublicRoute = (pathname: string) => {
 }
 
 const hasAccess = (permission: Permission | boolean | undefined): boolean => {
+    if (permission === undefined) return false;
     if (typeof permission === 'boolean') return permission;
-    if (typeof permission === 'object') return permission.read;
+    if (typeof permission === 'object' && permission !== null) return permission.read;
     return false;
 }
 
-const navItems = (user: StaffMember | null) => [
+const navItems = (permissions: StaffMember['permissions'] | null) => [
   { href: "/dashboard", icon: Home, label: "Dashboard", access: true },
   { 
       label: "Orders", 
       icon: ShoppingCart, 
-      access: hasAccess(user?.permissions.orders),
+      access: hasAccess(permissions?.orders),
       subItems: [
-          { href: "/dashboard/orders", label: "All Orders", access: hasAccess(user?.permissions.orders) },
-          { href: "/dashboard/orders/incomplete", label: "Incomplete Orders", access: hasAccess(user?.permissions.orders) },
+          { href: "/dashboard/orders", label: "All Orders", access: hasAccess(permissions?.orders) },
+          { href: "/dashboard/orders/incomplete", label: "Incomplete Orders", access: hasAccess(permissions?.orders) },
       ]
   },
-  { href: "/dashboard/packing-orders", icon: ClipboardList, label: "Packing Orders", access: hasAccess(user?.permissions.packingOrders) },
-  { href: "/dashboard/courier-report", icon: FileSearch, label: "Courier Report", access: hasAccess(user?.permissions.courierReport) },
-  { href: "/dashboard/products", icon: Package, label: "Products", access: hasAccess(user?.permissions.products) },
-  { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory", access: hasAccess(user?.permissions.inventory) },
-  { href: "/dashboard/customers", icon: Users, label: "Customers", access: hasAccess(user?.permissions.customers) },
-  { href: "/dashboard/purchases", icon: Truck, label: "Purchases", access: hasAccess(user?.permissions.purchases) },
-  { href: "/dashboard/expenses", icon: Wallet, label: "Expenses", access: hasAccess(user?.permissions.expenses) },
-  { href: "/dashboard/check-passing", icon: Landmark, label: "Check Passing", access: hasAccess(user?.permissions.checkPassing) },
-  { href: "/dashboard/partners", icon: Handshake, label: "Partners", access: hasAccess(user?.permissions.partners) },
-  { href: "/dashboard/analytics", icon: BarChartHorizontal, label: "Analytics", access: hasAccess(user?.permissions.analytics) },
-  { href: "/dashboard/staff", icon: User, label: "Staff", access: hasAccess(user?.permissions.staff) },
-  { href: "/dashboard/settings", icon: Settings, label: "Settings", access: hasAccess(user?.permissions.settings) },
+  { href: "/dashboard/packing-orders", icon: ClipboardList, label: "Packing Orders", access: hasAccess(permissions?.packingOrders) },
+  { href: "/dashboard/courier-report", icon: FileSearch, label: "Courier Report", access: hasAccess(permissions?.courierReport) },
+  { href: "/dashboard/products", icon: Package, label: "Products", access: hasAccess(permissions?.products) },
+  { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory", access: hasAccess(permissions?.inventory) },
+  { href: "/dashboard/customers", icon: Users, label: "Customers", access: hasAccess(permissions?.customers) },
+  { href: "/dashboard/purchases", icon: Truck, label: "Purchases", access: hasAccess(permissions?.purchases) },
+  { href: "/dashboard/expenses", icon: Wallet, label: "Expenses", access: hasAccess(permissions?.expenses) },
+  { href: "/dashboard/check-passing", icon: Landmark, label: "Check Passing", access: hasAccess(permissions?.checkPassing) },
+  { href: "/dashboard/partners", icon: Handshake, label: "Partners", access: hasAccess(permissions?.partners) },
+  { href: "/dashboard/analytics", icon: BarChartHorizontal, label: "Analytics", access: hasAccess(permissions?.analytics) },
+  { href: "/dashboard/staff", icon: User, label: "Staff", access: hasAccess(permissions?.staff) },
+  { href: "/dashboard/settings", icon: Settings, label: "Settings", access: hasAccess(permissions?.settings) },
 ];
 
 
-function NavLinks({ user }: { user: StaffMember | null }) {
+function NavLinks({ permissions }: { permissions: StaffMember['permissions'] | null }) {
     const pathname = usePathname();
     const isOrderRelatedPage = pathname.startsWith('/dashboard/orders') || pathname === '/dashboard/packing-orders';
     
-    const accessibleNavItems = navItems(user).filter(item => item.access);
+    const accessibleNavItems = navItems(permissions).filter(item => item.access);
 
     return (
         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
@@ -150,10 +151,10 @@ function NavLinks({ user }: { user: StaffMember | null }) {
     );
 }
 
-function MobileNavLinks({ onLinkClick, user }: { onLinkClick: () => void, user: StaffMember | null }) {
+function MobileNavLinks({ onLinkClick, permissions }: { onLinkClick: () => void, permissions: StaffMember['permissions'] | null }) {
     const pathname = usePathname();
     const isOrderRelatedPage = pathname.startsWith('/dashboard/orders') || pathname === '/dashboard/packing-orders';
-    const accessibleNavItems = navItems(user).filter(item => item.access);
+    const accessibleNavItems = navItems(permissions).filter(item => item.access);
 
     return (
         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
@@ -243,7 +244,7 @@ export default function DashboardLayout({
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
   const [isMobileNavOpen, setIsMobileNavOpen] = React.useState(false);
   const { isLoaded, isSignedIn, user } = useUser();
-  const [loggedInStaff, setLoggedInStaff] = useState<StaffMember | null>(null);
+  const [permissions, setPermissions] = useState<StaffMember['permissions'] | null>(null);
 
   React.useEffect(() => {
     if (isLoaded && !isSignedIn && !isPublicRoute(pathname)) {
@@ -252,32 +253,11 @@ export default function DashboardLayout({
   }, [isLoaded, isSignedIn, pathname, router]);
 
   React.useEffect(() => {
-    // In a real app, you'd fetch this based on the signed-in user's ID
-    if (isSignedIn) {
-        // This is a mock implementation. In a real app, you'd fetch this from your backend.
-        const staffData = JSON.parse(localStorage.getItem('loggedInStaff') || '{}');
-        const role = user.publicMetadata.role as StaffRole || 'Moderator';
-        
-        const staff: StaffMember = {
-            id: user.id,
-            name: user.fullName || "User",
-            email: user.primaryEmailAddress?.emailAddress || "",
-            role: role,
-            accessibleBusinessIds: (user.publicMetadata.accessibleBusinessIds as string[]) || [],
-            lastLogin: user.lastSignInAt?.toISOString() || new Date().toISOString(),
-            // Mock data, replace with real data from your backend
-            paymentType: staffData.paymentType || 'Salary',
-            permissions: staffData.permissions || {},
-            salaryDetails: staffData.salaryDetails,
-            commissionDetails: staffData.commissionDetails,
-            financials: staffData.financials || { totalEarned: 0, totalPaid: 0, dueAmount: 0},
-            paymentHistory: staffData.paymentHistory || [],
-            incomeHistory: staffData.incomeHistory || [],
-            performance: staffData.performance || { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: {} as any },
-        };
-        setLoggedInStaff(staff);
+    if (isSignedIn && user) {
+        const userPermissions = (user.publicMetadata?.permissions || null) as StaffMember['permissions'] | null;
+        setPermissions(userPermissions);
     }
-  }, [isLoaded, isSignedIn, user, router, pathname]);
+  }, [isLoaded, isSignedIn, user]);
   
   React.useEffect(() => {
     getNotifications().then(setNotifications);
@@ -314,7 +294,7 @@ export default function DashboardLayout({
             </Link>
           </div>
           <div className="flex-1 overflow-y-auto">
-            <NavLinks user={loggedInStaff} />
+            <NavLinks permissions={permissions} />
           </div>
         </div>
       </div>
@@ -332,7 +312,7 @@ export default function DashboardLayout({
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
               <div className="flex-1 overflow-y-auto">
-                <MobileNavLinks onLinkClick={() => setIsMobileNavOpen(false)} user={loggedInStaff} />
+                <MobileNavLinks onLinkClick={() => setIsMobileNavOpen(false)} permissions={permissions} />
               </div>
             </SheetContent>
           </Sheet>
