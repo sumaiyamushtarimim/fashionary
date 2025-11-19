@@ -45,13 +45,13 @@ import { UserButton, useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoader } from "@/components/ui/page-loader";
 import { getNotifications } from "@/services/notifications";
-import type { Notification, StaffRole } from "@/types";
+import type { Notification, StaffMember, StaffRole } from "@/types";
 
-// In a real app, this would be fetched from a settings service
+// In a real app, this would be fetched from a settings service or user permissions
 const isCourierReportEnabled = true; 
 
 // Mock user role. In a real app, this would come from your auth context (e.g., Clerk session claims).
-const MOCK_USER_ROLE: StaffRole = 'Admin'; // Change to 'Packing Assistant' to test the redirect
+const MOCK_USER_ROLE: StaffRole = 'Admin'; 
 const isPackingAssistant = MOCK_USER_ROLE === 'Packing Assistant';
 
 const navItems = [
@@ -210,9 +210,12 @@ function MobileNavLinks({ onLinkClick }: { onLinkClick: () => void }) {
 
 function UserMenu() {
     const [isMounted, setIsMounted] = useState(false);
+    const [loggedInStaff, setLoggedInStaff] = useState<StaffMember | null>(null);
 
     useEffect(() => {
         setIsMounted(true);
+        const staff = JSON.parse(localStorage.getItem('loggedInStaff') || 'null');
+        setLoggedInStaff(staff);
     }, []);
 
     if (!isMounted) {
@@ -228,8 +231,46 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
   const [isMobileNavOpen, setIsMobileNavOpen] = React.useState(false);
+  const { isLoaded, isSignedIn, user } = useUser();
+  const [loggedInStaff, setLoggedInStaff] = useState<StaffMember | null>(null);
+
+  React.useEffect(() => {
+    // In a real app, you'd fetch this based on the signed-in user's ID
+    if (isSignedIn) {
+        const staff: StaffMember = {
+            id: user.id,
+            name: user.fullName || "User",
+            email: user.primaryEmailAddress?.emailAddress || "",
+            role: (user.publicMetadata.role as StaffRole) || 'Moderator',
+            accessibleBusinessIds: (user.publicMetadata.accessibleBusinessIds as string[]) || [],
+            lastLogin: user.lastSignInAt?.toISOString() || new Date().toISOString(),
+            // Mock data for other fields
+            paymentType: 'Salary',
+            permissions: {}, 
+            financials: { totalEarned: 0, totalPaid: 0, dueAmount: 0},
+            paymentHistory: [],
+            incomeHistory: [],
+            performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: {} as any },
+        };
+        setLoggedInStaff(staff);
+        localStorage.setItem('loggedInStaff', JSON.stringify(staff));
+
+        // Check for role and redirect if necessary
+        if(staff.role === 'Packing Assistant' && pathname !== '/dashboard/packing-orders') {
+            router.replace('/dashboard/packing-orders');
+        }
+
+        const allowedPaths = navItems.flatMap(item => 'subItems' in item ? item.subItems.map(sub => sub.href) : [item.href]);
+        if (!allowedPaths.some(p => pathname.startsWith(p!))) {
+           // Maybe show a popup or redirect to dashboard
+           console.warn(`Access to ${pathname} is not allowed for role ${staff.role}`);
+        }
+
+    }
+  }, [isLoaded, isSignedIn, user, router, pathname]);
   
   React.useEffect(() => {
     getNotifications().then(setNotifications);
