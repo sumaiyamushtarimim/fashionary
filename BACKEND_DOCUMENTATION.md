@@ -52,8 +52,8 @@ enum OrderStatus {
   ReadyToShip   @map("RTS (Ready to Ship)")
   Shipped
   Delivered
+  ReturnPending
   Returned
-  PaidReturned  @map("Paid Returned")
   Partial
 }
 
@@ -454,6 +454,9 @@ Create RESTful API endpoints for each data domain. For example:
 - `POST /api/orders`
 - `GET /api/products`
 - `GET /api/customers`
+- `POST /api/customers`
+- `PUT /api/customers/:id`
+- `DELETE /api/customers/:id`
 
 ### **Specialized Endpoints for "All-in-One Scan Mode"**
 

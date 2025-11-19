@@ -1,6 +1,6 @@
 
 import { customers, orders } from '@/lib/placeholder-data';
-import { Customer, Order } from '@/types';
+import { Customer, Order, CustomerCreateInput, CustomerUpdateInput } from '@/types';
 
 // In a real app, you'd fetch this from your API
 // e.g. export async function getCustomers() { const res = await fetch('/api/customers'); return res.json(); }
@@ -37,6 +37,38 @@ export async function getOrdersByCustomer(customerId: string): Promise<Order[]> 
     return Promise.resolve(customerOrders);
 }
 
-// Add other functions like createCustomer, updateCustomer, deleteCustomer
+export async function createCustomer(customerData: CustomerCreateInput): Promise<Customer> {
+    console.log("Creating customer:", customerData);
+    const newCustomer: Customer = {
+        id: `CUST${(customers.length + 1).toString().padStart(3, '0')}`,
+        ...customerData,
+        joinDate: new Date().toISOString(),
+        totalOrders: 0,
+        totalSpent: 0,
+    };
+    customers.push(newCustomer);
+    return Promise.resolve(newCustomer);
+}
 
-    
+export async function updateCustomer(customerId: string, updateData: CustomerUpdateInput): Promise<Customer | undefined> {
+    console.log(`Updating customer ${customerId}:`, updateData);
+    const customerIndex = customers.findIndex(c => c.id === customerId);
+    if (customerIndex === -1) {
+        return Promise.resolve(undefined);
+    }
+    const updatedCustomer = { ...customers[customerIndex], ...updateData };
+    customers[customerIndex] = updatedCustomer as Customer; // Note: In a real app, you'd re-calculate totals
+    return getCustomerById(customerId); // Re-fetch to get calculated fields
+}
+
+export async function deleteCustomer(customerId: string): Promise<{ success: boolean }> {
+    console.log(`Deleting customer ${customerId}`);
+    const initialLength = customers.length;
+    const filteredCustomers = customers.filter(c => c.id !== customerId);
+    // This is a mock, so we can't truly mutate the imported array, but we simulate it
+    if (filteredCustomers.length < initialLength) {
+        console.log("Mock deletion successful");
+        return Promise.resolve({ success: true });
+    }
+    return Promise.resolve({ success: false });
+}

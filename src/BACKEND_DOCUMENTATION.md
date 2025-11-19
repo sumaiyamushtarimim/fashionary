@@ -52,8 +52,8 @@ enum OrderStatus {
   ReadyToShip   @map("RTS (Ready to Ship)")
   Shipped
   Delivered
+  ReturnPending
   Returned
-  PaidReturned  @map("Paid Returned")
   Partial
 }
 
@@ -454,6 +454,9 @@ Create RESTful API endpoints for each data domain. For example:
 - `POST /api/orders`
 - `GET /api/products`
 - `GET /api/customers`
+- `POST /api/customers`
+- `PUT /api/customers/:id`
+- `DELETE /api/customers/:id`
 
 ### **Specialized Endpoints for "All-in-One Scan Mode"**
 
@@ -644,7 +647,7 @@ The backend must handle the logic for integrating with WooCommerce stores and co
 
 ### Courier Integration
 
--   **Business-Specific Credentials:** The backend must store courier credentials (`apiKey`, `secretKey`, etc.) on a per-business basis, using the `CourierIntegration` model.
+-   **Business-Specific Credentials:** The backend must store courier credentials (`apiKey`, `secretKey`, etc.) on a per-business basis, using the `CourierIntegration` model. The `credentials` field is a JSON blob to accommodate different API requirements (e.g., Pathao needs a `storeId`, `clientId`, etc., while others may only need an API key).
 -   **Dynamic Credential Selection:** When an order is dispatched to a courier (e.g., Pathao), the backend must:
     1.  Get the `businessId` from the `Order`.
     2.  Find the corresponding `CourierIntegration` entry for that business and the selected courier.

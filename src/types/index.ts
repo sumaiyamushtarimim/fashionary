@@ -62,14 +62,11 @@ export type OrderStatus =
   | 'Delivered'
   | 'Return Pending'
   | 'Returned'
-  | 'Partial'
-  | 'Incomplete'
-  | 'Incomplete-Cancelled';
+  | 'Partial';
 
 export const allStatuses: OrderStatus[] = [
     'New', 'Confirmed', 'Packing Hold', 'Canceled', 'Hold', 'In-Courier',
-    'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Return Pending', 'Returned', 'Partial', 
-    'Incomplete', 'Incomplete-Cancelled'
+    'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Return Pending', 'Returned', 'Partial'
 ];
 
 export type OrderPlatform = 'TikTok' | 'Messenger' | 'Facebook' | 'Instagram' | 'Website';
@@ -134,6 +131,10 @@ export type Customer = {
   district: string;
   country: string;
 };
+
+export type CustomerCreateInput = Omit<Customer, 'id' | 'totalOrders' | 'totalSpent' | 'joinDate'>;
+export type CustomerUpdateInput = Partial<Omit<Customer, 'id' | 'totalOrders' | 'totalSpent' | 'joinDate'>>;
+
 
 export type StockLocation = {
     id: string;
