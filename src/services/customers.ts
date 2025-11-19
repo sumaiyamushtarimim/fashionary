@@ -32,10 +32,11 @@ export async function getCustomerById(id: string): Promise<Customer | undefined>
 
 export async function getOrdersByCustomer(customerId: string): Promise<Order[]> {
     const customer = await getCustomerById(customerId);
-    if (!customer) return [];
+    if (!customer) return Promise.resolve([]);
     const customerOrders = orders.filter((o) => o.customerPhone === customer.phone).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     return Promise.resolve(customerOrders);
 }
+
 
 export async function createCustomer(customerData: CustomerCreateInput): Promise<Customer> {
     console.log("Creating customer:", customerData);
@@ -57,7 +58,8 @@ export async function updateCustomer(customerId: string, updateData: CustomerUpd
         return Promise.resolve(undefined);
     }
     const updatedCustomer = { ...customers[customerIndex], ...updateData };
-    customers[customerIndex] = updatedCustomer as Customer; // Note: In a real app, you'd re-calculate totals
+    // In a real app, you can't just cast it. This is a mock.
+    customers[customerIndex] = updatedCustomer as Omit<Customer, 'totalOrders' | 'totalSpent'>; 
     return getCustomerById(customerId); // Re-fetch to get calculated fields
 }
 
