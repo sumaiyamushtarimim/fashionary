@@ -215,6 +215,10 @@ const statusUpdateSchema = z.object({
 });
 type StatusUpdateFormValues = z.infer<typeof statusUpdateSchema>;
 
+// Cache for delivery reports
+const reportCache = new Map<string, { data: DeliveryReport; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 export default function OrderDetailsPage() {
   const params = useParams();
   const { toast } = useToast();
@@ -250,11 +254,6 @@ export default function OrderDetailsPage() {
                   officeNote: orderData.officeNote,
                 });
                 
-                setIsReportLoading(true);
-                getDeliveryReport(orderData.customerPhone).then(report => {
-                    setDeliveryReport(report);
-                }).finally(() => setIsReportLoading(false));
-
                 getOrdersByCustomerPhone(orderData.customerPhone).then(history => {
                     setCustomerHistory(history);
                 })
@@ -267,11 +266,33 @@ export default function OrderDetailsPage() {
     }
   }, [orderId, form]);
 
+  const handleFetchReport = React.useCallback(async (phone: string) => {
+    if (!phone) return;
+
+    const cached = reportCache.get(phone);
+    if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
+        setDeliveryReport(cached.data);
+        setIsReportLoading(false);
+        return;
+    }
+
+    setIsReportLoading(true);
+    try {
+        const report = await getDeliveryReport(phone);
+        if (report) {
+            reportCache.set(phone, { data: report, timestamp: Date.now() });
+            setDeliveryReport(report);
+        }
+    } finally {
+        setIsReportLoading(false);
+    }
+  }, []);
+
   const customerHistoryStats = React.useMemo(() => {
     const totalOrders = customerHistory.length;
     const delivered = customerHistory.filter(o => o.status === 'Delivered').length;
     const canceled = customerHistory.filter(o => o.status === 'Canceled').length;
-    const returned = customerHistory.filter(o => o.status === 'Returned').length;
+    const returned = customerHistory.filter(o => o.status === 'Returned' || o.status === 'Return Pending').length;
     const processing = totalOrders - (delivered + canceled + returned);
     const recentDate = subHours(new Date(), 48);
     const recentOrders = customerHistory.filter(o => isAfter(new Date(o.date), recentDate));
@@ -589,3 +610,4 @@ export default function OrderDetailsPage() {
     </div>
   );
 }
+
