@@ -2,9 +2,45 @@
 
 import { orders, allStatuses } from '@/lib/placeholder-data';
 import { Order, OrderStatus } from '@/types';
+import { isWithinInterval, parseISO } from 'date-fns';
 
 // In a real app, you'd fetch this from your API
 // e.g. export async function getOrders() { const res = await fetch('/api/orders'); return res.json(); }
+
+export type OrderSummaryStat = {
+  status: OrderStatus;
+  count: number;
+  total: number;
+};
+
+export async function getOrderSummary(params?: { from?: string; to?: string }): Promise<OrderSummaryStat[]> {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    let filteredOrders = orders;
+    if (params?.from && params?.to) {
+        const fromDate = parseISO(params.from);
+        const toDate = parseISO(params.to);
+        filteredOrders = orders.filter(order => {
+            const orderDate = parseISO(order.date);
+            return isWithinInterval(orderDate, { start: fromDate, end: toDate });
+        });
+    }
+
+    const stats = allStatuses.reduce((acc, status) => {
+        acc[status] = { status, count: 0, total: 0 };
+        return acc;
+    }, {} as Record<OrderStatus, OrderSummaryStat>);
+
+    filteredOrders.forEach((order) => {
+        if (stats[order.status]) {
+            stats[order.status].count++;
+            stats[order.status].total += order.total;
+        }
+    });
+
+    return Promise.resolve(Object.values(stats).filter(s => s.count > 0));
+}
+
 
 export async function getOrders(): Promise<Order[]> {
   // Simulate a network delay

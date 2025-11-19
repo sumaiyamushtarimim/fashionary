@@ -53,8 +53,9 @@ import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { allStatuses } from "@/lib/placeholder-data";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
-import { getOrders } from "@/services/orders";
-import type { Order, OrderStatus, StaffRole } from "@/types";
+import { getOrderSummary, type OrderSummaryStat } from "@/services/orders";
+import type { OrderStatus, StaffRole } from "@/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Mock user role. In a real app, this would come from your auth context (e.g., Clerk session claims).
 const MOCK_USER_ROLE: StaffRole = 'Admin'; // Change to 'Packing Assistant' to test the redirect
@@ -101,54 +102,27 @@ const statusColors: Record<OrderStatus, string> = {
 
 export default function Dashboard() {
     const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
-    const [allOrders, setAllOrders] = React.useState<Order[]>([]);
+    const [orderStats, setOrderStats] = React.useState<OrderSummaryStat[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
     const router = useRouter();
 
     React.useEffect(() => {
         setIsLoading(true);
-        getOrders().then(data => {
-            setAllOrders(data);
+        const params = dateRange?.from && dateRange.to 
+            ? { from: dateRange.from.toISOString(), to: dateRange.to.toISOString() } 
+            : undefined;
+
+        getOrderSummary(params).then(data => {
+            setOrderStats(data);
             setIsLoading(false);
         });
-    }, []);
-
-    const filteredOrders = React.useMemo(() => {
-        if (!dateRange?.from) return allOrders;
-        return allOrders.filter(order => {
-            const orderDate = new Date(order.date);
-            return isWithinInterval(orderDate, { start: dateRange.from!, end: dateRange.to || dateRange.from });
-        });
-    }, [dateRange, allOrders]);
-
-
-    const orderStats = React.useMemo(() => {
-        const stats = allStatuses.reduce((acc, status) => {
-            acc[status] = { count: 0, total: 0 };
-            return acc;
-        }, {} as Record<OrderStatus, { count: number; total: number }>);
-
-        filteredOrders.forEach((order) => {
-            if (stats[order.status]) {
-                stats[order.status].count++;
-                stats[order.status].total += order.total;
-            }
-        });
-
-        return stats;
-    }, [filteredOrders]);
+    }, [dateRange]);
 
     const handleStatusClick = (status: OrderStatus) => {
         const params = new URLSearchParams();
         params.set('status', status);
         router.push(`/dashboard/orders?${params.toString()}`);
     };
-
-    const statusEntries = allStatuses.map(status => ({
-        status,
-        ...orderStats[status]
-    })).filter(stat => stat.count > 0);
-
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -225,25 +199,30 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                     {isLoading ? (
-                        <div className="text-center h-24 flex items-center justify-center">Loading data...</div>
+                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-[121px]" />)}
+                        </div>
                     ) : (
-                        <>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                                {statusEntries.map(({ status, count, total }) => (
-                                    <Card key={status} onClick={() => handleStatusClick(status)} className="cursor-pointer hover:bg-muted/50 transition-colors">
-                                        <CardHeader className="pb-2">
-                                            <Badge variant="outline" className={cn("w-fit", statusColors[status])}>
-                                                {status}
-                                            </Badge>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <p className="text-2xl font-bold">{count} <span className="text-sm font-normal text-muted-foreground">orders</span></p>
-                                            <p className="text-sm font-semibold font-mono text-muted-foreground">৳{total.toLocaleString()}</p>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                            {orderStats.map(({ status, count, total }) => (
+                                <Card key={status} onClick={() => handleStatusClick(status)} className="cursor-pointer hover:bg-muted/50 transition-colors">
+                                    <CardHeader className="pb-2">
+                                        <Badge variant="outline" className={cn("w-fit", statusColors[status])}>
+                                            {status}
+                                        </Badge>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-2xl font-bold">{count} <span className="text-sm font-normal text-muted-foreground">orders</span></p>
+                                        <p className="text-sm font-semibold font-mono text-muted-foreground">৳{total.toLocaleString()}</p>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+                     {!isLoading && orderStats.length === 0 && (
+                        <div className="text-center h-24 flex items-center justify-center text-muted-foreground">
+                            No orders found for the selected date range.
+                        </div>
                     )}
                 </CardContent>
             </Card>

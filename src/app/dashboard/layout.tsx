@@ -45,47 +45,57 @@ import { UserButton, useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoader } from "@/components/ui/page-loader";
 import { getNotifications } from "@/services/notifications";
-import type { Notification, StaffMember, StaffRole } from "@/types";
+import type { Notification, StaffMember, StaffRole, Permission } from "@/types";
 
-// In a real app, this would be fetched from a settings service or user permissions
-const isCourierReportEnabled = true; 
+const isPublicRoute = (pathname: string) => {
+    return pathname.startsWith('/shop') || pathname.startsWith('/track-order');
+}
 
-const navItems = (isPackingAssistant: boolean) => [
-  { href: "/dashboard", icon: Home, label: "Dashboard" },
-  ...(!isPackingAssistant ? [
-    { 
-        label: "Orders", 
-        icon: ShoppingCart, 
-        subItems: [
-            { href: "/dashboard/orders", label: "All Orders" },
-            { href: "/dashboard/orders/incomplete", label: "Incomplete Orders" },
-            { href: "/dashboard/packing-orders", label: "Packing Orders" },
-        ]
-    },
-    ...(isCourierReportEnabled ? [{ href: "/dashboard/courier-report", icon: FileSearch, label: "Courier Report" }] : []),
-    { href: "/dashboard/products", icon: Package, label: "Products" },
-    { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory" },
-    { href: "/dashboard/customers", icon: Users, label: "Customers" },
-    { href: "/dashboard/purchases", icon: Truck, label: "Purchases" },
-    { href: "/dashboard/expenses", icon: Wallet, label: "Expenses" },
-    { href: "/dashboard/check-passing", icon: Landmark, label: "Check Passing"},
-    { href: "/dashboard/partners", icon: Handshake, label: "Partners" },
-    { href: "/dashboard/analytics", icon: BarChartHorizontal, label: "Analytics" },
-    { href: "/dashboard/staff", icon: User, label: "Staff" },
-    { href: "/dashboard/settings", icon: Settings, label: "Settings" },
-  ] : [
-      { href: "/dashboard/packing-orders", icon: ClipboardList, label: "Packing Orders" }
-  ])
+const hasAccess = (permission: Permission | boolean | undefined): boolean => {
+    if (typeof permission === 'boolean') return permission;
+    if (typeof permission === 'object') return permission.read;
+    return false;
+}
+
+const navItems = (user: StaffMember | null) => [
+  { href: "/dashboard", icon: Home, label: "Dashboard", access: true },
+  { 
+      label: "Orders", 
+      icon: ShoppingCart, 
+      access: hasAccess(user?.permissions.orders),
+      subItems: [
+          { href: "/dashboard/orders", label: "All Orders", access: hasAccess(user?.permissions.orders) },
+          { href: "/dashboard/orders/incomplete", label: "Incomplete Orders", access: hasAccess(user?.permissions.orders) },
+      ]
+  },
+  { href: "/dashboard/packing-orders", icon: ClipboardList, label: "Packing Orders", access: hasAccess(user?.permissions.packingOrders) },
+  { href: "/dashboard/courier-report", icon: FileSearch, label: "Courier Report", access: hasAccess(user?.permissions.courierReport) },
+  { href: "/dashboard/products", icon: Package, label: "Products", access: hasAccess(user?.permissions.products) },
+  { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory", access: hasAccess(user?.permissions.inventory) },
+  { href: "/dashboard/customers", icon: Users, label: "Customers", access: hasAccess(user?.permissions.customers) },
+  { href: "/dashboard/purchases", icon: Truck, label: "Purchases", access: hasAccess(user?.permissions.purchases) },
+  { href: "/dashboard/expenses", icon: Wallet, label: "Expenses", access: hasAccess(user?.permissions.expenses) },
+  { href: "/dashboard/check-passing", icon: Landmark, label: "Check Passing", access: hasAccess(user?.permissions.checkPassing) },
+  { href: "/dashboard/partners", icon: Handshake, label: "Partners", access: hasAccess(user?.permissions.partners) },
+  { href: "/dashboard/analytics", icon: BarChartHorizontal, label: "Analytics", access: hasAccess(user?.permissions.analytics) },
+  { href: "/dashboard/staff", icon: User, label: "Staff", access: hasAccess(user?.permissions.staff) },
+  { href: "/dashboard/settings", icon: Settings, label: "Settings", access: hasAccess(user?.permissions.settings) },
 ];
 
-function NavLinks({ isPackingAssistant }: { isPackingAssistant: boolean }) {
+
+function NavLinks({ user }: { user: StaffMember | null }) {
     const pathname = usePathname();
     const isOrderRelatedPage = pathname.startsWith('/dashboard/orders') || pathname === '/dashboard/packing-orders';
     
+    const accessibleNavItems = navItems(user).filter(item => item.access);
+
     return (
         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-        {navItems(isPackingAssistant).map((item, index) => {
+        {accessibleNavItems.map((item, index) => {
             if ('subItems' in item) {
+                const accessibleSubItems = item.subItems?.filter(sub => sub.access);
+                if (!accessibleSubItems || accessibleSubItems.length === 0) return null;
+
                 return (
                     <Collapsible key={index} defaultOpen={isOrderRelatedPage}>
                         <CollapsibleTrigger asChild>
@@ -104,7 +114,7 @@ function NavLinks({ isPackingAssistant }: { isPackingAssistant: boolean }) {
                         </CollapsibleTrigger>
                         <CollapsibleContent className="pl-7 pt-1">
                             <nav className="grid items-start text-sm font-medium">
-                                {item.subItems.map(subItem => (
+                                {accessibleSubItems.map(subItem => (
                                      <Link
                                         key={subItem.href}
                                         href={subItem.href}
@@ -139,10 +149,11 @@ function NavLinks({ isPackingAssistant }: { isPackingAssistant: boolean }) {
     );
 }
 
-function MobileNavLinks({ onLinkClick, isPackingAssistant }: { onLinkClick: () => void, isPackingAssistant: boolean }) {
+function MobileNavLinks({ onLinkClick, user }: { onLinkClick: () => void, user: StaffMember | null }) {
     const pathname = usePathname();
     const isOrderRelatedPage = pathname.startsWith('/dashboard/orders') || pathname === '/dashboard/packing-orders';
-    
+    const accessibleNavItems = navItems(user).filter(item => item.access);
+
     return (
         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
             <Link
@@ -151,8 +162,11 @@ function MobileNavLinks({ onLinkClick, isPackingAssistant }: { onLinkClick: () =
             >
                 <Logo variant="full" />
             </Link>
-            {navItems(isPackingAssistant).map((item, index) => {
+            {accessibleNavItems.map((item, index) => {
                  if ('subItems' in item) {
+                     const accessibleSubItems = item.subItems?.filter(sub => sub.access);
+                     if (!accessibleSubItems || accessibleSubItems.length === 0) return null;
+                     
                      return (
                          <Collapsible key={index} defaultOpen={pathname.startsWith('/dashboard/orders')}>
                              <CollapsibleTrigger asChild>
@@ -166,7 +180,7 @@ function MobileNavLinks({ onLinkClick, isPackingAssistant }: { onLinkClick: () =
                              </CollapsibleTrigger>
                              <CollapsibleContent className="pl-8 pt-1">
                                  <div className="flex flex-col gap-1">
-                                    {item.subItems.map(subItem => (
+                                    {accessibleSubItems.map(subItem => (
                                         <Link
                                             key={subItem.href}
                                             href={subItem.href}
@@ -206,12 +220,9 @@ function MobileNavLinks({ onLinkClick, isPackingAssistant }: { onLinkClick: () =
 
 function UserMenu() {
     const [isMounted, setIsMounted] = useState(false);
-    const [loggedInStaff, setLoggedInStaff] = useState<StaffMember | null>(null);
-
+    
     useEffect(() => {
         setIsMounted(true);
-        const staff = JSON.parse(localStorage.getItem('loggedInStaff') || 'null');
-        setLoggedInStaff(staff);
     }, []);
 
     if (!isMounted) {
@@ -233,38 +244,47 @@ export default function DashboardLayout({
   const { isLoaded, isSignedIn, user } = useUser();
   const [loggedInStaff, setLoggedInStaff] = useState<StaffMember | null>(null);
 
-  const isPackingAssistant = loggedInStaff?.role === 'Packing Assistant';
+  React.useEffect(() => {
+    if (isLoaded && !isSignedIn && !isPublicRoute(pathname)) {
+        router.push('/sign-in');
+    }
+  }, [isLoaded, isSignedIn, pathname, router]);
 
   React.useEffect(() => {
     // In a real app, you'd fetch this based on the signed-in user's ID
     if (isSignedIn) {
+        // This is a mock implementation. In a real app, you'd fetch this from your backend.
+        const staffData = JSON.parse(localStorage.getItem('loggedInStaff') || '{}');
+        const role = user.publicMetadata.role as StaffRole || 'Moderator';
+        
         const staff: StaffMember = {
             id: user.id,
             name: user.fullName || "User",
             email: user.primaryEmailAddress?.emailAddress || "",
-            role: (user.publicMetadata.role as StaffRole) || 'Moderator',
+            role: role,
             accessibleBusinessIds: (user.publicMetadata.accessibleBusinessIds as string[]) || [],
             lastLogin: user.lastSignInAt?.toISOString() || new Date().toISOString(),
-            // Mock data for other fields
-            paymentType: 'Salary',
-            permissions: {}, 
-            financials: { totalEarned: 0, totalPaid: 0, dueAmount: 0},
-            paymentHistory: [],
-            incomeHistory: [],
-            performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: {} as any },
+            // Mock data, replace with real data from your backend
+            paymentType: staffData.paymentType || 'Salary',
+            permissions: staffData.permissions || {},
+            salaryDetails: staffData.salaryDetails,
+            commissionDetails: staffData.commissionDetails,
+            financials: staffData.financials || { totalEarned: 0, totalPaid: 0, dueAmount: 0},
+            paymentHistory: staffData.paymentHistory || [],
+            incomeHistory: staffData.incomeHistory || [],
+            performance: staffData.performance || { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: {} as any },
         };
         setLoggedInStaff(staff);
-        localStorage.setItem('loggedInStaff', JSON.stringify(staff));
 
-        // Check for role and redirect if necessary
-        if(staff.role === 'Packing Assistant' && pathname !== '/dashboard/packing-orders') {
-            router.replace('/dashboard/packing-orders');
-        }
+        const accessibleNavItems = navItems(staff).filter(item => item.access);
+        const currentPathAllowed = accessibleNavItems.some(item => 
+            item.href === pathname || (item.subItems && item.subItems.some(sub => pathname.startsWith(sub.href)))
+        );
 
-        const allowedPaths = navItems(staff.role === 'Packing Assistant').flatMap(item => 'subItems' in item ? item.subItems.map(sub => sub.href) : [item.href]);
-        if (!allowedPaths.some(p => pathname.startsWith(p!))) {
-           // Maybe show a popup or redirect to dashboard
-           console.warn(`Access to ${pathname} is not allowed for role ${staff.role}`);
+        if (!currentPathAllowed && !isPublicRoute(pathname)) {
+             console.warn(`Access to ${pathname} is not allowed for role ${staff.role}. Redirecting.`);
+             // You can show a toast or a modal here before redirecting.
+             router.replace('/dashboard');
         }
 
     }
@@ -287,6 +307,14 @@ export default function DashboardLayout({
   };
 
 
+  if (!isLoaded) {
+      return (
+          <div className="flex items-center justify-center min-h-screen">
+              <PageLoader />
+          </div>
+      )
+  }
+
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
@@ -297,7 +325,7 @@ export default function DashboardLayout({
             </Link>
           </div>
           <div className="flex-1 overflow-y-auto">
-            <NavLinks isPackingAssistant={isPackingAssistant} />
+            <NavLinks user={loggedInStaff} />
           </div>
         </div>
       </div>
@@ -315,7 +343,7 @@ export default function DashboardLayout({
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
               <div className="flex-1 overflow-y-auto">
-                <MobileNavLinks onLinkClick={() => setIsMobileNavOpen(false)} isPackingAssistant={isPackingAssistant} />
+                <MobileNavLinks onLinkClick={() => setIsMobileNavOpen(false)} user={loggedInStaff} />
               </div>
             </SheetContent>
           </Sheet>
