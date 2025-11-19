@@ -24,6 +24,7 @@ import {
   FileSearch,
   ClipboardList,
   ChevronDown,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -275,18 +276,6 @@ export default function DashboardLayout({
             performance: staffData.performance || { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: {} as any },
         };
         setLoggedInStaff(staff);
-
-        const accessibleNavItems = navItems(staff).filter(item => item.access);
-        const currentPathAllowed = accessibleNavItems.some(item => 
-            item.href === pathname || (item.subItems && item.subItems.some(sub => pathname.startsWith(sub.href)))
-        );
-
-        if (!currentPathAllowed && !isPublicRoute(pathname)) {
-             console.warn(`Access to ${pathname} is not allowed for role ${staff.role}. Redirecting.`);
-             // You can show a toast or a modal here before redirecting.
-             router.replace('/dashboard');
-        }
-
     }
   }, [isLoaded, isSignedIn, user, router, pathname]);
   
