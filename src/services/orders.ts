@@ -70,11 +70,6 @@ export async function getOrderById(id: string): Promise<Order | undefined> {
 
 export async function getOrdersByCustomerPhone(phone: string): Promise<Order[]> {
     const customerOrders = orders.filter((o) => o.customerPhone === phone);
-    return Promise.resolve(customerOrders);
-}
-
-export async function getOrdersByPhone(phone: string): Promise<Order[]> {
-    const customerOrders = orders.filter(o => o.customerPhone === phone);
     await new Promise(resolve => setTimeout(resolve, 300));
     return Promise.resolve(customerOrders);
 }
