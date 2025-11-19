@@ -458,11 +458,38 @@ Create RESTful API endpoints for each data domain. For example:
 - `PUT /api/customers/:id`
 - `DELETE /api/customers/:id`
 
-### **Specialized Endpoints for "All-in-One Scan Mode"**
+### **Specialized Endpoints for Performance**
 
-For the "All-in-One Scan Mode" feature, you will need two specific endpoints:
+For dashboard and other summary views, it's highly recommended to create dedicated endpoints that perform aggregations on the server side. This is much more efficient than fetching all data to the client and performing calculations there.
 
-#### **Order Validation**
+#### **Dashboard Order Summary**
+
+This endpoint provides aggregated counts and totals for orders, grouped by status. It supports optional date range filtering.
+
+**Endpoint:** `GET /api/dashboard/summary?from={isoDate}&to={isoDate}`
+
+**Success Response (200 OK):**
+```json
+[
+  {
+    "status": "Delivered",
+    "count": 152,
+    "total": 350240.50
+  },
+  {
+    "status": "Shipped",
+    "count": 45,
+    "total": 95120.00
+  },
+  {
+    "status": "Canceled",
+    "count": 12,
+    "total": 25300.00
+  }
+]
+```
+
+#### **Order Validation ("All-in-One Scan Mode")**
 
 This endpoint is used to quickly validate a scanned order code.
 

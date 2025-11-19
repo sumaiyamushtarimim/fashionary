@@ -50,11 +50,7 @@ import type { Notification, StaffMember, StaffRole } from "@/types";
 // In a real app, this would be fetched from a settings service or user permissions
 const isCourierReportEnabled = true; 
 
-// Mock user role. In a real app, this would come from your auth context (e.g., Clerk session claims).
-const MOCK_USER_ROLE: StaffRole = 'Admin'; 
-const isPackingAssistant = MOCK_USER_ROLE === 'Packing Assistant';
-
-const navItems = [
+const navItems = (isPackingAssistant: boolean) => [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
   ...(!isPackingAssistant ? [
     { 
@@ -82,13 +78,13 @@ const navItems = [
   ])
 ];
 
-function NavLinks() {
+function NavLinks({ isPackingAssistant }: { isPackingAssistant: boolean }) {
     const pathname = usePathname();
     const isOrderRelatedPage = pathname.startsWith('/dashboard/orders') || pathname === '/dashboard/packing-orders';
     
     return (
         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-        {navItems.map((item, index) => {
+        {navItems(isPackingAssistant).map((item, index) => {
             if ('subItems' in item) {
                 return (
                     <Collapsible key={index} defaultOpen={isOrderRelatedPage}>
@@ -143,7 +139,7 @@ function NavLinks() {
     );
 }
 
-function MobileNavLinks({ onLinkClick }: { onLinkClick: () => void }) {
+function MobileNavLinks({ onLinkClick, isPackingAssistant }: { onLinkClick: () => void, isPackingAssistant: boolean }) {
     const pathname = usePathname();
     const isOrderRelatedPage = pathname.startsWith('/dashboard/orders') || pathname === '/dashboard/packing-orders';
     
@@ -155,7 +151,7 @@ function MobileNavLinks({ onLinkClick }: { onLinkClick: () => void }) {
             >
                 <Logo variant="full" />
             </Link>
-            {navItems.map((item, index) => {
+            {navItems(isPackingAssistant).map((item, index) => {
                  if ('subItems' in item) {
                      return (
                          <Collapsible key={index} defaultOpen={pathname.startsWith('/dashboard/orders')}>
@@ -237,6 +233,8 @@ export default function DashboardLayout({
   const { isLoaded, isSignedIn, user } = useUser();
   const [loggedInStaff, setLoggedInStaff] = useState<StaffMember | null>(null);
 
+  const isPackingAssistant = loggedInStaff?.role === 'Packing Assistant';
+
   React.useEffect(() => {
     // In a real app, you'd fetch this based on the signed-in user's ID
     if (isSignedIn) {
@@ -263,7 +261,7 @@ export default function DashboardLayout({
             router.replace('/dashboard/packing-orders');
         }
 
-        const allowedPaths = navItems.flatMap(item => 'subItems' in item ? item.subItems.map(sub => sub.href) : [item.href]);
+        const allowedPaths = navItems(staff.role === 'Packing Assistant').flatMap(item => 'subItems' in item ? item.subItems.map(sub => sub.href) : [item.href]);
         if (!allowedPaths.some(p => pathname.startsWith(p!))) {
            // Maybe show a popup or redirect to dashboard
            console.warn(`Access to ${pathname} is not allowed for role ${staff.role}`);
@@ -299,7 +297,7 @@ export default function DashboardLayout({
             </Link>
           </div>
           <div className="flex-1 overflow-y-auto">
-            <NavLinks />
+            <NavLinks isPackingAssistant={isPackingAssistant} />
           </div>
         </div>
       </div>
@@ -317,7 +315,7 @@ export default function DashboardLayout({
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
               <div className="flex-1 overflow-y-auto">
-                <MobileNavLinks onLinkClick={() => setIsMobileNavOpen(false)} />
+                <MobileNavLinks onLinkClick={() => setIsMobileNavOpen(false)} isPackingAssistant={isPackingAssistant} />
               </div>
             </SheetContent>
           </Sheet>
