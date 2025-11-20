@@ -15,7 +15,8 @@ import {
   Trash2,
   Loader2,
   Store,
-  Globe
+  Globe,
+  PackageSearch,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getOrderById, getStatuses } from '@/services/orders';
 import { getProducts } from '@/services/products';
 import { getBusinesses } from '@/services/partners';
+import { getDeliveryReport, type DeliveryReport } from '@/services/delivery-score';
 import type { Product, Order, OrderStatus, Business, OrderPlatform } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
@@ -70,6 +72,119 @@ const orderFormSchema = z.object({
 });
 type OrderFormValues = z.infer<typeof orderFormSchema>;
 
+function CourierReport({ report, isLoading }: { report: DeliveryReport | null, isLoading: boolean }) {
+    const courierStatsData = React.useMemo(() => {
+        if (!report || !report.Summaries) return [];
+        return Object.entries(report.Summaries).map(([name, data]) => ({
+            name,
+            total: data["Total Parcels"] || data["Total Delivery"] || 0,
+            delivered: data["Delivered Parcels"] || data["Successful Delivery"] || 0,
+            canceled: data["Canceled Parcels"] || data["Canceled Delivery"] || 0,
+        }));
+    }, [report]);
+
+    const { totalParcels, totalDelivered, totalCanceled } = React.useMemo(() => {
+        return courierStatsData.reduce((acc, courier) => {
+            acc.totalParcels += courier.total;
+            acc.totalDelivered += courier.delivered;
+            acc.totalCanceled += courier.canceled;
+            return acc;
+        }, { totalParcels: 0, totalDelivered: 0, totalCanceled: 0 });
+    }, [courierStatsData]);
+
+    const deliveryRatio = totalParcels > 0 ? (totalDelivered / totalParcels) * 100 : 0;
+    const cancelRatio = totalParcels > 0 ? (totalCanceled / totalParcels) * 100 : 0;
+
+    if (isLoading) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Courier Delivery Report</CardTitle>
+                    <CardDescription>Fetching delivery history...</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-8 w-full" />
+                </CardContent>
+            </Card>
+        )
+    }
+
+    if (!report) {
+        return (
+             <Card>
+                <CardHeader>
+                    <CardTitle>Courier Delivery Report</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-center text-muted-foreground py-4 flex flex-col items-center gap-2">
+                        <PackageSearch className="w-8 h-8" />
+                        <span>Enter a valid phone number to see the report.</span>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+    
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Courier Delivery Report</CardTitle>
+                <CardDescription>
+                    Parcel history for the entered phone number.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+                {courierStatsData.length > 0 ? (
+                    <>
+                        <div className="grid grid-cols-4 gap-x-4 border-b pb-2 text-xs font-medium text-muted-foreground">
+                            <div className="col-span-1">Courier</div>
+                            <div className="col-span-1 text-center">Total</div>
+                            <div className="col-span-1 text-center">Delivered</div>
+                            <div className="col-span-1 text-center">Canceled</div>
+                        </div>
+                        {courierStatsData.map(courier => (
+                            <div key={courier.name} className="grid grid-cols-4 gap-x-4 items-center text-sm">
+                                <div className="col-span-1 font-semibold">{courier.name}</div>
+                                <div className="col-span-1 text-center font-medium">{courier.total}</div>
+                                <div className="col-span-1 text-center font-medium text-green-600">{courier.delivered}</div>
+                                <div className="col-span-1 text-center font-medium text-red-500">{courier.canceled}</div>
+                            </div>
+                        ))}
+                        <Separator />
+                        <div className="grid grid-cols-4 gap-x-4 items-center text-sm font-bold">
+                            <div className="col-span-1">Total</div>
+                            <div className="col-span-1 text-center">{totalParcels}</div>
+                            <div className="col-span-1 text-center text-green-600">{totalDelivered}</div>
+                            <div className="col-span-1 text-center text-red-500">{totalCanceled}</div>
+                        </div>
+                        <Separator />
+                        <div className="space-y-2">
+                            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                                <div className="bg-green-500 h-2.5 rounded-l-full" style={{ width: `${deliveryRatio}%`, display: 'inline-block' }}></div>
+                                <div className="bg-red-500 h-2.5 rounded-r-full" style={{ width: `${cancelRatio}%`, display: 'inline-block' }}></div>
+                            </div>
+                            <div className="flex justify-between text-sm mt-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                                    <span>Delivery: <strong>{deliveryRatio.toFixed(1)}%</strong></span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="h-2 w-2 rounded-full bg-red-500"></span>
+                                    <span>Cancel: <strong>{cancelRatio.toFixed(1)}%</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <div className="text-center text-muted-foreground py-4">No courier data found for this number.</div>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
 export default function EditOrderPage() {
   const params = useParams();
   const router = useRouter();
@@ -83,6 +198,9 @@ export default function EditOrderPage() {
   const [allPlatforms, setAllPlatforms] = React.useState<OrderPlatform[]>(['TikTok', 'Messenger', 'Facebook', 'Instagram', 'Website']);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
+  
+  const [deliveryReport, setDeliveryReport] = React.useState<DeliveryReport | null>(null);
+  const [isReportLoading, setIsReportLoading] = React.useState(false);
 
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderFormSchema),
@@ -100,6 +218,8 @@ export default function EditOrderPage() {
       officeNote: '',
     },
   });
+  
+  const customerPhoneWatcher = form.watch('customerPhone');
 
   React.useEffect(() => {
       setIsLoading(true);
@@ -132,6 +252,27 @@ export default function EditOrderPage() {
           setIsLoading(false);
       })
   }, [orderId, form]);
+  
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+        if (customerPhoneWatcher && customerPhoneWatcher.length >= 11) {
+            setIsReportLoading(true);
+            getDeliveryReport(customerPhoneWatcher)
+                .then(report => {
+                    setDeliveryReport(report);
+                })
+                .finally(() => {
+                    setIsReportLoading(false);
+                });
+        } else {
+            setDeliveryReport(null);
+        }
+    }, 500); // Debounce API call
+
+    return () => {
+        clearTimeout(handler);
+    };
+}, [customerPhoneWatcher]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -212,6 +353,7 @@ export default function EditOrderPage() {
                                 <FormField name="shippingAddress" control={form.control} render={({ field }) => (<FormItem className="sm:col-span-2"><FormLabel>Shipping Address</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>)} />
                             </CardContent>
                         </Card>
+                         <CourierReport report={deliveryReport} isLoading={isReportLoading} />
                          <Card>
                             <CardHeader>
                                 <CardTitle>Order Items</CardTitle>
