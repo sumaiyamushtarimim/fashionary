@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Image from 'next/image';
@@ -474,13 +475,13 @@ export default function OrderDetailsPage() {
             </Badge>
             <div className="hidden items-center gap-2 md:ml-auto md:flex">
                 <Button variant="outline" size="sm" asChild>
-                    <Link href={`/dashboard/orders/print/invoice/${order.id}`} target="_blank">
+                    <Link href={`/dashboard/orders/invoice/${order.id}`} target="_blank">
                         <Printer className="mr-2 h-4 w-4" />
                         Print Invoice
                     </Link>
                 </Button>
                 <Button variant="outline" size="sm" asChild>
-                    <Link href={`/dashboard/orders/print/sticker/${order.id}`} target="_blank">
+                    <Link href={`/dashboard/orders/sticker/${order.id}`} target="_blank">
                         <File className="mr-2 h-4 w-4" />
                         Print Sticker
                     </Link>
@@ -500,8 +501,8 @@ export default function OrderDetailsPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                      <DropdownMenuItem asChild><Link href={`/dashboard/orders/${order.id}/edit`}>Edit Order</Link></DropdownMenuItem>
-                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/print/invoice/${order.id}`} target="_blank">Print Invoice</Link></DropdownMenuItem>
-                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/print/sticker/${order.id}`} target="_blank">Print Sticker</Link></DropdownMenuItem>
+                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/invoice/${order.id}`} target="_blank">Print Invoice</Link></DropdownMenuItem>
+                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/sticker/${order.id}`} target="_blank">Print Sticker</Link></DropdownMenuItem>
                 </DropdownMenuContent>
              </DropdownMenu>
         </div>

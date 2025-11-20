@@ -18,18 +18,17 @@ export default function BulkPrintPage() {
     const [isLoading, setIsLoading] = React.useState(true);
     const printType = searchParams.get('type');
     const orderIdsParam = searchParams.get('ids');
-    const orderIds = orderIdsParam ? orderIdsParam.split(',') : [];
-
+    
     React.useEffect(() => {
-        if (!orderIdsParam) {
-            setIsLoading(false);
-            return;
-        }
-
         const fetchOrders = async () => {
+            if (!orderIdsParam) {
+                setIsLoading(false);
+                return;
+            }
+            const orderIds = orderIdsParam.split(',');
             setIsLoading(true);
             const fetchedOrders = await Promise.all(
-                orderIds.map(id => getOrderById(id))
+                orderIds.map(id => getOrderById(id.trim()))
             );
             setOrders(fetchedOrders.filter((o): o is Order => !!o));
             setIsLoading(false);
@@ -40,6 +39,7 @@ export default function BulkPrintPage() {
     }, [orderIdsParam]);
 
     if (isLoading) {
+        const orderIds = orderIdsParam ? orderIdsParam.split(',') : [];
         return (
             <div className="p-10 text-center">
                 <p>Loading {orderIds.length} orders...</p>

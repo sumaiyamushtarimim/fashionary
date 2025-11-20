@@ -48,8 +48,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
   DropdownMenuPortal,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import {
   Select,
@@ -232,7 +232,7 @@ export default function OrdersClientPage() {
   const handleBulkPrint = (type: 'invoice' | 'sticker') => {
     if (selectedOrders.length === 0) return;
     const ids = selectedOrders.join(',');
-    window.open(`/dashboard/orders/print/bulk?type=${type}&ids=${ids}`, '_blank');
+    window.open(`/dashboard/orders/bulk?type=${type}&ids=${ids}`, '_blank');
   };
 
   const handleStatusFilterChange = (newStatus: string) => {

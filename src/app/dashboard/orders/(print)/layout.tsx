@@ -1,3 +1,4 @@
+
 'use client';
 
 // This is a special layout for printing purposes to provide a clean, headerless canvas.
