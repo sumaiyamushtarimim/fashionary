@@ -75,12 +75,14 @@ export default clerkMiddleware((auth, req) => {
   const pathname = req.nextUrl.pathname;
 
   if (isPublicRoute(req)) {
-    return;
+    return NextResponse.next();
   }
 
   if (isProtectedRoute(req)) {
     if (!userId) {
-      return redirectToSignIn();
+      const signInUrl = new URL('/sign-in', req.url);
+      signInUrl.searchParams.set('redirect_url', req.url);
+      return NextResponse.redirect(signInUrl);
     }
     
     const { publicMetadata } = sessionClaims || {};
@@ -100,15 +102,15 @@ export default clerkMiddleware((auth, req) => {
     // If no role or permissions, only allow dashboard access
     if (!role || !permissions) {
         if (pathname !== '/dashboard' && pathname !== '/dashboard/account' && pathname !== '/dashboard/notifications') {
-            const redirectUrl = new URL('/dashboard', req.url);
+            const redirectUrl = new URL('/dashboard?error=unauthorized', req.url);
             return NextResponse.redirect(redirectUrl);
         }
-        return;
+        return NextResponse.next();
     }
 
-    // Default to the dashboard if no specific permissions are needed for the page
+    // Default dashboard and account pages are accessible to all logged-in users
     if (pathname === '/dashboard' || pathname === '/dashboard/account' || pathname === '/dashboard/notifications') {
-        return;
+        return NextResponse.next();
     }
 
     const requiredPermissionKey = Object.keys(pagePermissions).find(key => pathname.startsWith(key));
@@ -118,18 +120,13 @@ export default clerkMiddleware((auth, req) => {
         const userPermission = permissions[permissionKey];
         
         if (!hasAccess(userPermission)) {
-            // Find the first accessible page for the user to redirect them.
-            const firstAccessiblePage = Object.keys(pagePermissions).find(key => {
-                const pKey = pagePermissions[key];
-                return hasAccess(permissions[pKey]);
-            });
-            
-            // Redirect to the first accessible page or dashboard if none found.
-            const redirectUrl = firstAccessiblePage ? new URL(firstAccessiblePage, req.url) : new URL('/dashboard', req.url);
+            const redirectUrl = new URL(req.headers.get('referer') || '/dashboard', req.url);
+            redirectUrl.searchParams.set('error', 'unauthorized');
             return NextResponse.redirect(redirectUrl);
         }
     }
   }
+   return NextResponse.next();
 });
 
 export const config = {

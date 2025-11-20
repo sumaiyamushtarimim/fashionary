@@ -48,6 +48,7 @@ import { Badge } from "@/components/ui/badge";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoader } from "@/components/ui/page-loader";
+import { UnauthorizedAccessModal } from "@/components/ui/unauthorized-access-modal";
 import { getNotifications } from "@/services/notifications";
 import type { Notification, StaffMember, StaffRole, Permission } from "@/types";
 
@@ -66,7 +67,7 @@ const hasAccess = (permission: Permission | boolean | undefined): boolean => {
 const NO_ACCESS: Permission = { create: false, read: false, update: false, delete: false };
 const READ_ONLY: Permission = { create: false, read: true, update: false, delete: false };
 const CREATE_READ_UPDATE: Permission = { create: true, read: true, update: true, delete: false };
-const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: false };
+const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: true };
 
 const PERMISSIONS = {
     Admin: {
@@ -273,8 +274,10 @@ function DevRoleSwitcher() {
     const router = useRouter();
 
     useEffect(() => {
-        const currentMockRole = document.cookie.split('; ').find(row => row.startsWith('mock_role='))?.split('=')[1] || '';
-        setMockRole(currentMockRole);
+        if (typeof window !== 'undefined') {
+            const currentMockRole = document.cookie.split('; ').find(row => row.startsWith('mock_role='))?.split('=')[1] || '';
+            setMockRole(currentMockRole);
+        }
     }, []);
 
     const handleRoleChange = (role: string) => {
@@ -452,6 +455,9 @@ export default function DashboardLayout({
           <UserMenu />
         </header>
         <main className="flex flex-1 flex-col bg-background overflow-y-auto">
+          <Suspense fallback={<PageLoader />}>
+            <UnauthorizedAccessModal />
+          </Suspense>
           {children}
         </main>
       </div>
