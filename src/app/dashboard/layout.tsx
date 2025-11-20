@@ -101,7 +101,7 @@ const navItems = (permissions: StaffMember['permissions'] | null) => [
       icon: ShoppingCart, 
       access: hasAccess(permissions?.orders),
       subItems: [
-          { href: "/dashboard/orders", label: "All Orders", access: hasAccess(permissions?.orders) },
+          { href: "/dashboard/orders/all", label: "All Orders", access: hasAccess(permissions?.orders) },
           { href: "/dashboard/orders/incomplete", label: "Incomplete Orders", access: hasAccess(permissions?.orders) },
       ]
   },

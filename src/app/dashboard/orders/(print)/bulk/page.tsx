@@ -25,13 +25,19 @@ export default function BulkPrintPage() {
                 setIsLoading(false);
                 return;
             }
-            const orderIds = orderIdsParam.split(',');
             setIsLoading(true);
-            const fetchedOrders = await Promise.all(
-                orderIds.map(id => getOrderById(id.trim()))
-            );
-            setOrders(fetchedOrders.filter((o): o is Order => !!o));
-            setIsLoading(false);
+            const orderIds = orderIdsParam.split(',');
+            try {
+                const fetchedOrders = await Promise.all(
+                    orderIds.map(id => getOrderById(id.trim()))
+                );
+                setOrders(fetchedOrders.filter((o): o is Order => !!o));
+            } catch (error) {
+                console.error("Failed to fetch orders for bulk print:", error);
+                setOrders([]);
+            } finally {
+                setIsLoading(false);
+            }
         };
         
         fetchOrders();
@@ -108,3 +114,4 @@ export default function BulkPrintPage() {
         </div>
     );
 }
+
