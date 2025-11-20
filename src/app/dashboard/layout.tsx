@@ -66,7 +66,7 @@ const hasAccess = (permission: Permission | boolean | undefined): boolean => {
 const NO_ACCESS: Permission = { create: false, read: false, update: false, delete: false };
 const READ_ONLY: Permission = { create: false, read: true, update: false, delete: false };
 const CREATE_READ_UPDATE: Permission = { create: true, read: true, update: true, delete: false };
-const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: true };
+const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: false };
 
 const PERMISSIONS = {
     Admin: {
@@ -333,26 +333,19 @@ export default function DashboardLayout({
   }, [isLoaded, isSignedIn, pathname, router]);
 
   React.useEffect(() => {
-    const getMockRolePermissions = (): StaffMember['permissions'] | null => {
-        if (process.env.NODE_ENV !== 'development') return null;
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
         const mockRole = document.cookie.split('; ').find(row => row.startsWith('mock_role='))?.split('=')[1] as StaffRole | undefined;
         if (mockRole && PERMISSIONS[mockRole]) {
-            return PERMISSIONS[mockRole] as StaffMember['permissions'];
+            setPermissions(PERMISSIONS[mockRole] as StaffMember['permissions']);
+            return;
         }
-        return null;
     }
     
-    const mockPermissions = getMockRolePermissions();
-    if (mockPermissions) {
-        setPermissions(mockPermissions);
-        return;
-    }
-
     if (isSignedIn && user) {
         const userPermissions = (user.publicMetadata?.permissions || null) as StaffMember['permissions'] | null;
         setPermissions(userPermissions);
     }
-  }, [isLoaded, isSignedIn, user, pathname]); // Re-run on pathname change to allow router.refresh() to work
+  }, [isLoaded, isSignedIn, user, pathname]);
   
   React.useEffect(() => {
     getNotifications().then(setNotifications);
@@ -371,7 +364,7 @@ export default function DashboardLayout({
   };
 
 
-  if (!isLoaded || (!permissions && isSignedIn)) {
+  if (!isLoaded || !permissions) {
       return (
           <div className="flex items-center justify-center min-h-screen">
               <PageLoader />
