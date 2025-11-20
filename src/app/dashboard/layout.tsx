@@ -193,12 +193,6 @@ function MobileNavLinks({ onLinkClick, permissions }: { onLinkClick: () => void,
 
     return (
         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-            <Link
-                href="#"
-                className="flex items-center gap-2 text-lg font-semibold mb-4"
-            >
-                <Logo variant="full" />
-            </Link>
             {accessibleNavItems.map((item, index) => {
                  if ('subItems' in item) {
                      const accessibleSubItems = item.subItems?.filter(sub => sub.access);
@@ -402,6 +396,17 @@ export default function DashboardLayout({
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
+              <SheetHeader>
+                <SheetTitle>
+                  <Link
+                    href="/dashboard"
+                    className="flex items-center gap-2 font-semibold"
+                    onClick={() => setIsMobileNavOpen(false)}
+                  >
+                    <Logo variant="full" />
+                  </Link>
+                </SheetTitle>
+              </SheetHeader>
               <div className="flex-1 overflow-y-auto">
                 <MobileNavLinks onLinkClick={() => setIsMobileNavOpen(false)} permissions={permissions} />
               </div>
