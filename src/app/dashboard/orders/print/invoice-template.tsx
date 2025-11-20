@@ -10,9 +10,8 @@ import Barcode from 'react-barcode';
 
 export function InvoiceTemplate({ order }: { order: Order }) {
     const subtotal = order.products.reduce((acc, p) => acc + p.price * p.quantity, 0);
-    const shipping = 5.00; // Placeholder
-    const tax = subtotal * 0.08;
-    const total = subtotal + shipping + tax;
+    const shipping = order.shipping || 0;
+    const total = subtotal + shipping;
 
     return (
         <div className="max-w-4xl mx-auto p-8 bg-white text-gray-800 print:shadow-none print:p-8">
@@ -96,10 +95,6 @@ export function InvoiceTemplate({ order }: { order: Order }) {
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Shipping</span>
                                 <span className="font-medium font-mono">৳{shipping.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Tax (8%)</span>
-                                <span className="font-medium font-mono">৳{tax.toFixed(2)}</span>
                             </div>
                             <div className="border-t my-2"></div>
                             <div className="flex justify-between text-xl font-bold">

@@ -6,9 +6,10 @@ import type { Order } from '@/types';
 import { format } from 'date-fns';
 import { Logo } from '@/components/logo';
 import Barcode from 'react-barcode';
+import React from 'react';
 
 export function StickerTemplate({ order }: { order: Order }) {
-    const total = order.products.reduce((acc, p) => acc + p.price * p.quantity, 0) + 5.00 + (order.products.reduce((acc, p) => acc + p.price * p.quantity, 0) * 0.08);
+    const total = order.products.reduce((acc, p) => acc + p.price * p.quantity, 0) + order.shipping;
     const codAmount = total - order.paidAmount;
 
     return (
@@ -73,4 +74,3 @@ export function StickerTemplate({ order }: { order: Order }) {
         </div>
     );
 }
-

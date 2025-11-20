@@ -145,7 +145,6 @@ export default function EditOrderPage() {
     productsWatcher?.reduce((acc, p) => acc + (p.price * p.quantity), 0) || 0, 
     [productsWatcher]
   );
-  const tax = subtotal * 0.08;
   const total = subtotal + (shippingWatcher || 0);
 
   const handleAddProduct = () => {
@@ -333,4 +332,3 @@ export default function EditOrderPage() {
     </div>
   );
 }
-

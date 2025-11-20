@@ -232,8 +232,7 @@ export default function NewOrderPage() {
         return orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
     }, [orderItems]);
 
-    const tax = useMemo(() => subtotal * 0.08, [subtotal]);
-    const total = useMemo(() => subtotal + shippingCost + tax, [subtotal, shippingCost, tax]);
+    const total = useMemo(() => subtotal + shippingCost, [subtotal, shippingCost]);
     const dueAmount = useMemo(() => total - paidAmount, [total, paidAmount]);
 
     const handleAddItem = () => {
@@ -364,10 +363,6 @@ export default function NewOrderPage() {
                                 <div className="flex justify-between items-center">
                                     <span className="text-muted-foreground">Shipping</span>
                                     <Input type="number" value={shippingCost} onChange={(e) => setShippingCost(Number(e.target.value))} className="w-24 h-8 text-right" />
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Tax (8%)</span>
-                                    <span className="font-mono">৳{tax.toFixed(2)}</span>
                                 </div>
                                 <Separator className="my-2" />
                                 <div className="flex justify-between font-semibold text-lg">

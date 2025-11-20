@@ -335,8 +335,7 @@ export default function OrderDetailsPage() {
   
   const whatsappMessage = `Hello ${order.customerName}, regarding your order ${order.id}:\n- Total: ৳${order.total.toFixed(2)}\n- Status: ${order.status}\n\nWe will update you shortly. Thank you!`;
   const subtotal = order.products.reduce((acc, p) => acc + p.price * p.quantity, 0);
-  const tax = subtotal * 0.08;
-  const total = subtotal + order.shipping + tax;
+  const total = subtotal + order.shipping;
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -463,7 +462,6 @@ export default function OrderDetailsPage() {
                     <CardContent className='space-y-2 text-sm'>
                         <div className="flex items-center justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd className='font-mono'>৳{subtotal.toFixed(2)}</dd></div>
                         <div className="flex items-center justify-between"><dt className="text-muted-foreground">Shipping</dt><dd className='font-mono'>৳{order.shipping.toFixed(2)}</dd></div>
-                        <div className="flex items-center justify-between"><dt className="text-muted-foreground">Tax</dt><dd className='font-mono'>৳{tax.toFixed(2)}</dd></div>
                         <Separator />
                         <div className="flex items-center justify-between font-semibold"><dt>Total</dt><dd className='font-mono'>৳{total.toFixed(2)}</dd></div>
                         <div className="flex items-center justify-between"><dt className="text-muted-foreground">Paid</dt><dd className='font-mono text-green-600'>৳{order.paidAmount.toFixed(2)}</dd></div>
@@ -610,4 +608,3 @@ export default function OrderDetailsPage() {
     </div>
   );
 }
-

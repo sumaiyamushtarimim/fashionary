@@ -5,7 +5,7 @@ import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getOrderById, getOrdersByPhone } from '@/services/orders';
+import { getOrderById, getOrdersByCustomerPhone } from '@/services/orders';
 import type { Order, OrderProduct } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -35,8 +35,7 @@ const statusColors: Record<Order['status'], string> = {
 
 function OrderDetailsView({ order }: { order: Order }) {
     const subtotal = order.products.reduce((acc, p) => acc + p.price * p.quantity, 0);
-    const tax = subtotal * 0.08;
-    const total = subtotal + order.shipping + tax;
+    const total = subtotal + order.shipping;
 
     return (
         <div className="space-y-6">
@@ -92,10 +91,6 @@ function OrderDetailsView({ order }: { order: Order }) {
                             <div className="flex items-center justify-between">
                                 <dt className="text-muted-foreground">Shipping</dt>
                                 <dd className="font-mono">৳{order.shipping.toFixed(2)}</dd>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <dt className="text-muted-foreground">Tax</dt>
-                                <dd className="font-mono">৳{tax.toFixed(2)}</dd>
                             </div>
                             <Separator />
                             <div className="flex items-center justify-between font-semibold">
@@ -217,7 +212,7 @@ export default function OrderTrackingResultPage() {
 
         if (isPhoneNumber) {
             setSearchType('phone');
-            getOrdersByPhone(query).then(data => {
+            getOrdersByCustomerPhone(query).then(data => {
                 if (data.length > 0) {
                     setOrders(data);
                 } else {
