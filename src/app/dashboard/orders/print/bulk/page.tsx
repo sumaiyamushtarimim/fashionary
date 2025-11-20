@@ -21,14 +21,17 @@ export default function BulkPrintPage() {
     const orderIds = orderIdsParam ? orderIdsParam.split(',') : [];
 
     React.useEffect(() => {
-        setIsLoading(true);
+        if (!orderIdsParam) {
+            setIsLoading(false);
+            return;
+        }
+
         const fetchOrders = async () => {
-            if (orderIds.length > 0) {
-                const fetchedOrders = await Promise.all(
-                    orderIds.map(id => getOrderById(id))
-                );
-                setOrders(fetchedOrders.filter((o): o is Order => !!o));
-            }
+            setIsLoading(true);
+            const fetchedOrders = await Promise.all(
+                orderIds.map(id => getOrderById(id))
+            );
+            setOrders(fetchedOrders.filter((o): o is Order => !!o));
             setIsLoading(false);
         };
         
@@ -54,7 +57,7 @@ export default function BulkPrintPage() {
     }
 
     return (
-        <div>
+        <div className="bg-gray-200">
             <div className="p-4 bg-white shadow-md no-print sticky top-0 z-10 flex items-center justify-between">
                 <h1 className="text-lg font-bold">
                     Bulk Print: {orders.length} {printType === 'invoice' ? 'Invoices' : 'Stickers'}
@@ -70,7 +73,7 @@ export default function BulkPrintPage() {
                     <div className="space-y-4 print:space-y-0">
                         {orders.map((order, index) => (
                             <div key={order.id} className={cn(
-                                "bg-white shadow-lg print:shadow-none print:border-b",
+                                "bg-white shadow-lg print:shadow-none",
                                 index < orders.length - 1 && "page-break"
                             )}>
                                 <InvoiceTemplate order={order} />
