@@ -305,4 +305,3 @@ export default function IncompleteOrdersPage() {
     </div>
   );
 }
-
