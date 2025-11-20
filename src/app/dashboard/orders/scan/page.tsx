@@ -42,6 +42,7 @@ import {
     DropdownMenuPortal,
     DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 type ScanResult = 'success' | 'duplicate' | 'error' | 'idle';
 
@@ -355,14 +356,28 @@ export default function ScanOrdersPage() {
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-
-                    <Button 
-                        onClick={handleApplyAction}
-                        disabled={!selectedAction || items.length === 0}
-                        className="flex-1 sm:flex-initial"
-                    >
-                        Apply Action
-                    </Button>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button 
+                                disabled={!selectedAction || items.length === 0}
+                                className="flex-1 sm:flex-initial"
+                            >
+                                Apply Action
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Confirm Bulk Action</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Are you sure you want to apply the action "{selectedAction}" to {items.length} scanned orders? This action cannot be undone.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleApplyAction}>Confirm & Apply</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
             </div>
         </footer>
