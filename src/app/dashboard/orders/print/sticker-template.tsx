@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import type { Order } from '@/types';
@@ -18,8 +17,7 @@ export function StickerTemplate({ order }: { order: Order }) {
                 {/* Header */}
                 <header className="flex justify-between items-start pb-1 border-b">
                     <div>
-                        <p className="font-bold text-sm">FROM: Fashionary</p>
-                        <p>123 Fashion Ave, Dhaka</p>
+                        <p className="font-bold text-sm">FROM: {order.businessId === 'BIZ002' ? 'Urban Threads' : 'Fashionary'}</p>
                         <p>Phone: +8801234567890</p>
                     </div>
                     <div className="w-12 h-12">
@@ -37,34 +35,38 @@ export function StickerTemplate({ order }: { order: Order }) {
                 {/* Barcode and Details */}
                 <section className="flex-grow flex flex-col justify-center items-center my-1">
                     <div className="w-full text-center">
-                       <Barcode value={order.id} height={35} width={1.8} fontSize={14} margin={0} />
+                       <Barcode value={order.id} height={35} width={1.5} fontSize={12} margin={0} />
                     </div>
                     <div className="w-full grid grid-cols-2 gap-x-2 mt-2 text-center">
                         <div>
                             <p className="font-bold">COD Amount:</p>
-                            <p className="text-2xl font-bold">৳{codAmount > 0 ? codAmount.toFixed(2) : "0.00"}</p>
+                            <p className="text-2xl font-bold">৳{codAmount > 0 ? codAmount.toFixed(0) : "0"}</p>
                         </div>
                         <div>
                             <p className="font-bold">Invoice #:</p>
-                            <p className="text-2xl font-bold">{order.id}</p>
+                            <p className="text-lg font-bold">{order.id}</p>
                         </div>
+                    </div>
+                     <div className='w-full text-center mt-1'>
+                        <p>Delivery Charge: ৳{order.shipping.toFixed(2)}</p>
                     </div>
                 </section>
 
                 {/* Products List */}
                 <section className="border-t pt-1">
-                    <div className="grid grid-cols-4 gap-x-2 text-[8px]">
-                        <div className="font-bold col-span-3">Product SKU</div>
-                        <div className="font-bold text-right">Qty</div>
+                    <div className="grid grid-cols-6 gap-x-1 text-[8px]">
+                        <div className="font-bold col-span-3">Product (SKU)</div>
+                        <div className="font-bold text-center">Qty</div>
+                        <div className="font-bold col-span-2 text-right">Price</div>
                         {order.products.map(p => (
                              <React.Fragment key={p.productId}>
-                                <div className="col-span-3 truncate">{p.name} (SKU-XXX)</div>
-                                <div className="text-right">{p.quantity}</div>
+                                <div className="col-span-3 truncate">{p.name.substring(0, 25)}{p.name.length > 25 ? '...' : ''} (SKU-XXX)</div>
+                                <div className="text-center">{p.quantity}</div>
+                                <div className="col-span-2 text-right font-mono">৳{p.price.toFixed(2)}</div>
                              </React.Fragment>
                         ))}
                     </div>
                 </section>
-
 
                 {/* Footer */}
                 <footer className="text-center pt-1 border-t mt-1">
