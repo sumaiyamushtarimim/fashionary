@@ -67,7 +67,7 @@ const hasAccess = (permission: Permission | boolean | undefined): boolean => {
 const NO_ACCESS: Permission = { create: false, read: false, update: false, delete: false };
 const READ_ONLY: Permission = { create: false, read: true, update: false, delete: false };
 const CREATE_READ_UPDATE: Permission = { create: true, read: true, update: true, delete: false };
-const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: false };
+const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: true };
 
 const PERMISSIONS = {
     Admin: {
@@ -339,7 +339,7 @@ export default function DashboardLayout({
     }
     
     if (isLoaded && isSignedIn && user) {
-        const userPermissions = user.publicMetadata?.permissions as StaffMember['permissions'] | null;
+        const userPermissions = (user.publicMetadata as any)?.permissions as StaffMember['permissions'] | null;
         setPermissions(userPermissions || null);
     }
   }, [isLoaded, isSignedIn, user, pathname]);

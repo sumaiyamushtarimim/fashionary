@@ -43,7 +43,7 @@ const hasAccess = (permission: Permission | boolean | undefined): boolean => {
 const NO_ACCESS: Permission = { create: false, read: false, update: false, delete: false };
 const READ_ONLY: Permission = { create: false, read: true, update: false, delete: false };
 const CREATE_READ_UPDATE: Permission = { create: true, read: true, update: true, delete: false };
-const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: false };
+const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: true };
 
 const PERMISSIONS = {
     Admin: {
@@ -98,7 +98,7 @@ export default clerkMiddleware((auth, req) => {
     }
     
     // If not in dev mode or no mock role is set, use Clerk's session claims
-    if (!role || !permissions) {
+    if (!permissions) {
         role = auth().sessionClaims?.publicMetadata?.role as StaffRole | undefined;
         permissions = auth().sessionClaims?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
     }
