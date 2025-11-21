@@ -339,8 +339,9 @@ export default function DashboardLayout({
     }
     
     if (isSignedIn && user) {
-        const userPermissions = (user.publicMetadata?.permissions || null) as StaffMember['permissions'] | null;
-        setPermissions(userPermissions);
+        // Correctly access custom claims from the user object
+        const userPermissions = (user as any).permissions as StaffMember['permissions'] | null;
+        setPermissions(userPermissions || null);
     }
   }, [isLoaded, isSignedIn, user, pathname]);
   

@@ -85,9 +85,9 @@ export default clerkMiddleware((auth, req) => {
       return NextResponse.redirect(signInUrl);
     }
     
-    const { publicMetadata } = sessionClaims || {};
-    let role = (publicMetadata as any)?.role as StaffRole | undefined;
-    let permissions = (publicMetadata as any)?.permissions as StaffMember['permissions'] | undefined;
+    // Directly access custom claims from the session
+    let role = (sessionClaims as any)?.role as StaffRole | undefined;
+    let permissions = (sessionClaims as any)?.permissions as StaffMember['permissions'] | undefined;
 
     // --- Development Role-Switching Logic ---
     if (process.env.NODE_ENV === 'development') {
