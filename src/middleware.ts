@@ -17,7 +17,7 @@ const isProtectedRoute = createRouteMatcher([
 
 // Maps dashboard pages to the required permissions
 const pagePermissions: Record<string, keyof StaffMember['permissions']> = {
-    '/dashboard/orders': 'orders',
+    '/dashboard/orders/all': 'orders',
     '/dashboard/packing-orders': 'packingOrders',
     '/dashboard/products': 'products',
     '/dashboard/inventory': 'inventory',
@@ -43,7 +43,7 @@ const hasAccess = (permission: Permission | boolean | undefined): boolean => {
 const NO_ACCESS: Permission = { create: false, read: false, update: false, delete: false };
 const READ_ONLY: Permission = { create: false, read: true, update: false, delete: false };
 const CREATE_READ_UPDATE: Permission = { create: true, read: true, update: true, delete: false };
-const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: true };
+const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: false };
 
 const PERMISSIONS = {
     Admin: {
@@ -85,9 +85,8 @@ export default clerkMiddleware((auth, req) => {
       return NextResponse.redirect(signInUrl);
     }
     
-    // Directly access custom claims from the session
-    let role = (sessionClaims as any)?.role as StaffRole | undefined;
-    let permissions = (sessionClaims as any)?.permissions as StaffMember['permissions'] | undefined;
+    let role: StaffRole | undefined;
+    let permissions: StaffMember['permissions'] | undefined;
 
     // --- Development Role-Switching Logic ---
     if (process.env.NODE_ENV === 'development') {
@@ -97,7 +96,12 @@ export default clerkMiddleware((auth, req) => {
             permissions = PERMISSIONS[mockRole] as StaffMember['permissions'];
         }
     }
-    // --- End of Development Logic ---
+    
+    // If not in dev mode or no mock role is set, use Clerk's session claims
+    if (!role || !permissions) {
+        role = sessionClaims?.publicMetadata?.role as StaffRole | undefined;
+        permissions = sessionClaims?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
+    }
     
     // If no role or permissions, only allow dashboard access
     if (!role || !permissions) {

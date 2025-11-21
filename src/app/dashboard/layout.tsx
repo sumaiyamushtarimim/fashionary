@@ -67,7 +67,7 @@ const hasAccess = (permission: Permission | boolean | undefined): boolean => {
 const NO_ACCESS: Permission = { create: false, read: false, update: false, delete: false };
 const READ_ONLY: Permission = { create: false, read: true, update: false, delete: false };
 const CREATE_READ_UPDATE: Permission = { create: true, read: true, update: true, delete: false };
-const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: true };
+const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: false };
 
 const PERMISSIONS = {
     Admin: {
@@ -330,7 +330,7 @@ export default function DashboardLayout({
   }, [isLoaded, isSignedIn, pathname, router]);
 
   React.useEffect(() => {
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
         const mockRole = document.cookie.split('; ').find(row => row.startsWith('mock_role='))?.split('=')[1] as StaffRole | undefined;
         if (mockRole && PERMISSIONS[mockRole]) {
             setPermissions(PERMISSIONS[mockRole] as StaffMember['permissions']);
@@ -338,9 +338,8 @@ export default function DashboardLayout({
         }
     }
     
-    if (isSignedIn && user) {
-        // Correctly access custom claims from the user object
-        const userPermissions = (user as any).permissions as StaffMember['permissions'] | null;
+    if (isLoaded && isSignedIn && user) {
+        const userPermissions = user.publicMetadata?.permissions as StaffMember['permissions'] | null;
         setPermissions(userPermissions || null);
     }
   }, [isLoaded, isSignedIn, user, pathname]);
