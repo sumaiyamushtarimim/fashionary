@@ -99,8 +99,8 @@ export default clerkMiddleware((auth, req) => {
     
     // If not in dev mode or no mock role is set, use Clerk's session claims
     if (!role || !permissions) {
-        role = sessionClaims?.publicMetadata?.role as StaffRole | undefined;
-        permissions = sessionClaims?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
+        role = auth().sessionClaims?.publicMetadata?.role as StaffRole | undefined;
+        permissions = auth().sessionClaims?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
     }
     
     // If no role or permissions, only allow dashboard access
