@@ -435,7 +435,7 @@ export default function OrderDetailsPage() {
   const total = subtotal + order.shipping;
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+    <div className="flex flex-1 flex-col gap-6 p-4 lg:p-8">
         <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" className="h-7 w-7" asChild>
                 <Link href="/dashboard/orders/all">
@@ -514,8 +514,8 @@ export default function OrderDetailsPage() {
              </DropdownMenu>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+            <div className="xl:col-span-8 space-y-6">
                 <Card>
                     <CardHeader>
                         <CardTitle>Order Items</CardTitle>
@@ -651,9 +651,19 @@ export default function OrderDetailsPage() {
                         <div><Label className='text-muted-foreground'>Office Note</Label><p className="text-sm">{order.officeNote || 'No office note provided.'}</p></div>
                     </CardContent>
                 </Card>
-                
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Order History</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <OrderTimeline logs={order.logs} />
+                    </CardContent>
+                </Card>
+
             </div>
-            <div className="lg:col-span-1 space-y-6">
+
+            <div className="xl:col-span-4 space-y-6">
                 <Card>
                     <CardHeader>
                         <CardTitle className='flex items-center gap-2'><User className='w-5 h-5 text-muted-foreground' />Customer & Shipping</CardTitle>
@@ -731,78 +741,70 @@ export default function OrderDetailsPage() {
                         </div>
                     </CardContent>
                 </Card>
-                
-                <Card>
-                    <CardHeader><CardTitle className='flex items-center gap-2'><CreditCard className='w-5 h-5 text-muted-foreground' />Payment Summary</CardTitle></CardHeader>
-                    <CardContent className='space-y-2 text-sm'>
-                        <div className="flex items-center justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd className='font-mono'>৳{subtotal.toFixed(2)}</dd></div>
-                        <div className="flex items-center justify-between"><dt className="text-muted-foreground">Shipping</dt><dd className='font-mono'>৳{order.shipping.toFixed(2)}</dd></div>
-                        <Separator />
-                        <div className="flex items-center justify-between font-semibold"><dt>Total</dt><dd className='font-mono'>৳{total.toFixed(2)}</dd></div>
-                        <div className="flex items-center justify-between"><dt className="text-muted-foreground">Paid</dt><dd className='font-mono text-green-600'>৳{order.paidAmount.toFixed(2)}</dd></div>
-                        <div className="flex items-center justify-between font-semibold"><dt className={cn(total - order.paidAmount > 0 && "text-destructive")}>Amount Due</dt><dd className={cn("font-mono", total - order.paidAmount > 0 && "text-destructive")}>৳{(total - order.paidAmount).toFixed(2)}</dd></div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader><CardTitle>Order Actions</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
-                        <Form {...statusForm}>
-                            <div className="space-y-4">
-                                <FormField control={statusForm.control} name="status" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Update Status</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger></FormControl>
-                                            <SelectContent>{allStatuses.map(status => (<SelectItem key={status} value={status}>{status}</SelectItem>))}</SelectContent>
-                                        </Select>
-                                    </FormItem>
-                                )} />
-                                <FormField control={statusForm.control} name="officeNote" render={({ field }) => (
-                                    <FormItem><FormLabel>Update Office Note</FormLabel><FormControl><Textarea {...field} /></FormControl></FormItem>
-                                )} />
-                                <Button className='w-full' onClick={statusForm.handleSubmit(onStatusSubmit)}><Save className="mr-2 h-4 w-4" /> Save Changes</Button>
-                            </div>
-                        </Form>
-                        <Separator />
-                        <div className="space-y-2">
-                            <Label>Courier Management</Label>
-                            <Select value={selectedCourier} onValueChange={setSelectedCourier}><SelectTrigger><SelectValue placeholder="Select a courier" /></SelectTrigger>
-                                <SelectContent>{courierServices.map(c => (<SelectItem key={c} value={c}>{c}</SelectItem>))}</SelectContent>
-                            </Select>
-                        </div>
-                        {selectedCourier && (
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button className="w-full" type="button" disabled={isSending}>
-                                        {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Truck className="mr-2 h-4 w-4" />}
-                                        {isSending ? `Sending to ${selectedCourier}...` : `Send to ${selectedCourier}`}
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Confirm Order Dispatch</AlertDialogTitle>
-                                        <AlertDialogDescription>This will send the order details for <strong>{order.id}</strong> to <strong>{selectedCourier}</strong> for delivery. Are you sure?</AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleSendToCourier}>Confirm & Send</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-                 <OrderTimeline logs={order.logs} />
-            </div>
-            <div className="lg:col-span-1">
-                 <CourierReport report={deliveryReport} isLoading={isReportLoading} />
+                <div className="sticky top-6 space-y-6">
+                    <Card>
+                        <CardHeader><CardTitle className='flex items-center gap-2'><CreditCard className='w-5 h-5 text-muted-foreground' />Payment Summary</CardTitle></CardHeader>
+                        <CardContent className='space-y-2 text-sm'>
+                            <div className="flex items-center justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd className='font-mono'>৳{subtotal.toFixed(2)}</dd></div>
+                            <div className="flex items-center justify-between"><dt className="text-muted-foreground">Shipping</dt><dd className='font-mono'>৳{order.shipping.toFixed(2)}</dd></div>
+                            <Separator />
+                            <div className="flex items-center justify-between font-semibold"><dt>Total</dt><dd className='font-mono'>৳{total.toFixed(2)}</dd></div>
+                            <div className="flex items-center justify-between"><dt className="text-muted-foreground">Paid</dt><dd className='font-mono text-green-600'>৳{order.paidAmount.toFixed(2)}</dd></div>
+                            <div className="flex items-center justify-between font-semibold"><dt className={cn(total - order.paidAmount > 0 && "text-destructive")}>Amount Due</dt><dd className={cn("font-mono", total - order.paidAmount > 0 && "text-destructive")}>৳{(total - order.paidAmount).toFixed(2)}</dd></div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader><CardTitle>Order Actions</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                            <Form {...statusForm}>
+                                <div className="space-y-4">
+                                    <FormField control={statusForm.control} name="status" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Update Status</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger></FormControl>
+                                                <SelectContent>{allStatuses.map(status => (<SelectItem key={status} value={status}>{status}</SelectItem>))}</SelectContent>
+                                            </Select>
+                                        </FormItem>
+                                    )} />
+                                    <FormField control={statusForm.control} name="officeNote" render={({ field }) => (
+                                        <FormItem><FormLabel>Update Office Note</FormLabel><FormControl><Textarea {...field} /></FormControl></FormItem>
+                                    )} />
+                                    <Button className='w-full' onClick={statusForm.handleSubmit(onStatusSubmit)}><Save className="mr-2 h-4 w-4" /> Save Changes</Button>
+                                </div>
+                            </Form>
+                            <Separator />
+                            <div className="space-y-2">
+                                <Label>Courier Management</Label>
+                                <Select value={selectedCourier} onValueChange={setSelectedCourier}><SelectTrigger><SelectValue placeholder="Select a courier" /></SelectTrigger>
+                                    <SelectContent>{courierServices.map(c => (<SelectItem key={c} value={c}>{c}</SelectItem>))}</SelectContent>
+                                </Select>
+                            </div>
+                            {selectedCourier && (
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button className="w-full" type="button" disabled={isSending}>
+                                            {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Truck className="mr-2 h-4 w-4" />}
+                                            {isSending ? `Sending to ${selectedCourier}...` : `Send to ${selectedCourier}`}
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Confirm Order Dispatch</AlertDialogTitle>
+                                            <AlertDialogDescription>This will send the order details for <strong>{order.id}</strong> to <strong>{selectedCourier}</strong> for delivery. Are you sure?</AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleSendToCourier}>Confirm & Send</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </div>
     </div>
   );
 }
-
