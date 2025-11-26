@@ -210,28 +210,30 @@ export default function IssuesPage() {
                     <CardTitle>All Issues</CardTitle>
                     <CardDescription>A list of all reported issues.</CardDescription>
                     <div className="pt-4 flex flex-col sm:flex-row gap-2">
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger className="w-full sm:w-[180px]">
-                                <SelectValue placeholder="Filter by status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Statuses</SelectItem>
-                                {allStatuses.map(status => (
-                                    <SelectItem key={status} value={status}>{status}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                         <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-                            <SelectTrigger className="w-full sm:w-[180px]">
-                                <SelectValue placeholder="Filter by assignee" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Staff</SelectItem>
-                                {allStaff.map(staff => (
-                                    <SelectItem key={staff.id} value={staff.name}>{staff.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2">
+                            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                <SelectTrigger className="w-full sm:w-[180px]">
+                                    <SelectValue placeholder="Filter by status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Statuses</SelectItem>
+                                    {allStatuses.map(status => (
+                                        <SelectItem key={status} value={status}>{status}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+                                <SelectTrigger className="w-full sm:w-[180px]">
+                                    <SelectValue placeholder="Filter by assignee" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Staff</SelectItem>
+                                    {allStaff.map(staff => (
+                                        <SelectItem key={staff.id} value={staff.name}>{staff.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                         <Button variant="outline" size="sm" onClick={handleAssignToMe}>Assigned to me</Button>
                     </div>
                 </CardHeader>
@@ -284,5 +286,3 @@ export default function IssuesPage() {
         </div>
     );
 }
-
-    
