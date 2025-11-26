@@ -196,7 +196,7 @@ export default function IssueDetailsPage() {
                             </div>
                             <p className="text-muted-foreground">{issue.description}</p>
                             <Separator className="my-4" />
-                            <div className="text-xs text-muted-foreground grid grid-cols-2 gap-2">
+                            <div className="text-xs text-muted-foreground grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <p><strong>Created by:</strong> {issue.createdBy}</p>
                                 <p><strong>Created at:</strong> {format(new Date(issue.createdAt), 'PPpp')}</p>
                                 <p><strong>Assigned to:</strong> {issue.assignedTo || 'Unassigned'}</p>
@@ -255,3 +255,5 @@ export default function IssueDetailsPage() {
         </div>
     );
 }
+
+    

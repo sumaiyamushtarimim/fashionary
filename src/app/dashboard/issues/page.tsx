@@ -44,6 +44,7 @@ import { getIssues } from '@/services/issues';
 import { getStaff } from '@/services/staff';
 import type { Issue, IssueStatus, StaffMember } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -153,6 +154,46 @@ export default function IssuesPage() {
         </Table>
     );
 
+    const renderCardList = () => (
+        <div className="space-y-4">
+            {paginatedIssues.map(issue => (
+                <Card key={issue.id}>
+                    <CardContent className="p-4 space-y-3">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <Link href={`/dashboard/issues/${issue.id}`} className="font-semibold hover:underline">{issue.id}</Link>
+                                <p className="text-sm text-muted-foreground">Order: <Link href={`/dashboard/orders/${issue.orderId}`} className="text-primary hover:underline">{issue.orderId}</Link></p>
+                            </div>
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                    <DropdownMenuItem asChild>
+                                        <Link href={`/dashboard/issues/${issue.id}`}>View Details</Link>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                        <p className="font-medium text-sm">{issue.title}</p>
+                        <Separator />
+                        <div className="flex justify-between items-center text-xs">
+                             <Badge variant="outline" className={cn(statusColors[issue.status])}>{issue.status}</Badge>
+                             <Badge variant={issue.priority === 'High' ? 'destructive' : issue.priority === 'Medium' ? 'secondary' : 'outline'}>{issue.priority} Priority</Badge>
+                        </div>
+                         <div className="text-xs text-muted-foreground pt-2 border-t">
+                            <p>Assigned to: <span className="font-medium">{issue.assignedTo || 'Unassigned'}</span></p>
+                            <p>Created: {format(new Date(issue.createdAt), 'PP')}</p>
+                         </div>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+    );
+
     return (
         <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
             <div className="flex items-center">
@@ -198,7 +239,10 @@ export default function IssuesPage() {
                     {isLoading ? (
                         <div className="h-48 flex items-center justify-center text-muted-foreground">Loading issues...</div>
                     ) : paginatedIssues.length > 0 ? (
-                        renderTable()
+                        <>
+                            <div className="hidden sm:block">{renderTable()}</div>
+                            <div className="sm:hidden">{renderCardList()}</div>
+                        </>
                     ) : (
                         <div className="h-48 flex flex-col items-center justify-center text-center text-muted-foreground">
                             <AlertCircle className="w-12 h-12 mb-4" />
@@ -240,3 +284,5 @@ export default function IssuesPage() {
         </div>
     );
 }
+
+    
