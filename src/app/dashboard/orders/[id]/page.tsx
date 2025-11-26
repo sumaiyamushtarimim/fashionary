@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import Image from 'next/image';
@@ -32,6 +31,9 @@ import {
   StickyNote,
   PackageSearch,
   AlertCircle,
+  User,
+  CreditCard,
+  ClipboardList,
 } from 'lucide-react';
 import { format, isAfter, subHours } from 'date-fns';
 import * as React from 'react';
@@ -106,6 +108,7 @@ import { getDeliveryReport, type DeliveryReport } from '@/services/delivery-scor
 import type { OrderProduct, OrderLog, Order as OrderType, OrderStatus, CourierService, Business, IssuePriority, Issue } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
+import { OrderTimeline } from '@/components/ui/order-timeline';
 
 
 const statusColors: Record<OrderType['status'], string> = {
@@ -152,68 +155,6 @@ const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 
-function OrderHistory({ logs }: { logs: OrderLog[] }) {
-    const [isClient, setIsClient] = React.useState(false);
-
-    React.useEffect(() => {
-        setIsClient(true);
-    }, []);
-
-    const sortedLogs = React.useMemo(() => logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()), [logs]);
-
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Order History</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="relative">
-                    <div className="absolute left-4 top-0 bottom-0 w-px bg-border -translate-x-1/2"></div>
-                    {isClient ? (
-                        <ul className="space-y-6">
-                            {sortedLogs.map((log, index) => {
-                                const Icon = statusIcons[log.title] || History;
-                                const isLast = index === 0;
-                                return (
-                                    <li key={`${log.timestamp}-${index}`} className="relative flex items-start gap-4">
-                                        <div className={cn(
-                                            "w-8 h-8 rounded-full flex items-center justify-center bg-background border",
-                                            isLast ? "border-primary" : "border-border"
-                                        )}>
-                                            <Icon className={cn("h-4 w-4", isLast ? "text-primary" : "text-muted-foreground")} />
-                                        </div>
-                                        <div className="flex-1 pt-1">
-                                            <p className={cn("font-medium", isLast ? "text-foreground" : "text-muted-foreground")}>{log.title}</p>
-                                            <p className="text-sm text-muted-foreground">{log.description}</p>
-                                            <div className="text-xs text-muted-foreground mt-1">
-                                                <span>{format(new Date(log.timestamp), "MMM d, yyyy, h:mm a")}</span>
-                                                {log.user && <span className="font-medium"> by {log.user}</span>}
-                                            </div>
-                                        </div>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    ) : (
-                        <div className="space-y-6">
-                            {logs.map((log, i) => (
-                                <div key={`${log.timestamp}-${i}`} className="flex items-start gap-4">
-                                    <Skeleton className="w-8 h-8 rounded-full" />
-                                    <div className="flex-1 space-y-2">
-                                        <Skeleton className="h-4 w-1/3" />
-                                        <Skeleton className="h-4 w-2/3" />
-                                        <Skeleton className="h-3 w-1/2" />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </CardContent>
-        </Card>
-    );
-}
-
 function CourierReport({ report, isLoading }: { report: DeliveryReport | null, isLoading: boolean }) {
      const courierStatsData = React.useMemo(() => {
         if (!report || !report.Summaries) return [];
@@ -241,7 +182,7 @@ function CourierReport({ report, isLoading }: { report: DeliveryReport | null, i
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>Courier Delivery Report</CardTitle>
+                    <CardTitle className='flex items-center gap-2'><ClipboardList className='w-5 h-5 text-muted-foreground' />Courier Delivery Report</CardTitle>
                     <CardDescription>Fetching delivery history...</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -257,7 +198,7 @@ function CourierReport({ report, isLoading }: { report: DeliveryReport | null, i
         return (
              <Card>
                 <CardHeader>
-                    <CardTitle>Courier Delivery Report</CardTitle>
+                    <CardTitle className='flex items-center gap-2'><ClipboardList className='w-5 h-5 text-muted-foreground' />Courier Delivery Report</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="text-center text-muted-foreground py-4 flex flex-col items-center gap-2">
@@ -272,7 +213,7 @@ function CourierReport({ report, isLoading }: { report: DeliveryReport | null, i
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Courier Delivery Report</CardTitle>
+                <CardTitle className='flex items-center gap-2'><ClipboardList className='w-5 h-5 text-muted-foreground' />Courier Delivery Report</CardTitle>
                 <CardDescription>
                     Parcel history for this phone number.
                 </CardDescription>
@@ -715,7 +656,7 @@ export default function OrderDetailsPage() {
             <div className="lg:col-span-1 space-y-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Customer & Shipping</CardTitle>
+                        <CardTitle className='flex items-center gap-2'><User className='w-5 h-5 text-muted-foreground' />Customer & Shipping</CardTitle>
                     </CardHeader>
                     <CardContent className="grid gap-4">
                         <div className="font-medium flex items-center justify-between">
@@ -790,11 +731,9 @@ export default function OrderDetailsPage() {
                         </div>
                     </CardContent>
                 </Card>
-                <CourierReport report={deliveryReport} isLoading={isReportLoading} />
+                
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Payment Summary</CardTitle>
-                    </CardHeader>
+                    <CardHeader><CardTitle className='flex items-center gap-2'><CreditCard className='w-5 h-5 text-muted-foreground' />Payment Summary</CardTitle></CardHeader>
                     <CardContent className='space-y-2 text-sm'>
                         <div className="flex items-center justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd className='font-mono'>৳{subtotal.toFixed(2)}</dd></div>
                         <div className="flex items-center justify-between"><dt className="text-muted-foreground">Shipping</dt><dd className='font-mono'>৳{order.shipping.toFixed(2)}</dd></div>
@@ -852,11 +791,18 @@ export default function OrderDetailsPage() {
                         )}
                     </CardContent>
                 </Card>
-                 <OrderHistory logs={order.logs} />
+            </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+                 <OrderTimeline logs={order.logs} />
+            </div>
+            <div className="lg:col-span-1">
+                 <CourierReport report={deliveryReport} isLoading={isReportLoading} />
             </div>
         </div>
     </div>
   );
 }
-
 
