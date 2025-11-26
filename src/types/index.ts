@@ -105,6 +105,8 @@ export type Order = {
   officeNote: string;
   createdBy: string;
   confirmedBy: string;
+  assignedTo?: string;
+  assignedToId?: string;
   businessId: string;
   platform: OrderPlatform;
   shippingAddress: {
@@ -416,5 +418,3 @@ export type AttendanceRecord = {
     totalBreakDuration: number | null; // in minutes
     breaks: BreakRecord[];
 };
-
-    
