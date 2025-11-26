@@ -4,8 +4,7 @@
 import * as React from 'react';
 import { MoreHorizontal, AlertCircle, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
-import { DateRange } from "react-day-picker";
-import { format, isWithinInterval } from "date-fns";
+import { format } from "date-fns";
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,7 +41,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { getIssues } from '@/services/issues';
-import type { Issue, IssueStatus } from '@/types';
+import { getStaff } from '@/services/staff';
+import type { Issue, IssueStatus, StaffMember } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const ITEMS_PER_PAGE = 10;
@@ -58,28 +58,47 @@ const allStatuses: IssueStatus[] = ['Open', 'In Progress', 'Resolved', 'Closed']
 
 export default function IssuesPage() {
     const [allIssues, setAllIssues] = React.useState<Issue[]>([]);
+    const [allStaff, setAllStaff] = React.useState<StaffMember[]>([]);
     const [statusFilter, setStatusFilter] = React.useState('all');
+    const [assigneeFilter, setAssigneeFilter] = React.useState('all');
     const [currentPage, setCurrentPage] = React.useState(1);
     const [isLoading, setIsLoading] = React.useState(true);
 
+    // Mock current user
+    const currentUserId = 'STAFF001'; 
+
     React.useEffect(() => {
         setIsLoading(true);
-        getIssues().then(data => {
-            setAllIssues(data);
+        Promise.all([
+            getIssues(),
+            getStaff()
+        ]).then(([issuesData, staffData]) => {
+            setAllIssues(issuesData);
+            setAllStaff(staffData);
             setIsLoading(false);
         });
     }, []);
 
     const filteredIssues = React.useMemo(() => {
-        if (statusFilter === 'all') return allIssues;
-        return allIssues.filter(issue => issue.status === statusFilter);
-    }, [statusFilter, allIssues]);
+        return allIssues.filter(issue => {
+            const statusMatch = statusFilter === 'all' || issue.status === statusFilter;
+            const assigneeMatch = assigneeFilter === 'all' || issue.assignedTo === assigneeFilter;
+            return statusMatch && assigneeMatch;
+        });
+    }, [statusFilter, assigneeFilter, allIssues]);
     
     const totalPages = Math.ceil(filteredIssues.length / ITEMS_PER_PAGE);
     const paginatedIssues = React.useMemo(() => {
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
         return filteredIssues.slice(startIndex, startIndex + ITEMS_PER_PAGE);
     }, [filteredIssues, currentPage]);
+
+    const handleAssignToMe = () => {
+        const currentUser = allStaff.find(s => s.id === currentUserId);
+        if (currentUser) {
+            setAssigneeFilter(currentUser.name);
+        }
+    }
 
     const renderTable = () => (
         <Table>
@@ -90,6 +109,7 @@ export default function IssuesPage() {
                     <TableHead>Title</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Priority</TableHead>
+                    <TableHead>Assigned To</TableHead>
                     <TableHead>Created At</TableHead>
                     <TableHead><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
@@ -110,6 +130,7 @@ export default function IssuesPage() {
                         <TableCell>
                             <Badge variant={issue.priority === 'High' ? 'destructive' : issue.priority === 'Medium' ? 'secondary' : 'outline'}>{issue.priority}</Badge>
                         </TableCell>
+                         <TableCell>{issue.assignedTo || 'Unassigned'}</TableCell>
                         <TableCell>{format(new Date(issue.createdAt), 'MMM d, yyyy')}</TableCell>
                         <TableCell>
                              <DropdownMenu>
@@ -147,7 +168,7 @@ export default function IssuesPage() {
                 <CardHeader>
                     <CardTitle>All Issues</CardTitle>
                     <CardDescription>A list of all reported issues.</CardDescription>
-                    <div className="pt-4">
+                    <div className="pt-4 flex flex-col sm:flex-row gap-2">
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
                             <SelectTrigger className="w-full sm:w-[180px]">
                                 <SelectValue placeholder="Filter by status" />
@@ -159,6 +180,18 @@ export default function IssuesPage() {
                                 ))}
                             </SelectContent>
                         </Select>
+                         <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+                            <SelectTrigger className="w-full sm:w-[180px]">
+                                <SelectValue placeholder="Filter by assignee" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Staff</SelectItem>
+                                {allStaff.map(staff => (
+                                    <SelectItem key={staff.id} value={staff.name}>{staff.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Button variant="outline" size="sm" onClick={handleAssignToMe}>Assigned to me</Button>
                     </div>
                 </CardHeader>
                 <CardContent>

@@ -11,6 +11,7 @@ import {
     Loader2,
     History,
     AlertCircle,
+    User,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -23,7 +24,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getIssueById, updateIssue } from '@/services/issues';
-import type { Issue, IssueLog, IssueStatus } from '@/types';
+import { getStaff } from '@/services/staff';
+import type { Issue, IssueLog, IssueStatus, StaffMember } from '@/types';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -79,26 +81,46 @@ export default function IssueDetailsPage() {
     const router = useRouter();
 
     const [issue, setIssue] = React.useState<Issue | undefined>(undefined);
+    const [allStaff, setAllStaff] = React.useState<StaffMember[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
     const [isUpdating, setIsUpdating] = React.useState(false);
     const [newStatus, setNewStatus] = React.useState<IssueStatus | undefined>(undefined);
+    const [newAssignee, setNewAssignee] = React.useState<string | undefined>(undefined);
     const [comment, setComment] = React.useState('');
 
     React.useEffect(() => {
         if (issueId) {
             setIsLoading(true);
-            getIssueById(issueId).then(data => {
-                setIssue(data);
-                setNewStatus(data?.status);
+            Promise.all([
+                getIssueById(issueId),
+                getStaff()
+            ]).then(([issueData, staffData]) => {
+                setIssue(issueData);
+                setAllStaff(staffData);
+                setNewStatus(issueData?.status);
+                setNewAssignee(issueData?.assignedTo);
                 setIsLoading(false);
             });
         }
     }, [issueId]);
 
     const handleUpdate = async () => {
-        if (!issue || !newStatus) return;
+        if (!issue) return;
         setIsUpdating(true);
-        const updatedIssue = await updateIssue(issue.id, newStatus, comment);
+        
+        const updatePayload: Partial<Issue> & { comment?: string } = {};
+        if (newStatus && newStatus !== issue.status) {
+            updatePayload.status = newStatus;
+        }
+        if (newAssignee && newAssignee !== issue.assignedTo) {
+            updatePayload.assignedTo = newAssignee;
+        }
+        if (comment) {
+            updatePayload.comment = comment;
+        }
+
+        const updatedIssue = await updateIssue(issue.id, updatePayload);
+
         if (updatedIssue) {
             setIssue(updatedIssue);
             setComment('');
@@ -184,17 +206,29 @@ export default function IssueDetailsPage() {
                                 <MessageSquare className="w-5 h-5 text-muted-foreground" />
                                 Update Issue
                             </CardTitle>
-                            <CardDescription>Change the status or add a comment to the issue log.</CardDescription>
+                            <CardDescription>Change the status, assignee, or add a comment to the issue log.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="status">Change Status</Label>
-                                <Select value={newStatus} onValueChange={(value: IssueStatus) => setNewStatus(value)}>
-                                    <SelectTrigger id="status"><SelectValue placeholder="Select a status" /></SelectTrigger>
-                                    <SelectContent>
-                                        {allStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="status">Change Status</Label>
+                                    <Select value={newStatus} onValueChange={(value: IssueStatus) => setNewStatus(value)}>
+                                        <SelectTrigger id="status"><SelectValue placeholder="Select a status" /></SelectTrigger>
+                                        <SelectContent>
+                                            {allStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label htmlFor="assignee">Assign To</Label>
+                                    <Select value={newAssignee} onValueChange={(value: string) => setNewAssignee(value)}>
+                                        <SelectTrigger id="assignee"><SelectValue placeholder="Select a staff member" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="">Unassigned</SelectItem>
+                                            {allStaff.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="comment">Add a Comment (Optional)</Label>

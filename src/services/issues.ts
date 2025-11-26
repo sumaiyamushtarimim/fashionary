@@ -40,34 +40,50 @@ export async function createIssue(orderId: string, title: string, description: s
     return Promise.resolve(newIssue);
 }
 
-export async function updateIssue(id: string, newStatus: Issue['status'], comment?: string): Promise<Issue | undefined> {
+export async function updateIssue(id: string, update: Partial<Issue> & { comment?: string }): Promise<Issue | undefined> {
     const issueIndex = issues.findIndex(i => i.id === id);
     if (issueIndex === -1) return undefined;
 
     const issue = issues[issueIndex];
     
+    // Mock current user
+    const currentUser = 'Admin User';
+
     const newLog: IssueLog = {
         id: `ILOG-${Date.now()}`,
         timestamp: new Date().toISOString(),
-        user: 'Admin User', // Mock current user
+        user: currentUser,
         action: ''
     };
 
-    if (newStatus !== issue.status) {
-        issue.status = newStatus;
-        newLog.action = `Status changed to ${newStatus}.`;
-        if (comment) {
-            newLog.action += ` Comment: "${comment}"`;
+    let logActions: string[] = [];
+
+    if (update.status && update.status !== issue.status) {
+        logActions.push(`Status changed to ${update.status}.`);
+        issue.status = update.status;
+    }
+    
+    if (update.assignedTo && update.assignedTo !== issue.assignedTo) {
+        logActions.push(`Assigned to ${update.assignedTo}.`);
+        issue.assignedTo = update.assignedTo;
+    } else {
+        // Auto-assign to current user if they are making a change and it's unassigned
+        if (!issue.assignedTo && (update.status || update.comment)) {
+            issue.assignedTo = currentUser;
+            logActions.push(`Assigned to ${currentUser}.`);
         }
-    } else if (comment) {
-        newLog.action = `Comment added: "${comment}"`;
+    }
+    
+    if (update.comment) {
+        logActions.push(`Comment added: "${update.comment}"`);
     }
 
-    if(newLog.action) {
+    if (logActions.length > 0) {
+        newLog.action = logActions.join(' ');
         issue.logs.push(newLog);
     }
     
-    if (newStatus === 'Resolved' || newStatus === 'Closed') {
+    if (update.status === 'Resolved' || update.status === 'Closed') {
         issue.resolvedAt = new Date().toISOString();
     }
 
