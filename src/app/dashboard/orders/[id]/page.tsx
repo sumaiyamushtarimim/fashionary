@@ -483,7 +483,7 @@ export default function OrderDetailsPage() {
       <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 justify-center items-center">
         <p>Order not found.</p>
         <Button asChild>
-          <Link href="/dashboard/orders">Go Back to Orders</Link>
+          <Link href="/dashboard/orders/all">Go Back to Orders</Link>
         </Button>
       </div>
     );
@@ -572,8 +572,8 @@ export default function OrderDetailsPage() {
                 </DropdownMenuContent>
              </DropdownMenu>
         </div>
-        <div className="grid gap-6 md:grid-cols-3">
-            <div className="grid auto-rows-max items-start gap-6 md:col-span-2">
+        <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-5">
+            <div className="grid auto-rows-max items-start gap-6 md:col-span-3 lg:col-span-3">
                 <Card>
                     <CardHeader>
                         <CardTitle>Order Items</CardTitle>
@@ -687,7 +687,7 @@ export default function OrderDetailsPage() {
                                                 </div>
                                                 <Badge variant={issue.priority === 'High' ? 'destructive' : 'secondary'}>{issue.priority}</Badge>
                                             </div>
-                                            <Separator />
+                                            <Separator className="my-3" />
                                             <div className="flex justify-between items-center">
                                                 <Badge variant="outline" className={cn('text-xs', statusColors[issue.status] || 'bg-gray-500/20 text-gray-700')}>{issue.status}</Badge>
                                                 <p className="text-xs text-muted-foreground">
@@ -709,8 +709,11 @@ export default function OrderDetailsPage() {
                         <div><Label className='text-muted-foreground'>Office Note</Label><p className="text-sm">{order.officeNote || 'No office note provided.'}</p></div>
                     </CardContent>
                 </Card>
+                <div className="lg:hidden">
+                    <OrderHistory logs={order.logs} />
+                </div>
             </div>
-            <div className="md:col-span-1 grid auto-rows-max gap-6">
+            <div className="md:col-span-3 lg:col-span-2 grid auto-rows-max gap-6">
                 <Card>
                     <CardHeader>
                         <CardTitle>Customer & Shipping</CardTitle>
@@ -850,9 +853,12 @@ export default function OrderDetailsPage() {
                         )}
                     </CardContent>
                 </Card>
-                 <OrderHistory logs={order.logs} />
+                 <div className="hidden lg:block">
+                    <OrderHistory logs={order.logs} />
+                </div>
             </div>
         </div>
     </div>
   );
 }
+
