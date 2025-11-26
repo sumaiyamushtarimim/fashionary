@@ -400,6 +400,8 @@ export type BreakRecord = {
     endTime: string | null;
 };
 
+export type AttendanceStatus = 'Present' | 'Absent' | 'On Leave';
+
 export type AttendanceRecord = {
     id: string;
     staffId: string;
@@ -407,7 +409,7 @@ export type AttendanceRecord = {
     staffRole: StaffRole;
     staffAvatar: string;
     date: string;
-    status: 'Present' | 'Absent' | 'On Leave';
+    status: AttendanceStatus;
     checkInTime: string | null;
     checkOutTime: string | null;
     totalWorkDuration: number | null; // in minutes
