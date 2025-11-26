@@ -31,6 +31,7 @@ import {
   MessageSquare,
   StickyNote,
   PackageSearch,
+  AlertCircle,
 } from 'lucide-react';
 import { format, isAfter, subHours } from 'date-fns';
 import * as React from 'react';
@@ -97,12 +98,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { getOrderById, getStatuses, getOrdersByCustomerPhone } from '@/services/orders';
 import { getBusinesses, getCourierServices } from '@/services/partners';
+import { createIssue } from '@/services/issues';
 import { getDeliveryReport, type DeliveryReport } from '@/services/delivery-score';
-import type { OrderProduct, OrderLog, Order as OrderType, OrderStatus, CourierService, Business } from '@/types';
+import type { OrderProduct, OrderLog, Order as OrderType, OrderStatus, CourierService, Business, IssuePriority } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
 
 
 const statusColors: Record<OrderType['status'], string> = {
@@ -331,6 +334,14 @@ const statusUpdateSchema = z.object({
 });
 type StatusUpdateFormValues = z.infer<typeof statusUpdateSchema>;
 
+const issueFormSchema = z.object({
+    title: z.string().min(5, "Title must be at least 5 characters."),
+    description: z.string().min(10, "Please provide a detailed description."),
+    priority: z.enum(['Low', 'Medium', 'High']),
+});
+type IssueFormValues = z.infer<typeof issueFormSchema>;
+
+
 // Cache for delivery reports
 const reportCache = new Map<string, { data: DeliveryReport; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -338,6 +349,7 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 export default function OrderDetailsPage() {
   const params = useParams();
   const { toast } = useToast();
+  const router = useRouter();
   const orderId = params.id as string;
   
   const [order, setOrder] = React.useState<OrderType | undefined>(undefined);
@@ -351,8 +363,18 @@ export default function OrderDetailsPage() {
   const [isSending, setIsSending] = React.useState(false);
   const [selectedCourier, setSelectedCourier] = React.useState<string | undefined>();
   const [includeCustomerNote, setIncludeCustomerNote] = React.useState(false);
+  const [isIssueDialogOpen, setIsIssueDialogOpen] = React.useState(false);
+
   
-  const form = useForm<StatusUpdateFormValues>();
+  const statusForm = useForm<StatusUpdateFormValues>();
+  const issueForm = useForm<IssueFormValues>({
+      resolver: zodResolver(issueFormSchema),
+      defaultValues: {
+          title: '',
+          description: '',
+          priority: 'Medium',
+      },
+  });
 
   React.useEffect(() => {
     if (orderId) {
@@ -365,7 +387,7 @@ export default function OrderDetailsPage() {
         ]).then(([orderData, statusesData, businessesData, couriersData]) => {
             if (orderData) {
                 setOrder(orderData);
-                form.reset({
+                statusForm.reset({
                   status: orderData.status,
                   officeNote: orderData.officeNote,
                 });
@@ -382,7 +404,7 @@ export default function OrderDetailsPage() {
             setIsLoading(false);
         });
     }
-  }, [orderId, form]);
+  }, [orderId, statusForm]);
 
   const handleFetchReport = React.useCallback(async (phone: string) => {
     if (!phone) return;
@@ -418,11 +440,22 @@ export default function OrderDetailsPage() {
     return { totalOrders, delivered, canceled, returned, processing, recentOrders };
   }, [customerHistory]);
 
-  function onSubmit(data: StatusUpdateFormValues) {
+  function onStatusSubmit(data: StatusUpdateFormValues) {
     toast({
         title: "Order Updated",
         description: `Status changed to ${data.status}.`,
     });
+  }
+
+  async function onIssueSubmit(data: IssueFormValues) {
+    if (!order) return;
+    const newIssue = await createIssue(order.id, data.title, data.description, data.priority);
+    toast({
+        title: "Issue Created",
+        description: `Issue #${newIssue.id} has been created for order ${order.id}.`,
+    });
+    setIsIssueDialogOpen(false);
+    router.push(`/dashboard/issues/${newIssue.id}`);
   }
 
   function handleSendToCourier() {
@@ -459,7 +492,7 @@ export default function OrderDetailsPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
         <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" className="h-7 w-7" asChild>
-                <Link href="/dashboard/orders">
+                <Link href="/dashboard/orders/all">
                     <ChevronLeft className="h-4 w-4" />
                     <span className="sr-only">Back</span>
                 </Link>
@@ -475,23 +508,47 @@ export default function OrderDetailsPage() {
             </Badge>
             <div className="hidden items-center gap-2 md:ml-auto md:flex">
                 <Button variant="outline" size="sm" asChild>
-                    <Link href={`/dashboard/orders/invoice/${order.id}`} target="_blank">
-                        <Printer className="mr-2 h-4 w-4" />
-                        Print Invoice
-                    </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild>
-                    <Link href={`/dashboard/orders/sticker/${order.id}`} target="_blank">
-                        <File className="mr-2 h-4 w-4" />
-                        Print Sticker
-                    </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild>
                     <Link href={`/dashboard/orders/${order.id}/edit`}>
                         <Edit className="mr-2 h-4 w-4" />
                         Edit Order
                     </Link>
                 </Button>
+                <Dialog open={isIssueDialogOpen} onOpenChange={setIsIssueDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                            <AlertCircle className="mr-2 h-4 w-4" />
+                            Create Issue
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Create Issue for Order {order.id}</DialogTitle>
+                            <DialogDescription>
+                                Report a problem or issue related to this order.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <Form {...issueForm}>
+                            <form onSubmit={issueForm.handleSubmit(onIssueSubmit)} className="space-y-4">
+                                <FormField control={issueForm.control} name="title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., Wrong product delivered" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField control={issueForm.control} name="description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Provide a detailed description of the issue..." {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField control={issueForm.control} name="priority" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Priority</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl><SelectTrigger><SelectValue placeholder="Select priority" /></SelectTrigger></FormControl>
+                                            <SelectContent><SelectItem value="Low">Low</SelectItem><SelectItem value="Medium">Medium</SelectItem><SelectItem value="High">High</SelectItem></SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}/>
+                                <DialogFooter>
+                                    <Button variant="outline" onClick={() => setIsIssueDialogOpen(false)}>Cancel</Button>
+                                    <Button type="submit">Create Issue</Button>
+                                </DialogFooter>
+                            </form>
+                        </Form>
+                    </DialogContent>
+                </Dialog>
             </div>
              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -501,8 +558,12 @@ export default function OrderDetailsPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                      <DropdownMenuItem asChild><Link href={`/dashboard/orders/${order.id}/edit`}>Edit Order</Link></DropdownMenuItem>
-                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/invoice/${order.id}`} target="_blank">Print Invoice</Link></DropdownMenuItem>
-                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/sticker/${order.id}`} target="_blank">Print Sticker</Link></DropdownMenuItem>
+                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/(print)/invoice/${order.id}`} target="_blank">Print Invoice</Link></DropdownMenuItem>
+                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/(print)/sticker/${order.id}`} target="_blank">Print Sticker</Link></DropdownMenuItem>
+                     <DropdownMenuSeparator />
+                     <DialogTrigger asChild>
+                        <DropdownMenuItem className="text-destructive">Create Issue</DropdownMenuItem>
+                     </DialogTrigger>
                 </DropdownMenuContent>
              </DropdownMenu>
         </div>
@@ -676,9 +737,9 @@ export default function OrderDetailsPage() {
                 <Card>
                     <CardHeader><CardTitle>Order Actions</CardTitle></CardHeader>
                     <CardContent className="space-y-4">
-                        <Form {...form}>
+                        <Form {...statusForm}>
                             <div className="space-y-4">
-                                <FormField control={form.control} name="status" render={({ field }) => (
+                                <FormField control={statusForm.control} name="status" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Update Status</FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a status" /></SelectTrigger></FormControl>
@@ -686,10 +747,10 @@ export default function OrderDetailsPage() {
                                         </Select>
                                     </FormItem>
                                 )} />
-                                <FormField control={form.control} name="officeNote" render={({ field }) => (
+                                <FormField control={statusForm.control} name="officeNote" render={({ field }) => (
                                     <FormItem><FormLabel>Update Office Note</FormLabel><FormControl><Textarea {...field} /></FormControl></FormItem>
                                 )} />
-                                <Button className='w-full' onClick={form.handleSubmit(onSubmit)}><Save className="mr-2 h-4 w-4" /> Save Changes</Button>
+                                <Button className='w-full' onClick={statusForm.handleSubmit(onStatusSubmit)}><Save className="mr-2 h-4 w-4" /> Save Changes</Button>
                             </div>
                         </Form>
                         <Separator />

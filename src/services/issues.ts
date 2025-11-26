@@ -1,6 +1,7 @@
 
+
 import { issues } from '@/lib/placeholder-data';
-import { Issue, IssueLog } from '@/types';
+import { Issue, IssueLog, IssuePriority } from '@/types';
 
 // In a real app, you'd fetch this from your API
 
@@ -17,7 +18,7 @@ export async function getIssueById(id: string): Promise<Issue | undefined> {
   return Promise.resolve(issue);
 }
 
-export async function createIssue(orderId: string, title: string, description: string, priority: Issue['priority']): Promise<Issue> {
+export async function createIssue(orderId: string, title: string, description: string, priority: IssuePriority): Promise<Issue> {
     const newIssue: Issue = {
         id: `ISSUE-${(issues.length + 1).toString().padStart(3, '0')}`,
         orderId,
@@ -63,15 +64,14 @@ export async function updateIssue(id: string, update: Partial<Issue> & { comment
         issue.status = update.status;
     }
     
-    if (update.assignedTo && update.assignedTo !== issue.assignedTo) {
-        logActions.push(`Assigned to ${update.assignedTo}.`);
+    // Check if assignedTo is part of the update object, even if it is undefined
+    if (Object.prototype.hasOwnProperty.call(update, 'assignedTo') && update.assignedTo !== issue.assignedTo) {
+        logActions.push(`Assigned to ${update.assignedTo || 'Unassigned'}.`);
         issue.assignedTo = update.assignedTo;
-    } else {
+    } else if (!issue.assignedTo && (update.status || update.comment)) {
         // Auto-assign to current user if they are making a change and it's unassigned
-        if (!issue.assignedTo && (update.status || update.comment)) {
-            issue.assignedTo = currentUser;
-            logActions.push(`Assigned to ${currentUser}.`);
-        }
+        issue.assignedTo = currentUser;
+        logActions.push(`Assigned to ${currentUser}.`);
     }
     
     if (update.comment) {
