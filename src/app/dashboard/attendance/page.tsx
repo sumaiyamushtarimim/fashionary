@@ -24,6 +24,8 @@ import type { AttendanceRecord } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format, differenceInMinutes } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 
 const statusConfig = {
     Present: { color: 'bg-green-500/20 text-green-700', icon: Check },
@@ -43,16 +45,19 @@ export default function AttendancePage() {
     const [attendanceRecords, setAttendanceRecords] = React.useState<AttendanceRecord[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
     const [isClient, setIsClient] = React.useState(false);
-    const today = new Date();
+    const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
 
     React.useEffect(() => {
         setIsClient(true);
+    }, []);
+
+    React.useEffect(() => {
         setIsLoading(true);
-        getDailyAttendance(today.toISOString()).then((data) => {
+        getDailyAttendance(selectedDate.toISOString()).then((data) => {
             setAttendanceRecords(data);
             setIsLoading(false);
         });
-    }, []);
+    }, [selectedDate]);
 
     const summaryStats = React.useMemo(() => {
         const totalStaff = attendanceRecords.length;
@@ -61,6 +66,28 @@ export default function AttendancePage() {
         const absent = totalStaff - present - onLeave;
         return { totalStaff, present, onLeave, absent };
     }, [attendanceRecords]);
+
+    const handleExport = () => {
+        const headers = ["Staff Name", "Role", "Status", "Check-in", "Check-out", "Work Duration", "Break Duration"];
+        const rows = attendanceRecords.map(record => [
+            `"${record.staffName}"`,
+            `"${record.staffRole}"`,
+            record.status,
+            record.checkInTime ? `"${format(new Date(record.checkInTime), 'h:mm a')}"` : 'N/A',
+            record.checkOutTime ? `"${format(new Date(record.checkOutTime), 'h:mm a')}"` : 'N/A',
+            `"${formatDuration(record.totalWorkDuration || 0)}"`,
+            `"${formatDuration(record.totalBreakDuration || 0)}"`
+        ].join(','));
+
+        const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `attendance_report_${format(selectedDate, 'yyyy-MM-dd')}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     const renderTable = () => (
         <Table>
@@ -159,12 +186,30 @@ export default function AttendancePage() {
                 <div className="flex-1">
                     <h1 className="font-headline text-2xl font-bold">Daily Attendance</h1>
                     <p className="text-muted-foreground hidden sm:block">
-                        Today's attendance report for all staff members.
+                        View and export daily attendance reports for all staff members.
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline"><CalendarDays className="mr-2 h-4 w-4"/> {format(today, 'MMMM d, yyyy')}</Button>
-                    <Button variant="outline"><FileDown className="mr-2 h-4 w-4"/> Export</Button>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline">
+                                <CalendarDays className="mr-2 h-4 w-4"/>
+                                {format(selectedDate, 'MMMM d, yyyy')}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar
+                                mode="single"
+                                selected={selectedDate}
+                                onSelect={(date) => date && setSelectedDate(date)}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
+                    <Button variant="outline" onClick={handleExport}>
+                        <FileDown className="mr-2 h-4 w-4"/> 
+                        Export
+                    </Button>
                 </div>
             </div>
 
@@ -224,4 +269,3 @@ export default function AttendancePage() {
         </div>
     );
 }
-

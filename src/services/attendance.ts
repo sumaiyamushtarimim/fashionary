@@ -2,53 +2,73 @@
 
 import { staff } from '@/lib/placeholder-data';
 import type { AttendanceRecord, BreakRecord } from '@/types';
-import { differenceInMinutes } from 'date-fns';
+import { differenceInMinutes, isSameDay } from 'date-fns';
 
-let mockAttendanceData: AttendanceRecord[] = staff.map(s => {
-    let status: 'Present' | 'Absent' | 'On Leave' = 'Absent';
-    if (s.id === 'STAFF001') status = 'Present';
-    if (s.id === 'STAFF002') status = 'On Leave';
+// This is a more robust mock data generator
+const generateMockAttendanceForDate = (targetDate: Date): AttendanceRecord[] => {
+    return staff.map(s => {
+        // Simple hashing to create deterministic randomness based on staff ID and date
+        const seed = s.id.charCodeAt(0) + targetDate.getDate();
+        let status: 'Present' | 'Absent' | 'On Leave' = 'Absent';
+        if (seed % 4 === 0) status = 'On Leave';
+        else if (seed % 2 === 0) status = 'Present';
 
-    const checkInTime = status === 'Present' ? new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString() : null; // 4 hours ago
-    const breaks = status === 'Present' ? [
-        {
-            id: `break-${s.id}`,
-            startTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            endTime: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(),
+        if (isSameDay(targetDate, new Date())) {
+            // Use live logic for today
+            if (s.id === 'STAFF001') status = 'Present';
+            if (s.id === 'STAFF002') status = 'On Leave';
         }
-    ] : [];
 
-    let totalWorkDuration = 0;
-    if (checkInTime) {
-        totalWorkDuration = differenceInMinutes(new Date(), new Date(checkInTime));
-    }
-    const totalBreakDuration = breaks.reduce((acc, br) => {
-        if(br.endTime) {
-            return acc + differenceInMinutes(new Date(br.endTime), new Date(br.startTime));
+
+        const checkInTime = status === 'Present' ? new Date(new Date(targetDate).setHours(9, Math.random() * 30, 0, 0)).toISOString() : null;
+        const checkOutTime = status === 'Present' ? new Date(new Date(targetDate).setHours(18, Math.random() * 30, 0, 0)).toISOString() : null;
+
+        const breaks = status === 'Present' ? [
+            {
+                id: `break-${s.id}`,
+                startTime: new Date(new Date(targetDate).setHours(13, 0, 0, 0)).toISOString(),
+                endTime: new Date(new Date(targetDate).setHours(14, 0, 0, 0)).toISOString(),
+            }
+        ] : [];
+
+        let totalWorkDuration = 0;
+        if (checkInTime && checkOutTime) {
+            totalWorkDuration = differenceInMinutes(new Date(checkOutTime), new Date(checkInTime));
         }
-        return acc;
-    }, 0);
-    totalWorkDuration -= totalBreakDuration;
+        const totalBreakDuration = breaks.reduce((acc, br) => {
+            if(br.endTime) {
+                return acc + differenceInMinutes(new Date(br.endTime), new Date(br.startTime));
+            }
+            return acc;
+        }, 0);
+        totalWorkDuration -= totalBreakDuration;
 
-    return {
-        id: `att-${s.id}`,
-        staffId: s.id,
-        staffName: s.name,
-        staffRole: s.role,
-        staffAvatar: `https://i.pravatar.cc/150?u=${s.id}`,
-        date: new Date().toISOString(),
-        status: status,
-        checkInTime: checkInTime,
-        checkOutTime: null,
-        breaks: breaks,
-        totalWorkDuration: totalWorkDuration,
-        totalBreakDuration: totalBreakDuration,
-    };
-});
+        return {
+            id: `att-${s.id}-${targetDate.toISOString().split('T')[0]}`,
+            staffId: s.id,
+            staffName: s.name,
+            staffRole: s.role,
+            staffAvatar: `https://i.pravatar.cc/150?u=${s.id}`,
+            date: targetDate.toISOString(),
+            status: status,
+            checkInTime: checkInTime,
+            checkOutTime: checkOutTime,
+            breaks: breaks,
+            totalWorkDuration: totalWorkDuration > 0 ? totalWorkDuration : 0,
+            totalBreakDuration: totalBreakDuration,
+        };
+    });
+};
 
-export async function getDailyAttendance(date: string): Promise<AttendanceRecord[]> {
-    // In a real app, you'd fetch data for the given date. Here we return the mock data for today.
-    return Promise.resolve(mockAttendanceData);
+
+let mockAttendanceData: AttendanceRecord[] = generateMockAttendanceForDate(new Date());
+
+
+export async function getDailyAttendance(dateString: string): Promise<AttendanceRecord[]> {
+    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network latency
+    const targetDate = new Date(dateString);
+    const data = generateMockAttendanceForDate(targetDate);
+    return Promise.resolve(data);
 }
 
 export async function getStaffAttendanceHistory(staffId: string): Promise<AttendanceRecord[]> {
