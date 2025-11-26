@@ -212,7 +212,7 @@ export type PurchaseOrder = {
 export type StaffIncome = {
     date: string;
     orderId: string;
-    action: 'Created' | 'Confirmed';
+    action: 'Created' | 'Confirmed' | 'Packed';
     amount: number;
 };
 
@@ -254,8 +254,9 @@ export type StaffMember = {
         frequency: 'Daily' | 'Weekly' | 'Monthly' | 'Yearly';
     };
     commissionDetails?: {
-        onOrderCreate: number;
-        onOrderConfirm: number;
+        onOrderCreate?: number;
+        onOrderConfirm?: number;
+        onOrderPacked?: number;
         targetEnabled?: boolean;
         targetPeriod?: 'Daily' | 'Weekly' | 'Monthly';
         targetCount?: number;
@@ -390,3 +391,5 @@ export type Issue = {
     resolvedAt?: string;
     logs: IssueLog[];
 };
+
+    

@@ -182,14 +182,18 @@ export default function StaffDetailsPage() {
                                         <span>{staffMember.commissionDetails.targetCount} orders / {staffMember.commissionDetails.targetPeriod}</span>
                                     </div>
                                 )}
-                                <div className="flex justify-between">
+                                {staffMember.commissionDetails.onOrderCreate && <div className="flex justify-between">
                                     <span className="text-muted-foreground">On Order Create</span>
                                     <span>৳{staffMember.commissionDetails.onOrderCreate.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between">
+                                </div>}
+                                {staffMember.commissionDetails.onOrderConfirm && <div className="flex justify-between">
                                     <span className="text-muted-foreground">On Order Confirm</span>
                                     <span>৳{staffMember.commissionDetails.onOrderConfirm.toFixed(2)}</span>
-                                </div>
+                                </div>}
+                                {staffMember.commissionDetails.onOrderPacked && <div className="flex justify-between">
+                                    <span className="text-muted-foreground">On Order Packed</span>
+                                    <span>৳{staffMember.commissionDetails.onOrderPacked.toFixed(2)}</span>
+                                </div>}
                             </>
                         )}
                     </CardContent>
@@ -378,3 +382,5 @@ export default function StaffDetailsPage() {
         </div>
     );
 }
+
+    

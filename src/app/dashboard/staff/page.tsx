@@ -131,6 +131,7 @@ export default function StaffPage() {
   const StaffForm = ({ staffMember, isEdit = false, businesses }: { staffMember?: StaffMember | null, isEdit?: boolean, businesses: Business[] }) => {
     const [role, setRole] = useState<StaffRole | undefined>(staffMember?.role);
     const [paymentType, setPaymentType] = useState<PaymentType | undefined>(staffMember?.paymentType);
+    const [targetEnabled, setTargetEnabled] = useState<boolean>(staffMember?.commissionDetails?.targetEnabled || false);
     const [accessibleBusinesses, setAccessibleBusinesses] = useState<string[]>(staffMember?.accessibleBusinessIds || []);
     const [permissions, setPermissions] = useState<StaffMember['permissions']>(
         staffMember?.permissions || {
@@ -147,6 +148,7 @@ export default function StaffPage() {
             staff: { create: false, read: false, update: false, delete: false },
             settings: { create: false, read: false, update: false, delete: false },
             analytics: { create: false, read: true, update: false, delete: false },
+            issues: { create: false, read: true, update: false, delete: false },
         }
     );
      useEffect(() => {
@@ -155,6 +157,7 @@ export default function StaffPage() {
             setPaymentType(staffMember.paymentType);
             setPermissions(staffMember.permissions);
             setAccessibleBusinesses(staffMember.accessibleBusinessIds || []);
+            setTargetEnabled(staffMember.commissionDetails?.targetEnabled || false);
         }
     }, [staffMember])
 
@@ -311,16 +314,45 @@ export default function StaffPage() {
 
                         {(paymentType === 'Commission' || paymentType === 'Both') && (
                             <div className="space-y-4 pt-4 border-t">
-                                <Label className="font-semibold">Commission</Label>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox id="enable-target" checked={targetEnabled} onCheckedChange={(checked) => setTargetEnabled(!!checked)} />
+                                    <Label htmlFor="enable-target" className="font-semibold">Enable Commission Target</Label>
+                                </div>
+                                {targetEnabled && (
+                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="target-period">Target Period</Label>
+                                            <Select defaultValue={staffMember?.commissionDetails?.targetPeriod}>
+                                                <SelectTrigger id="target-period"><SelectValue placeholder="Select period" /></SelectTrigger>
+                                                <SelectContent><SelectItem value="Daily">Daily</SelectItem><SelectItem value="Weekly">Weekly</SelectItem><SelectItem value="Monthly">Monthly</SelectItem></SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="target-count">Target Order Count</Label>
+                                            <Input id="target-count" type="number" placeholder="e.g., 100" defaultValue={staffMember?.commissionDetails?.targetCount}/>
+                                        </div>
+                                    </div>
+                                )}
+                                <Separator />
+                                <Label className="font-semibold">Commission Rates</Label>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                     <div className="space-y-2">
-                                        <Label htmlFor="commission-create">On Order Create</Label>
-                                        <Input id="commission-create" type="number" placeholder="e.g., 50" defaultValue={staffMember?.commissionDetails?.onOrderCreate}/>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="commission-confirm">On Order Confirm</Label>
-                                        <Input id="commission-confirm" type="number" placeholder="e.g., 100" defaultValue={staffMember?.commissionDetails?.onOrderConfirm}/>
-                                    </div>
+                                    {role === 'Packing Assistant' ? (
+                                         <div className="space-y-2">
+                                            <Label htmlFor="commission-pack">On Order Packed</Label>
+                                            <Input id="commission-pack" type="number" placeholder="e.g., 20" defaultValue={staffMember?.commissionDetails?.onOrderPacked}/>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="commission-create">On Order Create</Label>
+                                                <Input id="commission-create" type="number" placeholder="e.g., 50" defaultValue={staffMember?.commissionDetails?.onOrderCreate}/>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="commission-confirm">On Order Confirm</Label>
+                                                <Input id="commission-confirm" type="number" placeholder="e.g., 100" defaultValue={staffMember?.commissionDetails?.onOrderConfirm}/>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -565,3 +597,5 @@ export default function StaffPage() {
     </div>
   );
 }
+
+    
