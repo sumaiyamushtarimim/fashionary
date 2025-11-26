@@ -567,7 +567,7 @@ export default function OrderDetailsPage() {
                      <DropdownMenuItem asChild><Link href={`/dashboard/orders/(print)/sticker/${order.id}`} target="_blank">Print Sticker</Link></DropdownMenuItem>
                      <DropdownMenuSeparator />
                      <DialogTrigger asChild>
-                        <DropdownMenuItem className="text-destructive">Create Issue</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>Create Issue</DropdownMenuItem>
                      </DialogTrigger>
                 </DropdownMenuContent>
              </DropdownMenu>
@@ -648,32 +648,56 @@ export default function OrderDetailsPage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Issue ID</TableHead>
-                                        <TableHead>Title</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Priority</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {relatedIssues.map(issue => (
-                                        <TableRow key={issue.id}>
-                                            <TableCell className="font-medium">
-                                                <Link href={`/dashboard/issues/${issue.id}`} className="text-primary hover:underline">{issue.id}</Link>
-                                            </TableCell>
-                                            <TableCell>{issue.title}</TableCell>
-                                            <TableCell>
-                                                <Badge variant="outline" className={cn('text-xs', statusColors[issue.status] || 'bg-gray-500/20 text-gray-700')}>{issue.status}</Badge>
-                                            </TableCell>
-                                             <TableCell>
-                                                <Badge variant={issue.priority === 'High' ? 'destructive' : 'secondary'}>{issue.priority}</Badge>
-                                            </TableCell>
+                             <div className="hidden sm:block">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Issue ID</TableHead>
+                                            <TableHead>Title</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Priority</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {relatedIssues.map(issue => (
+                                            <TableRow key={issue.id}>
+                                                <TableCell className="font-medium">
+                                                    <Link href={`/dashboard/issues/${issue.id}`} className="text-primary hover:underline">{issue.id}</Link>
+                                                </TableCell>
+                                                <TableCell>{issue.title}</TableCell>
+                                                <TableCell>
+                                                    <Badge variant="outline" className={cn('text-xs', statusColors[issue.status] || 'bg-gray-500/20 text-gray-700')}>{issue.status}</Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge variant={issue.priority === 'High' ? 'destructive' : 'secondary'}>{issue.priority}</Badge>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                            <div className="sm:hidden space-y-4">
+                                {relatedIssues.map(issue => (
+                                     <Card key={issue.id}>
+                                        <CardContent className="p-4 space-y-3">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <Link href={`/dashboard/issues/${issue.id}`} className="font-semibold hover:underline">{issue.id}</Link>
+                                                    <p className="text-sm text-muted-foreground">{issue.title}</p>
+                                                </div>
+                                                <Badge variant={issue.priority === 'High' ? 'destructive' : 'secondary'}>{issue.priority}</Badge>
+                                            </div>
+                                            <Separator />
+                                            <div className="flex justify-between items-center">
+                                                <Badge variant="outline" className={cn('text-xs', statusColors[issue.status] || 'bg-gray-500/20 text-gray-700')}>{issue.status}</Badge>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Assigned to: {issue.assignedTo || 'Unassigned'}
+                                                </p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
                         </CardContent>
                     </Card>
                 )}

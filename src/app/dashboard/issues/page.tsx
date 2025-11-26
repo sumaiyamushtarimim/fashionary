@@ -259,7 +259,9 @@ export default function IssuesPage() {
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
                             <Button size="sm">
-                                <PlusCircle className="mr-2 h-4 w-4" /> New Issue
+                                <PlusCircle className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">New Issue</span>
+                                <span className="sr-only sm:hidden">New Issue</span>
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
