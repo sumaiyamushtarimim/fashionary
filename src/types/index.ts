@@ -254,8 +254,11 @@ export type StaffMember = {
         frequency: 'Daily' | 'Weekly' | 'Monthly' | 'Yearly';
     };
     commissionDetails?: {
-        onOrderCreate: number; // Amount per order created
-        onOrderConfirm: number; // Amount per order confirmed
+        onOrderCreate: number;
+        onOrderConfirm: number;
+        targetEnabled?: boolean;
+        targetPeriod?: 'Daily' | 'Weekly' | 'Monthly';
+        targetCount?: number;
     };
     performance: {
         ordersCreated: number;

@@ -43,6 +43,8 @@ const statusColors: Record<OrderStatus, string> = {
     'Return Pending': 'bg-pink-500/20 text-pink-700',
     'Partial': 'bg-fuchsia-500/20 text-fuchsia-700',
     'Packing Hold': 'bg-amber-500/20 text-amber-700',
+    'Incomplete': 'bg-gray-500/20 text-gray-700',
+    'Incomplete-Cancelled': 'bg-red-500/20 text-red-700',
 };
 
 const chartColors = [
@@ -174,6 +176,12 @@ export default function StaffDetailsPage() {
                              <>
                                 <Separator />
                                 <p className='font-medium'>Commission</p>
+                                {staffMember.commissionDetails.targetEnabled && (
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Target</span>
+                                        <span>{staffMember.commissionDetails.targetCount} orders / {staffMember.commissionDetails.targetPeriod}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">On Order Create</span>
                                     <span>৳{staffMember.commissionDetails.onOrderCreate.toFixed(2)}</span>
