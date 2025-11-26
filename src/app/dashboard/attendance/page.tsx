@@ -13,19 +13,22 @@ import {
   Check,
   X,
   Minus,
+  TrendingUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getDailyAttendance } from '@/services/attendance';
+import { getAttendance } from '@/services/attendance';
 import type { AttendanceRecord } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { format, differenceInMinutes } from 'date-fns';
+import { format, differenceInMinutes, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+import { DateRange } from 'react-day-picker';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { useIsMobile } from '@/hooks/use-mobile';
+
 
 const statusConfig = {
     Present: { color: 'bg-green-500/20 text-green-700', icon: Check },
@@ -42,70 +45,89 @@ function formatDuration(minutes: number): string {
 
 
 export default function AttendancePage() {
-    const [attendanceRecords, setAttendanceRecords] = React.useState<AttendanceRecord[]>([]);
+    const [allAttendanceRecords, setAllAttendanceRecords] = React.useState<AttendanceRecord[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
-    const [isClient, setIsClient] = React.useState(false);
-    const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
-
-    React.useEffect(() => {
-        setIsClient(true);
-    }, []);
+    const isMobile = useIsMobile();
+    const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+        from: startOfDay(new Date()),
+        to: endOfDay(new Date()),
+    });
 
     React.useEffect(() => {
         setIsLoading(true);
-        getDailyAttendance(selectedDate.toISOString()).then((data) => {
-            setAttendanceRecords(data);
+        getAttendance(dateRange).then((data) => {
+            setAllAttendanceRecords(data);
             setIsLoading(false);
         });
-    }, [selectedDate]);
+    }, [dateRange]);
 
     const summaryStats = React.useMemo(() => {
-        const totalStaff = attendanceRecords.length;
-        const present = attendanceRecords.filter(r => r.status === 'Present').length;
-        const onLeave = attendanceRecords.filter(r => r.status === 'On Leave').length;
-        const absent = totalStaff - present - onLeave;
-        return { totalStaff, present, onLeave, absent };
-    }, [attendanceRecords]);
+        const totalManDays = allAttendanceRecords.filter(r => r.status === 'Present').length;
+        const totalOnLeave = allAttendanceRecords.filter(r => r.status === 'On Leave').length;
+        const totalAbsent = allAttendanceRecords.filter(r => r.status === 'Absent').length;
+
+        const presentRecords = allAttendanceRecords.filter(r => r.status === 'Present' && r.totalWorkDuration);
+        const totalWorkMinutes = presentRecords.reduce((acc, r) => acc + (r.totalWorkDuration || 0), 0);
+        const avgWorkDuration = presentRecords.length > 0 ? totalWorkMinutes / presentRecords.length : 0;
+        
+        return { totalManDays, totalOnLeave, totalAbsent, avgWorkDuration };
+    }, [allAttendanceRecords]);
+    
+    const groupedRecords = React.useMemo(() => {
+        return allAttendanceRecords.reduce((acc, record) => {
+            const date = format(new Date(record.date), 'yyyy-MM-dd');
+            if (!acc[date]) {
+                acc[date] = [];
+            }
+            acc[date].push(record);
+            return acc;
+        }, {} as Record<string, AttendanceRecord[]>);
+    }, [allAttendanceRecords]);
+
+    const sortedDates = React.useMemo(() => Object.keys(groupedRecords).sort((a,b) => new Date(b).getTime() - new Date(a).getTime()), [groupedRecords]);
 
     const handleExport = () => {
-        const headers = ["Staff Name", "Role", "Status", "Check-in", "Check-out", "Work Duration", "Break Duration"];
-        const rows = attendanceRecords.map(record => [
+        const headers = ["Date", "Staff Name", "Role", "Status", "Check-in", "Check-out", "Work Duration (min)", "Break Duration (min)"];
+        const rows = allAttendanceRecords.map(record => [
+            `"${format(new Date(record.date), 'yyyy-MM-dd')}"`,
             `"${record.staffName}"`,
             `"${record.staffRole}"`,
             record.status,
             record.checkInTime ? `"${format(new Date(record.checkInTime), 'h:mm a')}"` : 'N/A',
             record.checkOutTime ? `"${format(new Date(record.checkOutTime), 'h:mm a')}"` : 'N/A',
-            `"${formatDuration(record.totalWorkDuration || 0)}"`,
-            `"${formatDuration(record.totalBreakDuration || 0)}"`
+            record.totalWorkDuration || 0,
+            record.totalBreakDuration || 0
         ].join(','));
 
         const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
+        const fromDate = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : 'start';
+        const toDate = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : 'end';
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `attendance_report_${format(selectedDate, 'yyyy-MM-dd')}.csv`);
+        link.setAttribute("download", `attendance_report_${fromDate}_to_${toDate}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     };
 
-    const renderTable = () => (
+    const renderTable = (records: AttendanceRecord[]) => (
         <Table>
             <TableHeader>
                 <TableRow>
                     <TableHead>Staff Member</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Check-in Time</TableHead>
-                    <TableHead>Check-out Time</TableHead>
-                    <TableHead>Total Break</TableHead>
+                    <TableHead className="hidden md:table-cell">Check-in</TableHead>
+                    <TableHead className="hidden md:table-cell">Check-out</TableHead>
+                    <TableHead className="hidden lg:table-cell">Break</TableHead>
                     <TableHead className="text-right">Work Duration</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {attendanceRecords.map(record => {
+                {records.map(record => {
                     const StatusIcon = statusConfig[record.status].icon;
                     return (
-                        <TableRow key={record.staffId}>
+                        <TableRow key={record.id}>
                             <TableCell>
                                 <div className="flex items-center gap-3">
                                     <Avatar>
@@ -124,9 +146,9 @@ export default function AttendancePage() {
                                     {record.status}
                                 </Badge>
                             </TableCell>
-                            <TableCell>{record.checkInTime ? format(new Date(record.checkInTime), 'h:mm a') : '-'}</TableCell>
-                            <TableCell>{record.checkOutTime ? format(new Date(record.checkOutTime), 'h:mm a') : '-'}</TableCell>
-                            <TableCell>{formatDuration(record.totalBreakDuration || 0)}</TableCell>
+                            <TableCell className="hidden md:table-cell">{record.checkInTime ? format(new Date(record.checkInTime), 'h:mm a') : '-'}</TableCell>
+                            <TableCell className="hidden md:table-cell">{record.checkOutTime ? format(new Date(record.checkOutTime), 'h:mm a') : '-'}</TableCell>
+                            <TableCell className="hidden lg:table-cell">{formatDuration(record.totalBreakDuration || 0)}</TableCell>
                             <TableCell className="text-right font-mono">{formatDuration(record.totalWorkDuration || 0)}</TableCell>
                         </TableRow>
                     )
@@ -135,12 +157,12 @@ export default function AttendancePage() {
         </Table>
     );
 
-    const renderCards = () => (
+    const renderCards = (records: AttendanceRecord[]) => (
          <div className="space-y-4">
-            {attendanceRecords.map(record => {
+            {records.map(record => {
                  const StatusIcon = statusConfig[record.status].icon;
                  return (
-                    <Card key={record.staffId}>
+                    <Card key={record.id}>
                         <CardContent className="p-4 space-y-3">
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-3">
@@ -184,28 +206,13 @@ export default function AttendancePage() {
         <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
             <div className="flex items-center">
                 <div className="flex-1">
-                    <h1 className="font-headline text-2xl font-bold">Daily Attendance</h1>
+                    <h1 className="font-headline text-2xl font-bold">Attendance Report</h1>
                     <p className="text-muted-foreground hidden sm:block">
-                        View and export daily attendance reports for all staff members.
+                        View and export attendance reports for all staff members.
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button variant="outline">
-                                <CalendarDays className="mr-2 h-4 w-4"/>
-                                {format(selectedDate, 'MMMM d, yyyy')}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                            <Calendar
-                                mode="single"
-                                selected={selectedDate}
-                                onSelect={(date) => date && setSelectedDate(date)}
-                                initialFocus
-                            />
-                        </PopoverContent>
-                    </Popover>
+                    <DateRangePicker date={dateRange} onDateChange={setDateRange} />
                     <Button variant="outline" onClick={handleExport}>
                         <FileDown className="mr-2 h-4 w-4"/> 
                         Export
@@ -216,56 +223,64 @@ export default function AttendancePage() {
              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Staff</CardTitle>
+                        <CardTitle className="text-sm font-medium">Total Man-days</CardTitle>
                         <User className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{summaryStats.totalStaff}</div>
+                        <div className="text-2xl font-bold">{summaryStats.totalManDays}</div>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Present</CardTitle>
-                        <Check className="h-4 w-4 text-green-500" />
+                        <CardTitle className="text-sm font-medium">Avg. Work Duration</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{summaryStats.present}</div>
+                        <div className="text-2xl font-bold">{formatDuration(summaryStats.avgWorkDuration)}</div>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Absent</CardTitle>
+                        <CardTitle className="text-sm font-medium">Total Absent</CardTitle>
                         <X className="h-4 w-4 text-red-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{summaryStats.absent}</div>
+                        <div className="text-2xl font-bold">{summaryStats.totalAbsent}</div>
                     </CardContent>
                 </Card>
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">On Leave</CardTitle>
+                        <CardTitle className="text-sm font-medium">Total On Leave</CardTitle>
                         <Minus className="h-4 w-4 text-yellow-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{summaryStats.onLeave}</div>
+                        <div className="text-2xl font-bold">{summaryStats.totalOnLeave}</div>
                     </CardContent>
                 </Card>
             </div>
 
-            <Card>
-                <CardContent className="pt-6">
-                    {isLoading ? (
-                        <div className="h-48 flex items-center justify-center text-muted-foreground">Loading attendance records...</div>
-                    ) : (
-                        isClient && (
-                            <>
-                                <div className="hidden sm:block">{renderTable()}</div>
-                                <div className="sm:hidden">{renderCards()}</div>
-                            </>
-                        )
-                    )}
-                </CardContent>
-            </Card>
+            <div className="space-y-6">
+                {isLoading ? (
+                    <div className="h-48 flex items-center justify-center text-muted-foreground">Loading attendance records...</div>
+                ) : sortedDates.length > 0 ? (
+                    sortedDates.map(date => (
+                        <Card key={date}>
+                             <CardHeader>
+                                <CardTitle>{format(new Date(date), 'EEEE, MMMM d, yyyy')}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {isMobile ? renderCards(groupedRecords[date]) : renderTable(groupedRecords[date])}
+                            </CardContent>
+                        </Card>
+                    ))
+                ) : (
+                    <Card>
+                        <CardContent className="h-48 flex items-center justify-center text-muted-foreground">
+                            No attendance records found for the selected date range.
+                        </CardContent>
+                    </Card>
+                )}
+            </div>
         </div>
     );
 }

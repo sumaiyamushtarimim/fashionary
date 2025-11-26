@@ -2,7 +2,8 @@
 
 import { staff } from '@/lib/placeholder-data';
 import type { AttendanceRecord, BreakRecord } from '@/types';
-import { differenceInMinutes, isSameDay } from 'date-fns';
+import { differenceInMinutes, isSameDay, eachDayOfInterval, format } from 'date-fns';
+import type { DateRange } from 'react-day-picker';
 
 // This is a more robust mock data generator
 const generateMockAttendanceForDate = (targetDate: Date): AttendanceRecord[] => {
@@ -10,7 +11,7 @@ const generateMockAttendanceForDate = (targetDate: Date): AttendanceRecord[] => 
         // Simple hashing to create deterministic randomness based on staff ID and date
         const seed = s.id.charCodeAt(0) + targetDate.getDate();
         let status: 'Present' | 'Absent' | 'On Leave' = 'Absent';
-        if (seed % 4 === 0) status = 'On Leave';
+        if (seed % 5 === 0) status = 'On Leave';
         else if (seed % 2 === 0) status = 'Present';
 
         if (isSameDay(targetDate, new Date())) {
@@ -25,7 +26,7 @@ const generateMockAttendanceForDate = (targetDate: Date): AttendanceRecord[] => 
 
         const breaks = status === 'Present' ? [
             {
-                id: `break-${s.id}`,
+                id: `break-${s.id}-${format(targetDate, 'yyyy-MM-dd')}`,
                 startTime: new Date(new Date(targetDate).setHours(13, 0, 0, 0)).toISOString(),
                 endTime: new Date(new Date(targetDate).setHours(14, 0, 0, 0)).toISOString(),
             }
@@ -44,7 +45,7 @@ const generateMockAttendanceForDate = (targetDate: Date): AttendanceRecord[] => 
         totalWorkDuration -= totalBreakDuration;
 
         return {
-            id: `att-${s.id}-${targetDate.toISOString().split('T')[0]}`,
+            id: `att-${s.id}-${format(targetDate, 'yyyy-MM-dd')}`,
             staffId: s.id,
             staffName: s.name,
             staffRole: s.role,
@@ -61,7 +62,24 @@ const generateMockAttendanceForDate = (targetDate: Date): AttendanceRecord[] => 
 };
 
 
-let mockAttendanceData: AttendanceRecord[] = generateMockAttendanceForDate(new Date());
+export async function getAttendance(range: DateRange | undefined): Promise<AttendanceRecord[]> {
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network latency
+
+    if (!range || !range.from) {
+        // Default to today if no range
+        return Promise.resolve(generateMockAttendanceForDate(new Date()));
+    }
+
+    const interval = {
+        start: range.from,
+        end: range.to || range.from,
+    };
+
+    const days = eachDayOfInterval(interval);
+    const allRecords = days.flatMap(day => generateMockAttendanceForDate(day));
+    
+    return Promise.resolve(allRecords);
+}
 
 
 export async function getDailyAttendance(dateString: string): Promise<AttendanceRecord[]> {
@@ -73,10 +91,23 @@ export async function getDailyAttendance(dateString: string): Promise<Attendance
 
 export async function getStaffAttendanceHistory(staffId: string): Promise<AttendanceRecord[]> {
     // This would fetch all historical records for a staff member.
-    // For now, we'll return the single mock record if it matches.
-    const record = mockAttendanceData.find(r => r.staffId === staffId);
-    return record ? Promise.resolve([record]) : Promise.resolve([]);
+    // For now, we'll return a mock set for the last month.
+    const today = new Date();
+    const records: AttendanceRecord[] = [];
+    for(let i=0; i < 30; i++) {
+        const date = new Date();
+        date.setDate(today.getDate() - i);
+        const dayRecord = generateMockAttendanceForDate(date).find(r => r.staffId === staffId);
+        if (dayRecord) {
+            records.push(dayRecord);
+        }
+    }
+    return Promise.resolve(records);
 }
+
+// These functions would interact with a live database in a real app
+// For now, they manipulate a simple in-memory state which is not persisted.
+let mockAttendanceData: AttendanceRecord[] = generateMockAttendanceForDate(new Date());
 
 export async function clockIn(staffId: string): Promise<AttendanceRecord> {
     const recordIndex = mockAttendanceData.findIndex(r => r.staffId === staffId);
