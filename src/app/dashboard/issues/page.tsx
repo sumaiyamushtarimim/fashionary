@@ -258,7 +258,7 @@ export default function IssuesPage() {
                  <div className="flex items-center gap-2">
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button size="sm">
+                            <Button size="sm" variant="destructive">
                                 <PlusCircle className="h-4 w-4 sm:mr-2" />
                                 <span className="hidden sm:inline">New Issue</span>
                                 <span className="sr-only sm:hidden">New Issue</span>
