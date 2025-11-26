@@ -17,6 +17,7 @@ import {
   Store,
   Globe,
   PackageSearch,
+  User,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -46,8 +47,9 @@ import { useToast } from "@/hooks/use-toast";
 import { getOrderById, getStatuses } from '@/services/orders';
 import { getProducts } from '@/services/products';
 import { getBusinesses } from '@/services/partners';
+import { getStaff } from '@/services/staff';
 import { getDeliveryReport, type DeliveryReport } from '@/services/delivery-score';
-import type { Product, Order, OrderStatus, Business, OrderPlatform } from '@/types';
+import type { Product, Order, OrderStatus, Business, OrderPlatform, StaffMember } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 
@@ -67,6 +69,7 @@ const orderFormSchema = z.object({
   status: z.string(),
   businessId: z.string().optional(),
   platform: z.string().optional(),
+  assignedToId: z.string().optional(),
   customerNote: z.string().optional(),
   officeNote: z.string().optional(),
 });
@@ -195,6 +198,7 @@ export default function EditOrderPage() {
   const [allProducts, setAllProducts] = React.useState<Product[]>([]);
   const [allStatuses, setAllStatuses] = React.useState<OrderStatus[]>([]);
   const [allBusinesses, setAllBusinesses] = React.useState<Business[]>([]);
+  const [allStaff, setAllStaff] = React.useState<StaffMember[]>([]);
   const [allPlatforms, setAllPlatforms] = React.useState<OrderPlatform[]>(['TikTok', 'Messenger', 'Facebook', 'Instagram', 'Website']);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
@@ -214,6 +218,7 @@ export default function EditOrderPage() {
       status: 'New',
       businessId: '',
       platform: 'Website',
+      assignedToId: undefined,
       customerNote: '',
       officeNote: '',
     },
@@ -228,11 +233,13 @@ export default function EditOrderPage() {
           getProducts(),
           getStatuses(),
           getBusinesses(),
-      ]).then(([orderData, productsData, statusesData, businessesData]) => {
+          getStaff(),
+      ]).then(([orderData, productsData, statusesData, businessesData, staffData]) => {
           setOrder(orderData);
           setAllProducts(productsData);
           setAllStatuses(statusesData);
           setAllBusinesses(businessesData);
+          setAllStaff(staffData);
 
           if (orderData) {
             form.reset({
@@ -245,6 +252,7 @@ export default function EditOrderPage() {
               status: orderData.status || 'New',
               businessId: orderData.businessId || '',
               platform: orderData.platform || undefined,
+              assignedToId: orderData.assignedToId || undefined,
               customerNote: orderData.customerNote || '',
               officeNote: orderData.officeNote || '',
             });
@@ -324,7 +332,7 @@ export default function EditOrderPage() {
             <form onSubmit={form.handleSubmit(onSubmit)}>
                 <div className="flex items-center gap-4 mb-6">
                     <Button variant="outline" size="icon" className="h-7 w-7" asChild>
-                        <Link href={orderId.startsWith('INC') ? `/dashboard/orders/incomplete` : `/dashboard/orders`}>
+                        <Link href={orderId.startsWith('INC') ? `/dashboard/orders/incomplete` : `/dashboard/orders/${orderId}`}>
                             <ChevronLeft className="h-4 w-4" />
                             <span className="sr-only">Back</span>
                         </Link>
@@ -445,6 +453,14 @@ export default function EditOrderPage() {
                                         </Select>
                                     </FormItem>
                                 )}/>
+                                 <FormField control={form.control} name="assignedToId" render={({ field }) => (
+                                    <FormItem><FormLabel>Assign To</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl><SelectTrigger><div className="flex items-center gap-2"><User className="h-4 w-4 text-muted-foreground" /><span><SelectValue placeholder="Assign to a staff member" /></span></div></SelectTrigger></FormControl>
+                                            <SelectContent><SelectItem value="unassigned">Unassigned</SelectItem>{allStaff.map(s => (<SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>))}</SelectContent>
+                                        </Select>
+                                    </FormItem>
+                                )}/>
                             </CardContent>
                         </Card>
                         <Card>
@@ -474,3 +490,5 @@ export default function EditOrderPage() {
     </div>
   );
 }
+
+    

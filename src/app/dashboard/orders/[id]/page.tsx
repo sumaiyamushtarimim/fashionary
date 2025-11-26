@@ -509,8 +509,8 @@ export default function OrderDetailsPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                      <DropdownMenuItem asChild><Link href={`/dashboard/orders/${order.id}/edit`}>Edit Order</Link></DropdownMenuItem>
-                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/(print)/invoice/${order.id}`} target="_blank">Print Invoice</Link></DropdownMenuItem>
-                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/(print)/sticker/${order.id}`} target="_blank">Print Sticker</Link></DropdownMenuItem>
+                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/print/invoice/${order.id}`} target="_blank">Print Invoice</Link></DropdownMenuItem>
+                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/print/sticker/${order.id}`} target="_blank">Print Sticker</Link></DropdownMenuItem>
                      <DropdownMenuSeparator />
                      <Dialog open={isIssueDialogOpen} onOpenChange={setIsIssueDialogOpen}>
                         <DialogTrigger asChild>
@@ -725,7 +725,10 @@ export default function OrderDetailsPage() {
                         <Separator />
                          <Card>
                             <CardHeader className="p-2 pt-0">
-                                <CardTitle className="text-sm">Assigned To</CardTitle>
+                                <CardTitle className="text-sm flex items-center gap-2">
+                                    <UserCheck className="w-4 h-4 text-muted-foreground" />
+                                    Assigned To
+                                </CardTitle>
                             </CardHeader>
                             <CardContent className="p-2 pt-0">
                                 {order.assignedTo ? (
@@ -884,3 +887,6 @@ export default function OrderDetailsPage() {
     </div>
   );
 }
+
+
+    
