@@ -62,7 +62,9 @@ export type OrderStatus =
   | 'Delivered'
   | 'Return Pending'
   | 'Returned'
-  | 'Partial';
+  | 'Partial'
+  | 'Incomplete'
+  | 'Incomplete-Cancelled';
 
 export type OrderPlatform = 'TikTok' | 'Messenger' | 'Facebook' | 'Instagram' | 'Website';
 export type PaymentMethod = 'Cash on Delivery' | 'bKash' | 'Nagad';
@@ -281,6 +283,7 @@ export type StaffMember = {
         staff: Permission | boolean;
         settings: Permission | boolean;
         analytics: Permission | boolean;
+        issues: Permission | boolean;
     };
 };
 
@@ -358,4 +361,29 @@ export type CourierIntegration = {
     credentials: PathaoCredentials | SteadfastCredentials | RedXCredentials | CarrybeeCredentials;
     deliveryType?: 48 | 12; // For Pathao: 48 for Normal, 12 for On Demand
     itemType?: 1 | 2; // For Pathao: 1 for Document, 2 for Parcel
+};
+
+// Issue Management Types
+export type IssueStatus = 'Open' | 'In Progress' | 'Resolved' | 'Closed';
+export type IssuePriority = 'Low' | 'Medium' | 'High';
+
+export type IssueLog = {
+    id: string;
+    timestamp: string;
+    user: string;
+    action: string;
+};
+
+export type Issue = {
+    id: string;
+    orderId: string;
+    title: string;
+    description: string;
+    status: IssueStatus;
+    priority: IssuePriority;
+    createdBy: string;
+    assignedTo?: string;
+    createdAt: string;
+    resolvedAt?: string;
+    logs: IssueLog[];
 };

@@ -26,6 +26,7 @@ import {
   ChevronDown,
   RotateCcw,
   UserCog,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -69,27 +70,62 @@ const READ_ONLY: Permission = { create: false, read: true, update: false, delete
 const CREATE_READ_UPDATE: Permission = { create: true, read: true, update: true, delete: false };
 const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: true };
 
-const PERMISSIONS = {
+const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
     Admin: {
         orders: FULL_ACCESS, packingOrders: FULL_ACCESS, products: FULL_ACCESS, inventory: FULL_ACCESS,
         customers: FULL_ACCESS, purchases: FULL_ACCESS, expenses: FULL_ACCESS, checkPassing: FULL_ACCESS,
         partners: FULL_ACCESS, courierReport: FULL_ACCESS, staff: FULL_ACCESS, settings: FULL_ACCESS, analytics: FULL_ACCESS,
+        issues: FULL_ACCESS,
     },
     Manager: {
         orders: CREATE_READ_UPDATE, packingOrders: READ_ONLY, products: CREATE_READ_UPDATE, inventory: CREATE_READ_UPDATE,
         customers: CREATE_READ_UPDATE, purchases: CREATE_READ_UPDATE, expenses: CREATE_READ_UPDATE, checkPassing: { ...CREATE_READ_UPDATE, create: false },
         partners: CREATE_READ_UPDATE, courierReport: READ_ONLY, staff: { ...CREATE_READ_UPDATE, delete: false }, settings: READ_ONLY, analytics: NO_ACCESS,
+        issues: CREATE_READ_UPDATE,
     },
     Moderator: {
         orders: CREATE_READ_UPDATE, packingOrders: NO_ACCESS, products: NO_ACCESS, inventory: NO_ACCESS,
         customers: READ_ONLY, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
         partners: NO_ACCESS, courierReport: READ_ONLY, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
+        issues: CREATE_READ_UPDATE,
     },
     'Packing Assistant': {
         orders: NO_ACCESS, packingOrders: { ...CREATE_READ_UPDATE, create: false, delete: false }, products: NO_ACCESS, inventory: NO_ACCESS,
         customers: NO_ACCESS, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
         partners: NO_ACCESS, courierReport: NO_ACCESS, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
-    }
+        issues: NO_ACCESS,
+    },
+    'Seller': {
+        orders: CREATE_READ_UPDATE, packingOrders: NO_ACCESS, products: READ_ONLY, inventory: READ_ONLY,
+        customers: CREATE_READ_UPDATE, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
+        partners: NO_ACCESS, courierReport: READ_ONLY, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
+        issues: { ...CREATE_READ_UPDATE, create: true, read: true, update: true, delete: false },
+    },
+    'Call Assistant': {
+        orders: READ_ONLY, packingOrders: NO_ACCESS, products: READ_ONLY, inventory: READ_ONLY,
+        customers: READ_ONLY, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
+        partners: NO_ACCESS, courierReport: READ_ONLY, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
+        issues: { ...CREATE_READ_UPDATE, create: false, read: true, update: true, delete: false },
+    },
+    'Call Centre Manager': {
+        orders: READ_ONLY, packingOrders: NO_ACCESS, products: READ_ONLY, inventory: READ_ONLY,
+        customers: READ_ONLY, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
+        partners: NO_ACCESS, courierReport: READ_ONLY, staff: READ_ONLY, settings: NO_ACCESS, analytics: READ_ONLY,
+        issues: CREATE_READ_UPDATE,
+    },
+    'Courier Manager': {
+        orders: { ...CREATE_READ_UPDATE, create: false, delete: false }, packingOrders: READ_ONLY, products: NO_ACCESS, inventory: NO_ACCESS,
+        customers: READ_ONLY, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: READ_ONLY,
+        partners: NO_ACCESS, courierReport: FULL_ACCESS, staff: NO_ACCESS, settings: { ...NO_ACCESS, read: true }, analytics: NO_ACCESS,
+        issues: { ...CREATE_READ_UPDATE, create: true, read: true, update: true, delete: false },
+    },
+    'Courier Call Assistant': {
+        orders: READ_ONLY, packingOrders: NO_ACCESS, products: NO_ACCESS, inventory: NO_ACCESS,
+        customers: READ_ONLY, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
+        partners: NO_ACCESS, courierReport: READ_ONLY, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
+        issues: { ...CREATE_READ_UPDATE, create: false, read: true, update: true, delete: false },
+    },
+    'Custom': NO_ACCESS,
 };
 // --- END OF PERMISSIONS PRESETS ---
 
@@ -105,6 +141,7 @@ const navItems = (permissions: StaffMember['permissions'] | null) => [
           { href: "/dashboard/orders/incomplete", label: "Incomplete Orders", access: hasAccess(permissions?.orders) },
       ]
   },
+  { href: "/dashboard/issues", icon: AlertCircle, label: "Issues", access: hasAccess(permissions?.issues) },
   { href: "/dashboard/packing-orders", icon: ClipboardList, label: "Packing Orders", access: hasAccess(permissions?.packingOrders) },
   { href: "/dashboard/courier-report", icon: FileSearch, label: "Courier Report", access: hasAccess(permissions?.courierReport) },
   { href: "/dashboard/products", icon: Package, label: "Products", access: hasAccess(permissions?.products) },
@@ -330,16 +367,16 @@ export default function DashboardLayout({
   }, [isLoaded, isSignedIn, pathname, router]);
 
   React.useEffect(() => {
-    if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+    if (process.env.NODE_ENV === 'development') {
         const mockRole = document.cookie.split('; ').find(row => row.startsWith('mock_role='))?.split('=')[1] as StaffRole | undefined;
         if (mockRole && PERMISSIONS[mockRole]) {
-            setPermissions(PERMISSIONS[mockRole] as StaffMember['permissions']);
+            setPermissions(PERMISSIONS[mockRole]);
             return;
         }
     }
     
     if (isLoaded && isSignedIn && user) {
-        const userPermissions = (user.publicMetadata as any)?.permissions as StaffMember['permissions'] | null;
+        const userPermissions = user.publicMetadata.permissions as StaffMember['permissions'] | null;
         setPermissions(userPermissions || null);
     }
   }, [isLoaded, isSignedIn, user, pathname]);

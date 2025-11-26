@@ -1,6 +1,7 @@
 
+
 import { PlaceHolderImages } from './placeholder-images';
-import type { Order, Product, Customer, Category, ExpenseCategory, Business, PurchaseOrder, StaffMember, Supplier, Vendor, Expense, InventoryItem, InventoryMovement, WooCommerceIntegration, OrderStatus, CourierService, Permission, StaffRole, StockLocation, CourierIntegration } from '@/types';
+import type { Order, Product, Customer, Category, ExpenseCategory, Business, PurchaseOrder, StaffMember, Supplier, Vendor, Expense, InventoryItem, InventoryMovement, WooCommerceIntegration, OrderStatus, CourierService, Permission, StaffRole, StockLocation, CourierIntegration, Issue, IssueLog } from '@/types';
 
 
 export const businesses: Business[] = [
@@ -195,7 +196,7 @@ export const customers: Omit<Customer, 'totalOrders' | 'totalSpent'>[] = [
 export const allStatuses: OrderStatus[] = [
     'New', 'Confirmed', 'Packing Hold', 'Canceled', 'Hold', 'In-Courier',
     'RTS (Ready to Ship)', 'Shipped', 'Delivered', 'Return Pending', 'Returned',
-    'Partial'
+    'Partial', 'Incomplete', 'Incomplete-Cancelled'
 ];
 
 export const orders: Order[] = [
@@ -476,27 +477,62 @@ const READ_ONLY: Permission = { create: false, read: true, update: false, delete
 const CREATE_READ_UPDATE: Permission = { create: true, read: true, update: true, delete: false };
 const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: true };
 
-const PERMISSIONS = {
-    admin: {
+const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
+    Admin: {
         orders: FULL_ACCESS, packingOrders: FULL_ACCESS, products: FULL_ACCESS, inventory: FULL_ACCESS,
         customers: FULL_ACCESS, purchases: FULL_ACCESS, expenses: FULL_ACCESS, checkPassing: FULL_ACCESS,
         partners: FULL_ACCESS, courierReport: FULL_ACCESS, staff: FULL_ACCESS, settings: FULL_ACCESS, analytics: FULL_ACCESS,
+        issues: FULL_ACCESS,
     },
-    manager: {
+    Manager: {
         orders: CREATE_READ_UPDATE, packingOrders: READ_ONLY, products: CREATE_READ_UPDATE, inventory: CREATE_READ_UPDATE,
         customers: CREATE_READ_UPDATE, purchases: CREATE_READ_UPDATE, expenses: CREATE_READ_UPDATE, checkPassing: { ...CREATE_READ_UPDATE, create: false },
         partners: CREATE_READ_UPDATE, courierReport: READ_ONLY, staff: { ...CREATE_READ_UPDATE, delete: false }, settings: READ_ONLY, analytics: NO_ACCESS,
+        issues: CREATE_READ_UPDATE,
     },
-    moderator: {
+    Moderator: {
         orders: CREATE_READ_UPDATE, packingOrders: NO_ACCESS, products: NO_ACCESS, inventory: NO_ACCESS,
         customers: READ_ONLY, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
         partners: NO_ACCESS, courierReport: READ_ONLY, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
+        issues: CREATE_READ_UPDATE,
     },
-    packingAssistant: {
+    'Packing Assistant': {
         orders: NO_ACCESS, packingOrders: { ...CREATE_READ_UPDATE, create: false, delete: false }, products: NO_ACCESS, inventory: NO_ACCESS,
         customers: NO_ACCESS, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
         partners: NO_ACCESS, courierReport: NO_ACCESS, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
-    }
+        issues: NO_ACCESS,
+    },
+    'Seller': {
+        orders: CREATE_READ_UPDATE, packingOrders: NO_ACCESS, products: READ_ONLY, inventory: READ_ONLY,
+        customers: CREATE_READ_UPDATE, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
+        partners: NO_ACCESS, courierReport: READ_ONLY, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
+        issues: { ...CREATE_READ_UPDATE, create: true, read: true, update: true, delete: false },
+    },
+    'Call Assistant': {
+        orders: READ_ONLY, packingOrders: NO_ACCESS, products: READ_ONLY, inventory: READ_ONLY,
+        customers: READ_ONLY, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
+        partners: NO_ACCESS, courierReport: READ_ONLY, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
+        issues: { ...CREATE_READ_UPDATE, create: false, read: true, update: true, delete: false },
+    },
+    'Call Centre Manager': {
+        orders: READ_ONLY, packingOrders: NO_ACCESS, products: READ_ONLY, inventory: READ_ONLY,
+        customers: READ_ONLY, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
+        partners: NO_ACCESS, courierReport: READ_ONLY, staff: READ_ONLY, settings: NO_ACCESS, analytics: READ_ONLY,
+        issues: CREATE_READ_UPDATE,
+    },
+    'Courier Manager': {
+        orders: { ...CREATE_READ_UPDATE, create: false, delete: false }, packingOrders: READ_ONLY, products: NO_ACCESS, inventory: NO_ACCESS,
+        customers: READ_ONLY, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: READ_ONLY,
+        partners: NO_ACCESS, courierReport: FULL_ACCESS, staff: NO_ACCESS, settings: { ...NO_ACCESS, read: true }, analytics: NO_ACCESS,
+        issues: { ...CREATE_READ_UPDATE, create: true, read: true, update: true, delete: false },
+    },
+    'Courier Call Assistant': {
+        orders: READ_ONLY, packingOrders: NO_ACCESS, products: NO_ACCESS, inventory: NO_ACCESS,
+        customers: READ_ONLY, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
+        partners: NO_ACCESS, courierReport: READ_ONLY, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
+        issues: { ...CREATE_READ_UPDATE, create: false, read: true, update: true, delete: false },
+    },
+    'Custom': NO_ACCESS,
 }
 // --- END OF PERMISSIONS PRESETS ---
 
@@ -515,7 +551,7 @@ export const staff: StaffMember[] = [
         financials: { totalEarned: 250000, totalPaid: 250000, dueAmount: 0 },
         paymentHistory: [{ date: '2024-05-01', amount: 50000, notes: 'April Salary' }],
         incomeHistory: [],
-        permissions: PERMISSIONS.admin,
+        permissions: PERMISSIONS.Admin,
     },
     {
         id: 'STAFF002',
@@ -533,7 +569,7 @@ export const staff: StaffMember[] = [
             { date: '2024-05-24', orderId: 'ORD-2024-001', action: 'Created', amount: 50 },
             { date: '2024-05-24', orderId: 'ORD-2024-001', action: 'Confirmed', amount: 100 },
         ],
-        permissions: PERMISSIONS.moderator,
+        permissions: PERMISSIONS.Moderator,
     },
      {
         id: 'STAFF003',
@@ -548,8 +584,44 @@ export const staff: StaffMember[] = [
         financials: { totalEarned: 75000, totalPaid: 60000, dueAmount: 15000 },
         paymentHistory: [{ date: '2024-05-01', amount: 15000, notes: 'April Salary' }],
         incomeHistory: [],
-        permissions: PERMISSIONS.packingAssistant,
+        permissions: PERMISSIONS['Packing Assistant'],
     },
+];
+
+export const issues: Issue[] = [
+    {
+        id: 'ISSUE-001',
+        orderId: 'ORD-2024-001',
+        title: 'Wrong size delivered',
+        description: 'Customer received a Medium size T-shirt instead of Large.',
+        status: 'Resolved',
+        priority: 'High',
+        createdBy: 'Saleha Akter',
+        assignedTo: 'Admin User',
+        createdAt: '2024-05-26T10:00:00Z',
+        resolvedAt: '2024-05-27T14:00:00Z',
+        logs: [
+            { id: 'ILOG-001', timestamp: '2024-05-26T10:00:00Z', user: 'Saleha Akter', action: 'Issue Created. Priority set to High.' },
+            { id: 'ILOG-002', timestamp: '2024-05-26T10:05:00Z', user: 'Saleha Akter', action: 'Assigned to Admin User.' },
+            { id: 'ILOG-003', timestamp: '2024-05-27T09:00:00Z', user: 'Admin User', action: 'Status changed to In Progress. Contacted customer for replacement.' },
+            { id: 'ILOG-004', timestamp: '2024-05-27T14:00:00Z', user: 'Admin User', action: 'Status changed to Resolved. Replacement product has been dispatched.' },
+        ],
+    },
+    {
+        id: 'ISSUE-002',
+        orderId: 'ORD-2024-002',
+        title: 'Delivery delay',
+        description: 'Customer is complaining about the delivery taking too long.',
+        status: 'In Progress',
+        priority: 'Medium',
+        createdBy: 'Saleha Akter',
+        assignedTo: 'Admin User',
+        createdAt: '2024-05-28T11:00:00Z',
+        logs: [
+            { id: 'ILOG-005', timestamp: '2024-05-28T11:00:00Z', user: 'Saleha Akter', action: 'Issue Created.' },
+            { id: 'ILOG-006', timestamp: '2024-05-28T11:02:00Z', user: 'Saleha Akter', action: 'Status changed to In Progress. Assigned to Admin User.' },
+        ],
+    }
 ];
 
 export const bdDistricts: string[] = ["Bagerhat", "Bandarban", "Barguna", "Barisal", "Bhola", "Bogra", "Brahmanbaria", "Chandpur", "Chapai Nawabganj", "Chittagong", "Chuadanga", "Comilla", "Cox's Bazar", "Dhaka", "Dinajpur", "Faridpur", "Feni", "Gaibandha", "Gazipur", "Gopalganj", "Habiganj", "Jamalpur", "Jessore", "Jhalokati", "Jhenaidah", "Joypurhat", "Khagrachhari", "Khulna", "Kishoreganj", "Kurigram", "Kushtia", "Lakshmipur", "Lalmonirhat", "Madaripur", "Magura", "Manikganj", "Meherpur", "Moulvibazar", "Munshiganj", "Mymensingh", "Naogaon", "Narail", "Narayanganj", "Narsingdi", "Natore", "Netrokona", "Nilphamari", "Noakhali", "Pabna", "Panchagarh", "Patuakhali", "Pirojpur", "Rajbari", "Rajshahi", "Rangamati", "Rangpur", "Satkhira", "Shariatpur", "Sherpur", "Sirajganj", "Sunamganj", "Sylhet", "Tangail", "Thakurgaon"];
