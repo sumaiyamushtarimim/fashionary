@@ -1,7 +1,7 @@
 
 
 import { orders, allStatuses } from '@/lib/placeholder-data';
-import { Order, OrderStatus } from '@/types';
+import { Order, OrderStatus, OrderUpdateInput } from '@/types';
 import { isWithinInterval, parseISO } from 'date-fns';
 
 // In a real app, you'd fetch this from your API
@@ -77,6 +77,38 @@ export async function getOrdersByCustomerPhone(phone: string): Promise<Order[]> 
 export async function getStatuses(): Promise<OrderStatus[]> {
     return Promise.resolve(allStatuses);
 }
+
+export async function updateOrder(orderId: string, updateData: OrderUpdateInput): Promise<Order | undefined> {
+    console.log(`Updating order ${orderId} with:`, updateData);
+    const orderIndex = orders.findIndex(o => o.id === orderId);
+    if (orderIndex === -1) {
+        return undefined;
+    }
+    
+    const originalOrder = orders[orderIndex];
+
+    // Merge the new data
+    const updatedOrder = {
+        ...originalOrder,
+        ...updateData,
+    };
+    
+    // Add a log entry for the change
+    if (updateData.assignedToId && updateData.assignedToId !== originalOrder.assignedToId) {
+        const staffName = updateData.assignedTo || 'Unassigned';
+        updatedOrder.logs.push({
+            title: 'Order Assigned',
+            description: `Order assigned to ${staffName}.`,
+            timestamp: new Date().toISOString(),
+            user: 'Admin' // This would be the logged in user in a real app
+        });
+    }
+
+    orders[orderIndex] = updatedOrder;
+
+    return Promise.resolve(updatedOrder);
+}
+
 
 type ScanValidationResult = {
     status: 'ok' | 'error';

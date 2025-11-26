@@ -118,6 +118,9 @@ export type Order = {
   paidAmount: number;
 };
 
+export type OrderUpdateInput = Partial<Pick<Order, 'status' | 'assignedTo' | 'assignedToId' | 'officeNote'>>;
+
+
 export type Customer = {
   id: string;
   name: string;

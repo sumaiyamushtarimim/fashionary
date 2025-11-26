@@ -192,6 +192,9 @@ model Order {
   logs            OrderLog[]
   customer        Customer?      @relation(fields: [customerPhone], references: [phone])
   business        Business?      @relation(fields: [businessId], references: [id])
+  
+  assignedTo      StaffMember?   @relation(fields: [assignedToId], references: [id])
+  assignedToId    String?
 }
 
 model OrderProduct {
@@ -331,6 +334,7 @@ model StaffMember {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+  assignedOrders    Order[]
   attendanceRecords AttendanceRecord[]
   // Relationships for tracking earnings and payments would be more complex
   // and might involve separate tables for income and payment history.
