@@ -21,7 +21,7 @@ import {
   Globe,
   Edit,
   Printer,
-  File,
+  File as FileIcon,
   Loader2,
   Clock,
   PackageCheck,
@@ -435,7 +435,7 @@ export default function OrderDetailsPage() {
   const total = subtotal + order.shipping;
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-4 lg:p-8">
+    <div className="flex flex-1 flex-col gap-6 p-4 lg:p-6 xl:p-8">
         <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" className="h-7 w-7" asChild>
                 <Link href="/dashboard/orders/all">
@@ -507,15 +507,45 @@ export default function OrderDetailsPage() {
                      <DropdownMenuItem asChild><Link href={`/dashboard/orders/(print)/invoice/${order.id}`} target="_blank">Print Invoice</Link></DropdownMenuItem>
                      <DropdownMenuItem asChild><Link href={`/dashboard/orders/(print)/sticker/${order.id}`} target="_blank">Print Sticker</Link></DropdownMenuItem>
                      <DropdownMenuSeparator />
-                     <DialogTrigger asChild>
-                        <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>Create Issue</DropdownMenuItem>
-                     </DialogTrigger>
+                     <Dialog open={isIssueDialogOpen} onOpenChange={setIsIssueDialogOpen}>
+                        <DialogTrigger asChild>
+                           <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>Create Issue</DropdownMenuItem>
+                        </DialogTrigger>
+                        <DialogContent>
+                           <DialogHeader>
+                                <DialogTitle>Create Issue for Order {order.id}</DialogTitle>
+                                <DialogDescription>
+                                    Report a problem or issue related to this order.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <Form {...issueForm}>
+                                <form onSubmit={issueForm.handleSubmit(onIssueSubmit)} className="space-y-4">
+                                    <FormField control={issueForm.control} name="title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., Wrong product delivered" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={issueForm.control} name="description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Provide a detailed description of the issue..." {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={issueForm.control} name="priority" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Priority</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl><SelectTrigger><SelectValue placeholder="Select priority" /></SelectTrigger></FormControl>
+                                                <SelectContent><SelectItem value="Low">Low</SelectItem><SelectItem value="Medium">Medium</SelectItem><SelectItem value="High">High</SelectItem></SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}/>
+                                    <DialogFooter>
+                                        <Button type="button" variant="outline" onClick={() => setIsIssueDialogOpen(false)}>Cancel</Button>
+                                        <Button type="submit">Create Issue</Button>
+                                    </DialogFooter>
+                                </form>
+                            </Form>
+                        </DialogContent>
+                     </Dialog>
                 </DropdownMenuContent>
              </DropdownMenu>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-            <div className="xl:col-span-8 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 xl:gap-8">
+            <div className="lg:col-span-2 space-y-6">
                 <Card>
                     <CardHeader>
                         <CardTitle>Order Items</CardTitle>
@@ -652,18 +682,9 @@ export default function OrderDetailsPage() {
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Order History</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <OrderTimeline logs={order.logs} />
-                    </CardContent>
-                </Card>
-
             </div>
 
-            <div className="xl:col-span-4 space-y-6">
+            <div className="lg:col-span-1 space-y-6">
                 <Card>
                     <CardHeader>
                         <CardTitle className='flex items-center gap-2'><User className='w-5 h-5 text-muted-foreground' />Customer & Shipping</CardTitle>
@@ -805,6 +826,23 @@ export default function OrderDetailsPage() {
                 </div>
             </div>
         </div>
+         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 xl:gap-8 mt-6">
+            <div className="lg:col-span-2 space-y-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Order History</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <OrderTimeline logs={order.logs} />
+                    </CardContent>
+                </Card>
+            </div>
+             <div className="lg:col-span-1 space-y-6">
+                 <CourierReport report={deliveryReport} isLoading={isReportLoading} />
+            </div>
+        </div>
     </div>
   );
 }
+
+    
