@@ -114,6 +114,11 @@ enum CourierService {
   Steadfast
 }
 
+enum AttendanceStatus {
+  Present
+  Absent
+  OnLeave
+}
 
 // MODELS //
 
@@ -321,13 +326,39 @@ model StaffMember {
   lastLogin       DateTime
   paymentType     String // Salary, Commission, Both
   salaryDetails   Json? // { "amount": 25000, "frequency": "Monthly" }
-  commissionDetails Json? // { "onOrderCreate": 50, "onOrderConfirm": 100, "targetEnabled": true, "targetPeriod": "Monthly", "targetCount": 100 }
+  commissionDetails Json? // { "onOrderCreate": 50, "onOrderConfirm": 100, "onOrderPacked": 20, "targetEnabled": true, "targetPeriod": "Monthly", "targetCount": 100 }
   permissions     Json // Store permission object as JSON
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+  attendanceRecords AttendanceRecord[]
   // Relationships for tracking earnings and payments would be more complex
   // and might involve separate tables for income and payment history.
+}
+
+model AttendanceRecord {
+  id                String           @id @default(cuid())
+  staffId           String
+  date              DateTime         @db.Date
+  status            AttendanceStatus
+  checkInTime       DateTime?
+  checkOutTime      DateTime?
+  totalWorkDuration Int? // in minutes
+  totalBreakDuration Int? // in minutes
+  
+  staff             StaffMember @relation(fields: [staffId], references: [id])
+  breaks            BreakRecord[]
+
+  @@unique([staffId, date])
+}
+
+model BreakRecord {
+  id                String   @id @default(cuid())
+  attendanceId      String
+  startTime         DateTime
+  endTime           DateTime?
+
+  attendanceRecord  AttendanceRecord @relation(fields: [attendanceId], references: [id])
 }
 
 model Expense {

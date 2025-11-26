@@ -288,6 +288,7 @@ export type StaffMember = {
         settings: Permission | boolean;
         analytics: Permission | boolean;
         issues: Permission | boolean;
+        attendance: Permission | boolean;
     };
 };
 
@@ -390,6 +391,28 @@ export type Issue = {
     createdAt: string;
     resolvedAt?: string;
     logs: IssueLog[];
+};
+
+// Attendance Management Types
+export type BreakRecord = {
+    id: string;
+    startTime: string;
+    endTime: string | null;
+};
+
+export type AttendanceRecord = {
+    id: string;
+    staffId: string;
+    staffName: string;
+    staffRole: StaffRole;
+    staffAvatar: string;
+    date: string;
+    status: 'Present' | 'Absent' | 'On Leave';
+    checkInTime: string | null;
+    checkOutTime: string | null;
+    totalWorkDuration: number | null; // in minutes
+    totalBreakDuration: number | null; // in minutes
+    breaks: BreakRecord[];
 };
 
     

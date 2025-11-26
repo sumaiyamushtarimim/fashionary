@@ -27,6 +27,12 @@ import {
   RotateCcw,
   UserCog,
   AlertCircle,
+  Clock,
+  Play,
+  Pause,
+  Coffee,
+  LogOut,
+  LogIn,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -75,55 +81,55 @@ const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
         orders: FULL_ACCESS, packingOrders: FULL_ACCESS, products: FULL_ACCESS, inventory: FULL_ACCESS,
         customers: FULL_ACCESS, purchases: FULL_ACCESS, expenses: FULL_ACCESS, checkPassing: FULL_ACCESS,
         partners: FULL_ACCESS, courierReport: FULL_ACCESS, staff: FULL_ACCESS, settings: FULL_ACCESS, analytics: FULL_ACCESS,
-        issues: FULL_ACCESS,
+        issues: FULL_ACCESS, attendance: FULL_ACCESS,
     },
     Manager: {
         orders: CREATE_READ_UPDATE, packingOrders: READ_ONLY, products: CREATE_READ_UPDATE, inventory: CREATE_READ_UPDATE,
         customers: CREATE_READ_UPDATE, purchases: CREATE_READ_UPDATE, expenses: CREATE_READ_UPDATE, checkPassing: { ...CREATE_READ_UPDATE, create: false },
         partners: CREATE_READ_UPDATE, courierReport: READ_ONLY, staff: { ...CREATE_READ_UPDATE, delete: false }, settings: READ_ONLY, analytics: NO_ACCESS,
-        issues: CREATE_READ_UPDATE,
+        issues: CREATE_READ_UPDATE, attendance: READ_ONLY,
     },
     Moderator: {
         orders: CREATE_READ_UPDATE, packingOrders: NO_ACCESS, products: NO_ACCESS, inventory: NO_ACCESS,
         customers: READ_ONLY, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
         partners: NO_ACCESS, courierReport: READ_ONLY, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
-        issues: CREATE_READ_UPDATE,
+        issues: CREATE_READ_UPDATE, attendance: NO_ACCESS,
     },
     'Packing Assistant': {
         orders: NO_ACCESS, packingOrders: { ...CREATE_READ_UPDATE, create: false, delete: false }, products: NO_ACCESS, inventory: NO_ACCESS,
         customers: NO_ACCESS, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
         partners: NO_ACCESS, courierReport: NO_ACCESS, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
-        issues: NO_ACCESS,
+        issues: NO_ACCESS, attendance: NO_ACCESS,
     },
     'Seller': {
         orders: CREATE_READ_UPDATE, packingOrders: NO_ACCESS, products: READ_ONLY, inventory: READ_ONLY,
         customers: CREATE_READ_UPDATE, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
         partners: NO_ACCESS, courierReport: READ_ONLY, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
-        issues: { ...CREATE_READ_UPDATE, create: true, read: true, update: true, delete: false },
+        issues: { ...CREATE_READ_UPDATE, create: true, read: true, update: true, delete: false }, attendance: NO_ACCESS,
     },
     'Call Assistant': {
         orders: READ_ONLY, packingOrders: NO_ACCESS, products: READ_ONLY, inventory: READ_ONLY,
         customers: READ_ONLY, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
         partners: NO_ACCESS, courierReport: READ_ONLY, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
-        issues: { ...CREATE_READ_UPDATE, create: false, read: true, update: true, delete: false },
+        issues: { ...CREATE_READ_UPDATE, create: false, read: true, update: true, delete: false }, attendance: NO_ACCESS,
     },
     'Call Centre Manager': {
         orders: READ_ONLY, packingOrders: NO_ACCESS, products: READ_ONLY, inventory: READ_ONLY,
         customers: READ_ONLY, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
         partners: NO_ACCESS, courierReport: READ_ONLY, staff: READ_ONLY, settings: NO_ACCESS, analytics: READ_ONLY,
-        issues: CREATE_READ_UPDATE,
+        issues: CREATE_READ_UPDATE, attendance: READ_ONLY,
     },
     'Courier Manager': {
         orders: { ...CREATE_READ_UPDATE, create: false, delete: false }, packingOrders: READ_ONLY, products: NO_ACCESS, inventory: NO_ACCESS,
         customers: READ_ONLY, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: READ_ONLY,
         partners: NO_ACCESS, courierReport: FULL_ACCESS, staff: NO_ACCESS, settings: { ...NO_ACCESS, read: true }, analytics: NO_ACCESS,
-        issues: { ...CREATE_READ_UPDATE, create: true, read: true, update: true, delete: false },
+        issues: { ...CREATE_READ_UPDATE, create: true, read: true, update: true, delete: false }, attendance: NO_ACCESS,
     },
     'Courier Call Assistant': {
         orders: READ_ONLY, packingOrders: NO_ACCESS, products: NO_ACCESS, inventory: NO_ACCESS,
         customers: READ_ONLY, purchases: NO_ACCESS, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
         partners: NO_ACCESS, courierReport: READ_ONLY, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
-        issues: { ...CREATE_READ_UPDATE, create: false, read: true, update: true, delete: false },
+        issues: { ...CREATE_READ_UPDATE, create: false, read: true, update: true, delete: false }, attendance: NO_ACCESS,
     },
     'Custom': NO_ACCESS,
 };
@@ -153,6 +159,7 @@ const navItems = (permissions: StaffMember['permissions'] | null) => [
   { href: "/dashboard/partners", icon: Handshake, label: "Partners", access: hasAccess(permissions?.partners) },
   { href: "/dashboard/analytics", icon: BarChartHorizontal, label: "Analytics", access: hasAccess(permissions?.analytics) },
   { href: "/dashboard/staff", icon: User, label: "Staff", access: hasAccess(permissions?.staff) },
+  { href: "/dashboard/attendance", icon: Clock, label: "Attendance", access: hasAccess(permissions?.attendance) },
   { href: "/dashboard/settings", icon: Settings, label: "Settings", access: hasAccess(permissions?.settings) },
 ];
 
@@ -348,6 +355,106 @@ function DevRoleSwitcher() {
     )
 }
 
+function AttendanceWidget() {
+    const [status, setStatus] = React.useState<'clocked-out' | 'clocked-in' | 'on-break'>('clocked-out');
+    const [timer, setTimer] = React.useState(0);
+    const [breakTimer, setBreakTimer] = React.useState(0);
+    const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+    const breakTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+    React.useEffect(() => {
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+            if (breakTimerRef.current) clearInterval(breakTimerRef.current);
+        };
+    }, []);
+
+    const startTimer = () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+        timerRef.current = setInterval(() => {
+            setTimer(prev => prev + 1);
+        }, 1000);
+    };
+
+    const stopTimer = () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+    };
+
+    const startBreakTimer = () => {
+        if (breakTimerRef.current) clearInterval(breakTimerRef.current);
+        breakTimerRef.current = setInterval(() => {
+            setBreakTimer(prev => prev + 1);
+        }, 1000);
+    };
+
+    const stopBreakTimer = () => {
+        if (breakTimerRef.current) clearInterval(breakTimerRef.current);
+    };
+
+    const formatTime = (seconds: number) => {
+        const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    };
+
+    const handleClockIn = () => {
+        setStatus('clocked-in');
+        setTimer(0);
+        startTimer();
+    };
+
+    const handleClockOut = () => {
+        setStatus('clocked-out');
+        stopTimer();
+        stopBreakTimer();
+        setTimer(0);
+        setBreakTimer(0);
+    };
+
+    const handleBreak = () => {
+        if (status === 'clocked-in') {
+            setStatus('on-break');
+            stopTimer();
+            startBreakTimer();
+        } else if (status === 'on-break') {
+            setStatus('clocked-in');
+            stopBreakTimer();
+            startTimer();
+        }
+    };
+
+    if (status === 'clocked-out') {
+        return (
+            <Button size="sm" onClick={handleClockIn}>
+                <LogIn className="mr-2 h-4 w-4"/>
+                Clock In
+            </Button>
+        );
+    }
+
+    return (
+        <div className="flex items-center gap-2">
+            <div className={cn(
+                "flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm font-mono",
+                status === 'on-break' && 'bg-yellow-500/20 border-yellow-500/30'
+            )}>
+                {status === 'clocked-in' && <Play className="h-4 w-4 text-green-500" />}
+                {status === 'on-break' && <Pause className="h-4 w-4 text-yellow-500" />}
+                <span>{status === 'clocked-in' ? formatTime(timer) : formatTime(breakTimer)}</span>
+            </div>
+            <Button size="sm" variant="outline" onClick={handleBreak}>
+                {status === 'on-break' ? <Play className="mr-2 h-4 w-4"/> : <Coffee className="mr-2 h-4 w-4"/>}
+                {status === 'on-break' ? 'End Break' : 'Take a Break'}
+            </Button>
+             <Button size="sm" variant="destructive" onClick={handleClockOut}>
+                <LogOut className="mr-2 h-4 w-4"/>
+                Clock Out
+            </Button>
+        </div>
+    )
+}
+
 export default function DashboardLayout({
   children,
 }: {
@@ -449,12 +556,15 @@ export default function DashboardLayout({
               </div>
             </SheetContent>
           </Sheet>
-          <div className="w-full flex-1">
-             <div className="flex h-full items-center justify-center md:hidden">
+          <div className="w-full flex-1 md:hidden">
+             <div className="flex h-full items-center justify-center">
                 <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
                     <Logo variant="full" />
                 </Link>
              </div>
+          </div>
+          <div className="hidden md:flex flex-1 items-center gap-4">
+            <AttendanceWidget />
           </div>
           <DevRoleSwitcher />
           <DropdownMenu>
