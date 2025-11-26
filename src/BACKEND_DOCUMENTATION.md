@@ -313,20 +313,18 @@ model Vendor {
 }
 
 model StaffMember {
-  id              String   @id @default(cuid())
-  clerkId         String   @unique // From Clerk Auth
+  id              String    @id @default(cuid())
+  clerkId         String    @unique // From Clerk Auth
   name            String
-  email           String   @unique
+  email           String    @unique
   role            StaffRole
   lastLogin       DateTime
   paymentType     String // Salary, Commission, Both
-  salaryAmount    Float?
-  salaryFrequency String? // Daily, Weekly, Monthly
-  commissionCreate Float?
-  commissionConfirm Float?
+  salaryDetails   Json? // { "amount": 25000, "frequency": "Monthly" }
+  commissionDetails Json? // { "onOrderCreate": 50, "onOrderConfirm": 100, "targetEnabled": true, "targetPeriod": "Monthly", "targetCount": 100 }
   permissions     Json // Store permission object as JSON
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   // Relationships for tracking earnings and payments would be more complex
   // and might involve separate tables for income and payment history.
