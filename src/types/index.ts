@@ -376,7 +376,7 @@ export type IssueLog = {
 
 export type Issue = {
     id: string;
-    orderId: string;
+    orderId?: string;
     title: string;
     description: string;
     status: IssueStatus;

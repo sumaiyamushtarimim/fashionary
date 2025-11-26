@@ -185,9 +185,11 @@ export default function IssueDetailsPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>{issue.title}</CardTitle>
-                            <CardDescription>
-                                For Order <Link href={`/dashboard/orders/${issue.orderId}`} className="text-primary underline">{issue.orderId}</Link>
-                            </CardDescription>
+                            {issue.orderId && (
+                                <CardDescription>
+                                    For Order <Link href={`/dashboard/orders/${issue.orderId}`} className="text-primary underline">{issue.orderId}</Link>
+                                </CardDescription>
+                            )}
                         </CardHeader>
                         <CardContent>
                              <div className="flex justify-between items-center mb-4">
@@ -255,5 +257,3 @@ export default function IssueDetailsPage() {
         </div>
     );
 }
-
-    

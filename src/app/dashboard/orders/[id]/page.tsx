@@ -40,7 +40,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
 
-import { Badge } from '@/components/ui/badge';
+import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -101,9 +101,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { getOrderById, getStatuses, getOrdersByCustomerPhone } from '@/services/orders';
 import { getBusinesses, getCourierServices } from '@/services/partners';
-import { createIssue } from '@/services/issues';
+import { createIssue, getIssuesByOrderId } from '@/services/issues';
 import { getDeliveryReport, type DeliveryReport } from '@/services/delivery-score';
-import type { OrderProduct, OrderLog, Order as OrderType, OrderStatus, CourierService, Business, IssuePriority } from '@/types';
+import type { OrderProduct, OrderLog, Order as OrderType, OrderStatus, CourierService, Business, IssuePriority, Issue } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 
@@ -354,6 +354,7 @@ export default function OrderDetailsPage() {
   
   const [order, setOrder] = React.useState<OrderType | undefined>(undefined);
   const [customerHistory, setCustomerHistory] = React.useState<OrderType[]>([]);
+  const [relatedIssues, setRelatedIssues] = React.useState<Issue[]>([]);
   const [deliveryReport, setDeliveryReport] = React.useState<DeliveryReport | null>(null);
   const [isReportLoading, setIsReportLoading] = React.useState(true);
   const [allStatuses, setAllStatuses] = React.useState<OrderStatus[]>([]);
@@ -383,10 +384,12 @@ export default function OrderDetailsPage() {
             getOrderById(orderId),
             getStatuses(),
             getBusinesses(),
-            getCourierServices()
-        ]).then(([orderData, statusesData, businessesData, couriersData]) => {
+            getCourierServices(),
+            getIssuesByOrderId(orderId),
+        ]).then(([orderData, statusesData, businessesData, couriersData, issuesData]) => {
             if (orderData) {
                 setOrder(orderData);
+                setRelatedIssues(issuesData);
                 statusForm.reset({
                   status: orderData.status,
                   officeNote: orderData.officeNote,
@@ -450,11 +453,13 @@ export default function OrderDetailsPage() {
   async function onIssueSubmit(data: IssueFormValues) {
     if (!order) return;
     const newIssue = await createIssue(order.id, data.title, data.description, data.priority);
+    setRelatedIssues(prev => [newIssue, ...prev]);
     toast({
         title: "Issue Created",
         description: `Issue #${newIssue.id} has been created for order ${order.id}.`,
     });
     setIsIssueDialogOpen(false);
+    issueForm.reset();
     router.push(`/dashboard/issues/${newIssue.id}`);
   }
 
@@ -542,7 +547,7 @@ export default function OrderDetailsPage() {
                                     </FormItem>
                                 )}/>
                                 <DialogFooter>
-                                    <Button variant="outline" onClick={() => setIsIssueDialogOpen(false)}>Cancel</Button>
+                                    <Button type="button" variant="outline" onClick={() => setIsIssueDialogOpen(false)}>Cancel</Button>
                                     <Button type="submit">Create Issue</Button>
                                 </DialogFooter>
                             </form>
@@ -634,19 +639,45 @@ export default function OrderDetailsPage() {
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Payment Summary</CardTitle>
-                    </CardHeader>
-                    <CardContent className='space-y-2 text-sm'>
-                        <div className="flex items-center justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd className='font-mono'>৳{subtotal.toFixed(2)}</dd></div>
-                        <div className="flex items-center justify-between"><dt className="text-muted-foreground">Shipping</dt><dd className='font-mono'>৳{order.shipping.toFixed(2)}</dd></div>
-                        <Separator />
-                        <div className="flex items-center justify-between font-semibold"><dt>Total</dt><dd className='font-mono'>৳{total.toFixed(2)}</dd></div>
-                        <div className="flex items-center justify-between"><dt className="text-muted-foreground">Paid</dt><dd className='font-mono text-green-600'>৳{order.paidAmount.toFixed(2)}</dd></div>
-                        <div className="flex items-center justify-between font-semibold"><dt className={cn(total - order.paidAmount > 0 && "text-destructive")}>Amount Due</dt><dd className={cn("font-mono", total - order.paidAmount > 0 && "text-destructive")}>৳{(total - order.paidAmount).toFixed(2)}</dd></div>
-                    </CardContent>
-                </Card>
+                {relatedIssues.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Related Issues</CardTitle>
+                            <CardDescription>
+                                All issues associated with this order.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Issue ID</TableHead>
+                                        <TableHead>Title</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Priority</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {relatedIssues.map(issue => (
+                                        <TableRow key={issue.id}>
+                                            <TableCell className="font-medium">
+                                                <Link href={`/dashboard/issues/${issue.id}`} className="text-primary hover:underline">{issue.id}</Link>
+                                            </TableCell>
+                                            <TableCell>{issue.title}</TableCell>
+                                            <TableCell>
+                                                <Badge variant="outline" className={cn('text-xs', statusColors[issue.status] || 'bg-gray-500/20 text-gray-700')}>{issue.status}</Badge>
+                                            </TableCell>
+                                             <TableCell>
+                                                <Badge variant={issue.priority === 'High' ? 'destructive' : 'secondary'}>{issue.priority}</Badge>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                )}
+
                  <Card>
                     <CardHeader><CardTitle className='flex items-center gap-2'><StickyNote className='w-5 h-5 text-muted-foreground' /> Notes</CardTitle></CardHeader>
                     <CardContent className="space-y-4">
@@ -734,6 +765,19 @@ export default function OrderDetailsPage() {
                     </CardContent>
                 </Card>
                 <CourierReport report={deliveryReport} isLoading={isReportLoading} />
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Payment Summary</CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-2 text-sm'>
+                        <div className="flex items-center justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd className='font-mono'>৳{subtotal.toFixed(2)}</dd></div>
+                        <div className="flex items-center justify-between"><dt className="text-muted-foreground">Shipping</dt><dd className='font-mono'>৳{order.shipping.toFixed(2)}</dd></div>
+                        <Separator />
+                        <div className="flex items-center justify-between font-semibold"><dt>Total</dt><dd className='font-mono'>৳{total.toFixed(2)}</dd></div>
+                        <div className="flex items-center justify-between"><dt className="text-muted-foreground">Paid</dt><dd className='font-mono text-green-600'>৳{order.paidAmount.toFixed(2)}</dd></div>
+                        <div className="flex items-center justify-between font-semibold"><dt className={cn(total - order.paidAmount > 0 && "text-destructive")}>Amount Due</dt><dd className={cn("font-mono", total - order.paidAmount > 0 && "text-destructive")}>৳{(total - order.paidAmount).toFixed(2)}</dd></div>
+                    </CardContent>
+                </Card>
                 <Card>
                     <CardHeader><CardTitle>Order Actions</CardTitle></CardHeader>
                     <CardContent className="space-y-4">

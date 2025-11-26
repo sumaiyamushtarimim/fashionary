@@ -18,7 +18,13 @@ export async function getIssueById(id: string): Promise<Issue | undefined> {
   return Promise.resolve(issue);
 }
 
-export async function createIssue(orderId: string, title: string, description: string, priority: IssuePriority): Promise<Issue> {
+export async function getIssuesByOrderId(orderId: string): Promise<Issue[]> {
+    // Simulate a network delay
+  await new Promise(resolve => setTimeout(resolve, 300));
+  return Promise.resolve(issues.filter(i => i.orderId === orderId));
+}
+
+export async function createIssue(orderId: string | undefined, title: string, description: string, priority: IssuePriority): Promise<Issue> {
     const newIssue: Issue = {
         id: `ISSUE-${(issues.length + 1).toString().padStart(3, '0')}`,
         orderId,

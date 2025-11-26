@@ -5,6 +5,9 @@ import * as React from 'react';
 import { MoreHorizontal, AlertCircle, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { format } from "date-fns";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -40,11 +43,17 @@ import {
   } from "@/components/ui/pagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { getIssues } from '@/services/issues';
+import { getIssues, createIssue } from '@/services/issues';
 import { getStaff } from '@/services/staff';
-import type { Issue, IssueStatus, StaffMember } from '@/types';
+import type { Issue, IssueStatus, StaffMember, IssuePriority } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -57,16 +66,37 @@ const statusColors: Record<IssueStatus, string> = {
 
 const allStatuses: IssueStatus[] = ['Open', 'In Progress', 'Resolved', 'Closed'];
 
+const issueFormSchema = z.object({
+    orderId: z.string().optional(),
+    title: z.string().min(5, "Title must be at least 5 characters."),
+    description: z.string().min(10, "Please provide a detailed description."),
+    priority: z.enum(['Low', 'Medium', 'High']),
+});
+type IssueFormValues = z.infer<typeof issueFormSchema>;
+
 export default function IssuesPage() {
+    const { toast } = useToast();
+    const router = useRouter();
     const [allIssues, setAllIssues] = React.useState<Issue[]>([]);
     const [allStaff, setAllStaff] = React.useState<StaffMember[]>([]);
     const [statusFilter, setStatusFilter] = React.useState('all');
     const [assigneeFilter, setAssigneeFilter] = React.useState('all');
     const [currentPage, setCurrentPage] = React.useState(1);
     const [isLoading, setIsLoading] = React.useState(true);
+    const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
     // Mock current user
     const currentUserId = 'STAFF001'; 
+
+    const issueForm = useForm<IssueFormValues>({
+        resolver: zodResolver(issueFormSchema),
+        defaultValues: {
+            orderId: '',
+            title: '',
+            description: '',
+            priority: 'Medium',
+        },
+    });
 
     React.useEffect(() => {
         setIsLoading(true);
@@ -101,6 +131,18 @@ export default function IssuesPage() {
         }
     }
 
+    async function onIssueSubmit(data: IssueFormValues) {
+        const newIssue = await createIssue(data.orderId, data.title, data.description, data.priority);
+        setAllIssues(prev => [newIssue, ...prev]);
+        toast({
+            title: "Issue Created",
+            description: `Issue #${newIssue.id} has been successfully created.`,
+        });
+        setIsDialogOpen(false);
+        issueForm.reset();
+        router.push(`/dashboard/issues/${newIssue.id}`);
+    }
+
     const renderTable = () => (
         <Table>
             <TableHeader>
@@ -120,9 +162,13 @@ export default function IssuesPage() {
                     <TableRow key={issue.id}>
                         <TableCell className="font-medium">{issue.id}</TableCell>
                         <TableCell>
-                            <Button variant="link" asChild className="p-0 h-auto">
-                                <Link href={`/dashboard/orders/${issue.orderId}`}>{issue.orderId}</Link>
-                            </Button>
+                            {issue.orderId ? (
+                                <Button variant="link" asChild className="p-0 h-auto">
+                                    <Link href={`/dashboard/orders/${issue.orderId}`}>{issue.orderId}</Link>
+                                </Button>
+                            ) : (
+                                <span className="text-muted-foreground">-</span>
+                            )}
                         </TableCell>
                         <TableCell>{issue.title}</TableCell>
                         <TableCell>
@@ -162,7 +208,13 @@ export default function IssuesPage() {
                         <div className="flex justify-between items-start">
                             <div>
                                 <Link href={`/dashboard/issues/${issue.id}`} className="font-semibold hover:underline">{issue.id}</Link>
-                                <p className="text-sm text-muted-foreground">Order: <Link href={`/dashboard/orders/${issue.orderId}`} className="text-primary hover:underline">{issue.orderId}</Link></p>
+                                <p className="text-sm text-muted-foreground">
+                                    {issue.orderId ? (
+                                        <>
+                                            Order: <Link href={`/dashboard/orders/${issue.orderId}`} className="text-primary hover:underline">{issue.orderId}</Link>
+                                        </>
+                                    ) : 'General Issue'}
+                                </p>
                             </div>
                              <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -202,6 +254,44 @@ export default function IssuesPage() {
                     <p className="text-muted-foreground hidden sm:block">
                         Track and resolve customer and order-related issues.
                     </p>
+                </div>
+                 <div className="flex items-center gap-2">
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button size="sm">
+                                <PlusCircle className="mr-2 h-4 w-4" /> New Issue
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Create New Issue</DialogTitle>
+                                <DialogDescription>
+                                    Report a new problem or issue.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <Form {...issueForm}>
+                                <form onSubmit={issueForm.handleSubmit(onIssueSubmit)} className="space-y-4">
+                                    <FormField control={issueForm.control} name="orderId" render={({ field }) => (<FormItem><FormLabel>Order ID (Optional)</FormLabel><FormControl><Input placeholder="e.g., ORD-2024-001" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={issueForm.control} name="title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="e.g., Wrong product delivered" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={issueForm.control} name="description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Provide a detailed description of the issue..." {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={issueForm.control} name="priority" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Priority</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl><SelectTrigger><SelectValue placeholder="Select priority" /></SelectTrigger></FormControl>
+                                                <SelectContent><SelectItem value="Low">Low</SelectItem><SelectItem value="Medium">Medium</SelectItem><SelectItem value="High">High</SelectItem></SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}/>
+                                    <DialogFooter>
+                                        <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                                        <Button type="submit">Create Issue</Button>
+                                    </DialogFooter>
+                                </form>
+                            </Form>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
             
