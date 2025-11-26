@@ -572,8 +572,9 @@ export default function OrderDetailsPage() {
                 </DropdownMenuContent>
              </DropdownMenu>
         </div>
-        <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-5">
-            <div className="grid auto-rows-max items-start gap-6 md:col-span-3 lg:col-span-3">
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
                 <Card>
                     <CardHeader>
                         <CardTitle>Order Items</CardTitle>
@@ -709,11 +710,9 @@ export default function OrderDetailsPage() {
                         <div><Label className='text-muted-foreground'>Office Note</Label><p className="text-sm">{order.officeNote || 'No office note provided.'}</p></div>
                     </CardContent>
                 </Card>
-                <div className="lg:hidden">
-                    <OrderHistory logs={order.logs} />
-                </div>
+                
             </div>
-            <div className="md:col-span-3 lg:col-span-2 grid auto-rows-max gap-6">
+            <div className="lg:col-span-1 space-y-6">
                 <Card>
                     <CardHeader>
                         <CardTitle>Customer & Shipping</CardTitle>
@@ -853,12 +852,11 @@ export default function OrderDetailsPage() {
                         )}
                     </CardContent>
                 </Card>
-                 <div className="hidden lg:block">
-                    <OrderHistory logs={order.logs} />
-                </div>
+                 <OrderHistory logs={order.logs} />
             </div>
         </div>
     </div>
   );
 }
+
 
