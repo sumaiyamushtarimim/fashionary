@@ -105,13 +105,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { getOrderById, getStatuses, getOrdersByCustomerPhone } from '@/services/orders';
 import { getBusinesses, getCourierServices } from '@/services/partners';
 import { createIssue, getIssuesByOrderId } from '@/services/issues';
-import { getStaff } from '@/services/staff';
+import { getStaff, getStaffMemberById } from '@/services/staff';
 import { getDeliveryReport, type DeliveryReport } from '@/services/delivery-score';
 import type { OrderProduct, OrderLog, Order as OrderType, OrderStatus, CourierService, Business, IssuePriority, Issue, StaffMember } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { OrderTimeline } from '@/components/ui/order-timeline';
 
+const LOGGED_IN_STAFF_ID = 'STAFF002'; // Mock: Saleha Akter is logged in
 
 const statusColors: Record<OrderType['status'], string> = {
     'New': 'bg-blue-500/20 text-blue-700',
@@ -297,6 +298,7 @@ export default function OrderDetailsPage() {
   
   const [order, setOrder] = React.useState<OrderType | undefined>(undefined);
   const [allStaff, setAllStaff] = React.useState<StaffMember[]>([]);
+  const [currentUser, setCurrentUser] = React.useState<StaffMember | null>(null);
   const [customerHistory, setCustomerHistory] = React.useState<OrderType[]>([]);
   const [relatedIssues, setRelatedIssues] = React.useState<Issue[]>([]);
   const [deliveryReport, setDeliveryReport] = React.useState<DeliveryReport | null>(null);
@@ -331,7 +333,8 @@ export default function OrderDetailsPage() {
             getCourierServices(),
             getIssuesByOrderId(orderId),
             getStaff(),
-        ]).then(([orderData, statusesData, businessesData, couriersData, issuesData, staffData]) => {
+            getStaffMemberById(LOGGED_IN_STAFF_ID),
+        ]).then(([orderData, statusesData, businessesData, couriersData, issuesData, staffData, currentUserData]) => {
             if (orderData) {
                 setOrder(orderData);
                 setRelatedIssues(issuesData);
@@ -350,6 +353,7 @@ export default function OrderDetailsPage() {
             setBusinesses(businessesData);
             setCourierServices(couriersData);
             setAllStaff(staffData);
+            if (currentUserData) setCurrentUser(currentUserData);
             setIsLoading(false);
         });
     }
@@ -419,6 +423,16 @@ export default function OrderDetailsPage() {
         });
     }, 1500)
   }
+
+  const handleAssignToMe = () => {
+    if (order && currentUser) {
+      setOrder({ ...order, assignedTo: currentUser.name, assignedToId: currentUser.id });
+      toast({
+        title: "Order Assigned",
+        description: `Order ${order.id} has been assigned to you.`,
+      });
+    }
+  };
 
   if (isLoading) {
     return <div className="p-6">Loading order details...</div>;
@@ -762,7 +776,7 @@ export default function OrderDetailsPage() {
                                 ) : (
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm text-muted-foreground">Unassigned</span>
-                                        <Button size="sm">Assign to Me</Button>
+                                        <Button size="sm" onClick={handleAssignToMe}>Assign to Me</Button>
                                     </div>
                                 )}
                             </CardContent>
@@ -887,6 +901,3 @@ export default function OrderDetailsPage() {
     </div>
   );
 }
-
-
-    
