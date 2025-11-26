@@ -97,8 +97,10 @@ export default function IssueDetailsPage() {
             ]).then(([issueData, staffData]) => {
                 setIssue(issueData);
                 setAllStaff(staffData);
-                setNewStatus(issueData?.status);
-                setNewAssignee(issueData?.assignedTo);
+                if (issueData) {
+                    setNewStatus(issueData.status);
+                    setNewAssignee(issueData.assignedTo);
+                }
                 setIsLoading(false);
             });
         }
@@ -112,8 +114,8 @@ export default function IssueDetailsPage() {
         if (newStatus && newStatus !== issue.status) {
             updatePayload.status = newStatus;
         }
-        if (newAssignee && newAssignee !== issue.assignedTo) {
-            updatePayload.assignedTo = newAssignee;
+        if (newAssignee !== issue.assignedTo) {
+             updatePayload.assignedTo = newAssignee;
         }
         if (comment) {
             updatePayload.comment = comment;
@@ -123,6 +125,8 @@ export default function IssueDetailsPage() {
 
         if (updatedIssue) {
             setIssue(updatedIssue);
+            setNewAssignee(updatedIssue.assignedTo);
+            setNewStatus(updatedIssue.status);
             setComment('');
             toast({
                 title: "Issue Updated",
@@ -221,10 +225,13 @@ export default function IssueDetailsPage() {
                                 </div>
                                  <div className="space-y-2">
                                     <Label htmlFor="assignee">Assign To</Label>
-                                    <Select value={newAssignee} onValueChange={(value: string) => setNewAssignee(value)}>
+                                    <Select 
+                                        value={newAssignee || 'unassigned'} 
+                                        onValueChange={(value) => setNewAssignee(value === 'unassigned' ? undefined : value)}
+                                    >
                                         <SelectTrigger id="assignee"><SelectValue placeholder="Select a staff member" /></SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">Unassigned</SelectItem>
+                                            <SelectItem value="unassigned">Unassigned</SelectItem>
                                             {allStaff.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
