@@ -34,6 +34,7 @@ import {
   User,
   CreditCard,
   ClipboardList,
+  UserCheck,
 } from 'lucide-react';
 import { format, isAfter, subHours } from 'date-fns';
 import * as React from 'react';
@@ -104,8 +105,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { getOrderById, getStatuses, getOrdersByCustomerPhone } from '@/services/orders';
 import { getBusinesses, getCourierServices } from '@/services/partners';
 import { createIssue, getIssuesByOrderId } from '@/services/issues';
+import { getStaff } from '@/services/staff';
 import { getDeliveryReport, type DeliveryReport } from '@/services/delivery-score';
-import type { OrderProduct, OrderLog, Order as OrderType, OrderStatus, CourierService, Business, IssuePriority, Issue } from '@/types';
+import type { OrderProduct, OrderLog, Order as OrderType, OrderStatus, CourierService, Business, IssuePriority, Issue, StaffMember } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { OrderTimeline } from '@/components/ui/order-timeline';
@@ -294,6 +296,7 @@ export default function OrderDetailsPage() {
   const orderId = params.id as string;
   
   const [order, setOrder] = React.useState<OrderType | undefined>(undefined);
+  const [allStaff, setAllStaff] = React.useState<StaffMember[]>([]);
   const [customerHistory, setCustomerHistory] = React.useState<OrderType[]>([]);
   const [relatedIssues, setRelatedIssues] = React.useState<Issue[]>([]);
   const [deliveryReport, setDeliveryReport] = React.useState<DeliveryReport | null>(null);
@@ -304,8 +307,8 @@ export default function OrderDetailsPage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [isSending, setIsSending] = React.useState(false);
   const [selectedCourier, setSelectedCourier] = React.useState<string | undefined>();
-  const [includeCustomerNote, setIncludeCustomerNote] = React.useState(false);
   const [isIssueDialogOpen, setIsIssueDialogOpen] = React.useState(false);
+  const [isReassignDialogOpen, setIsReassignDialogOpen] = React.useState(false);
 
   
   const statusForm = useForm<StatusUpdateFormValues>();
@@ -327,7 +330,8 @@ export default function OrderDetailsPage() {
             getBusinesses(),
             getCourierServices(),
             getIssuesByOrderId(orderId),
-        ]).then(([orderData, statusesData, businessesData, couriersData, issuesData]) => {
+            getStaff(),
+        ]).then(([orderData, statusesData, businessesData, couriersData, issuesData, staffData]) => {
             if (orderData) {
                 setOrder(orderData);
                 setRelatedIssues(issuesData);
@@ -345,6 +349,7 @@ export default function OrderDetailsPage() {
             setAllStatuses(statusesData);
             setBusinesses(businessesData);
             setCourierServices(couriersData);
+            setAllStaff(staffData);
             setIsLoading(false);
         });
     }
@@ -717,6 +722,48 @@ export default function OrderDetailsPage() {
                             </div>
                             </div>
                         </div>
+                        <Separator />
+                         <Card>
+                            <CardHeader className="p-2 pt-0">
+                                <CardTitle className="text-sm">Assigned To</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-2 pt-0">
+                                {order.assignedTo ? (
+                                     <div className="flex justify-between items-center">
+                                        <span className="font-medium text-sm">{order.assignedTo}</span>
+                                        {/* Assuming Admin/Manager can re-assign */}
+                                         <Dialog open={isReassignDialogOpen} onOpenChange={setIsReassignDialogOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline" size="sm">Re-assign</Button>
+                                            </DialogTrigger>
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Re-assign Order</DialogTitle>
+                                                </DialogHeader>
+                                                <div className="space-y-2">
+                                                    <Label>Select Staff</Label>
+                                                    <Select>
+                                                        <SelectTrigger><SelectValue placeholder="Select a staff member" /></SelectTrigger>
+                                                        <SelectContent>
+                                                            {allStaff.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <DialogFooter>
+                                                    <Button variant="outline" onClick={() => setIsReassignDialogOpen(false)}>Cancel</Button>
+                                                    <Button onClick={() => setIsReassignDialogOpen(false)}>Assign</Button>
+                                                </DialogFooter>
+                                            </DialogContent>
+                                        </Dialog>
+                                    </div>
+                                ) : (
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm text-muted-foreground">Unassigned</span>
+                                        <Button size="sm">Assign to Me</Button>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
                         <Separator />
                         <Card>
                             <CardHeader className="p-2 pt-0">

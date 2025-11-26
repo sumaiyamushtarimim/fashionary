@@ -6,7 +6,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { MoreHorizontal, PlusCircle, Truck, Printer, File as FileIcon, Download, ScanLine, Edit } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Truck, Printer, File as FileIcon, Download, ScanLine, Edit, UserCheck } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { format, isWithinInterval } from "date-fns";
 
@@ -79,7 +79,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getOrders, getStatuses } from "@/services/orders";
 import { getBusinesses, getCourierServices } from "@/services/partners";
-import { getStaffMemberById } from "@/services/staff";
+import { getStaff } from "@/services/staff";
 import type { Order, OrderProduct, OrderStatus, Business, CourierService, StaffMember } from "@/types";
 import { Label } from "@/components/ui/label";
 
@@ -174,10 +174,12 @@ export default function OrdersClientPage() {
   const [allOrders, setAllOrders] = React.useState<Order[]>([]);
   const [allBusinesses, setAllBusinesses] = React.useState<Business[]>([]);
   const [allStatuses, setAllStatuses] = React.useState<OrderStatus[]>([]);
+  const [allStaff, setAllStaff] = React.useState<StaffMember[]>([]);
   const [courierServices, setCourierServices] = React.useState<CourierService[]>([]);
   
   const [statusFilter, setStatusFilter] = React.useState(searchParams.get('status') || "all");
   const [businessFilter, setBusinessFilter] = React.useState("all");
+  const [assigneeFilter, setAssigneeFilter] = React.useState("all");
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(undefined);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedOrders, setSelectedOrders] = React.useState<string[]>([]);
@@ -192,12 +194,14 @@ export default function OrdersClientPage() {
         getBusinesses(),
         getStatuses(),
         getCourierServices(),
+        getStaff(),
         getStaffMemberById(LOGGED_IN_STAFF_ID),
-    ]).then(([ordersData, businessesData, statusesData, couriersData, staffData]) => {
+    ]).then(([ordersData, businessesData, statusesData, couriersData, allStaffData, staffData]) => {
         setAllOrders(ordersData);
         setAllBusinesses(businessesData);
         setAllStatuses(statusesData);
         setCourierServices(couriersData);
+        setAllStaff(allStaffData);
         if (staffData) setLoggedInStaff(staffData);
         setIsLoading(false);
     });
@@ -244,7 +248,7 @@ export default function OrdersClientPage() {
     } else {
       params.set('status', newStatus);
     }
-    router.replace(`/dashboard/orders?${params.toString()}`);
+    router.replace(`/dashboard/orders/all?${params.toString()}`);
   };
 
   const filteredOrders = React.useMemo(() => {
@@ -260,6 +264,10 @@ export default function OrdersClientPage() {
       
       const businessMatch = businessFilter === 'all' || order.businessId === businessFilter;
       
+      const assigneeMatch = assigneeFilter === 'all' || 
+                            (assigneeFilter === 'unassigned' && !order.assignedTo) ||
+                            order.assignedToId === assigneeFilter;
+
       const orderDate = new Date(order.date);
       const dateMatch = !dateRange?.from || (dateRange?.from && dateRange?.to 
         ? isWithinInterval(orderDate, { start: dateRange.from, end: dateRange.to })
@@ -272,9 +280,9 @@ export default function OrdersClientPage() {
         (order.customerEmail && order.customerEmail.toLowerCase().includes(lowercasedSearchTerm))
       );
 
-      return statusMatch && businessMatch && dateMatch && searchMatch;
+      return statusMatch && businessMatch && dateMatch && searchMatch && assigneeMatch;
     });
-  }, [statusFilter, businessFilter, dateRange, searchTerm, allOrders, loggedInStaff]);
+  }, [statusFilter, businessFilter, dateRange, searchTerm, allOrders, loggedInStaff, assigneeFilter]);
   
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const paginatedOrders = React.useMemo(() => {
@@ -286,7 +294,7 @@ export default function OrdersClientPage() {
   React.useEffect(() => {
     setSelectedOrders([]);
     setCurrentPage(1);
-  }, [statusFilter, businessFilter, dateRange, searchTerm, itemsPerPage]);
+  }, [statusFilter, businessFilter, dateRange, searchTerm, itemsPerPage, assigneeFilter]);
 
   const handleSelectAll = (checked: boolean | 'indeterminate') => {
     if (checked === true) {
@@ -320,6 +328,7 @@ export default function OrdersClientPage() {
                   />
                 </TableHead>
                 <TableHead>Customer</TableHead>
+                <TableHead>Assigned To</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">
@@ -351,6 +360,13 @@ export default function OrdersClientPage() {
                         </div>
                      </div>
                    </TableCell>
+                  <TableCell>
+                      {order.assignedTo ? (
+                           <Badge variant="secondary" className="font-normal">{order.assignedTo}</Badge>
+                      ) : (
+                          <Badge variant="outline">Unassigned</Badge>
+                      )}
+                  </TableCell>
                   <TableCell>{format(new Date(order.date), "MMM d, yyyy")}</TableCell>
                   <TableCell>
                     <Badge
@@ -438,6 +454,13 @@ export default function OrdersClientPage() {
                                 </DropdownMenu>
                             </div>
                             <p className="text-sm text-muted-foreground mt-1">{format(new Date(order.date), "MMM d, yyyy")}</p>
+                             <div className="text-xs mt-1">
+                                {order.assignedTo ? (
+                                    <Badge variant="secondary" className="font-normal">Assigned to {order.assignedTo}</Badge>
+                                ) : (
+                                    <Badge variant="outline">Unassigned</Badge>
+                                )}
+                            </div>
                             <div className="mt-2 flex justify-between items-center">
                                 <Badge variant={"outline"} className={cn(statusColors[order.status as OrderStatus] || "bg-gray-500/20 text-gray-700")}>
                                     {order.status}
@@ -456,24 +479,18 @@ export default function OrdersClientPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2 flex-grow">
-            <div className="flex items-center justify-between gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:flex">
                 <Select value={businessFilter} onValueChange={setBusinessFilter}>
-                <SelectTrigger className="w-full sm:w-auto sm:min-w-[180px]">
-                    <SelectValue placeholder="Filter by business" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">All Businesses</SelectItem>
-                    {accessibleBusinesses.map(business => (
-                        <SelectItem key={business.id} value={business.id}>{business.name}</SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-            <div className="sm:hidden">
-                    <DateRangePicker date={dateRange} onDateChange={setDateRange} placeholder="Filter by date" />
-            </div>
-            </div>
-
-            <div className="flex items-center justify-between gap-2">
+                    <SelectTrigger className="w-full sm:w-auto sm:min-w-[180px]">
+                        <SelectValue placeholder="Filter by business" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Businesses</SelectItem>
+                        {accessibleBusinesses.map(business => (
+                            <SelectItem key={business.id} value={business.id}>{business.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
                 <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
                     <SelectTrigger className="w-full sm:w-auto sm:min-w-[180px]">
                         <SelectValue placeholder="Filter by status" />
@@ -485,20 +502,18 @@ export default function OrdersClientPage() {
                         ))}
                     </SelectContent>
                 </Select>
-                 <div className="sm:hidden flex items-center gap-2">
-                    <Button size="sm" variant="outline" asChild>
-                        <Link href="/dashboard/orders/scan">
-                            <ScanLine className="h-4 w-4" />
-                            <span className="sr-only">Scan Orders</span>
-                        </Link>
-                    </Button>
-                    <Button size="sm" asChild>
-                        <Link href="/dashboard/orders/new">
-                            <PlusCircle className="h-4 w-4" />
-                            <span className="sr-only">Add Order</span>
-                        </Link>
-                    </Button>
-                </div>
+                 <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+                    <SelectTrigger className="w-full sm:w-auto sm:min-w-[180px]">
+                        <SelectValue placeholder="Filter by assignee" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Staff</SelectItem>
+                        <SelectItem value="unassigned">Unassigned</SelectItem>
+                        {allStaff.map(staff => (
+                            <SelectItem key={staff.id} value={staff.id}>{staff.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
         </div>
         
