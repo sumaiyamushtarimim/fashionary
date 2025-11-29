@@ -14,6 +14,7 @@ import {
   Warehouse,
   ClipboardList,
   Palette,
+  BookUser,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -55,6 +56,12 @@ const settingsLinks = [
     title: 'Notifications',
     description: 'Configure SMS and Email templates for events.',
     icon: BellRing,
+  },
+   {
+    href: '/dashboard/settings/accounting',
+    title: 'Accounting',
+    description: 'Manage chart of accounts for financial tracking.',
+    icon: BookUser,
   },
   {
     href: '/dashboard/settings/integrations',
