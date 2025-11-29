@@ -72,11 +72,95 @@ function LedgerView() {
     
     const currentAccount = accounts.find(a => a.id === selectedAccount);
 
+    const renderTable = () => (
+         <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Source</TableHead>
+                    <TableHead className="text-right">Debit</TableHead>
+                    <TableHead className="text-right">Credit</TableHead>
+                    <TableHead className="text-right">Balance</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {isLoading ? (
+                    [...Array(5)].map((_, i) => (
+                        <TableRow key={i}>
+                            <TableCell colSpan={6}><Skeleton className="h-6 w-full" /></TableCell>
+                        </TableRow>
+                    ))
+                ) : runningBalance.length > 0 ? (
+                    runningBalance.map(entry => (
+                        <TableRow key={entry.id}>
+                            <TableCell>{format(new Date(entry.date), 'PP')}</TableCell>
+                            <TableCell>{entry.description}</TableCell>
+                            <TableCell>{entry.sourceTransactionId}</TableCell>
+                            <TableCell className="text-right font-mono">{entry.debit ? `৳${entry.debit.toFixed(2)}` : '-'}</TableCell>
+                            <TableCell className="text-right font-mono text-red-500">{entry.credit ? `৳${entry.credit.toFixed(2)}` : '-'}</TableCell>
+                            <TableCell className={cn("text-right font-mono", entry.balance < 0 ? "text-red-500" : "")}>
+                                ৳{entry.balance.toFixed(2)}
+                            </TableCell>
+                        </TableRow>
+                    ))
+                ) : (
+                    <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center">
+                            No entries found for the selected criteria.
+                        </TableCell>
+                    </TableRow>
+                )}
+            </TableBody>
+        </Table>
+    );
+
+    const renderCards = () => (
+        <div className="space-y-4">
+            {isLoading ? (
+                [...Array(3)].map((_, i) => <Skeleton key={i} className="h-32 w-full" />)
+            ) : runningBalance.length > 0 ? (
+                runningBalance.map(entry => (
+                    <Card key={entry.id}>
+                        <CardContent className="p-4 space-y-3">
+                             <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="font-semibold">{entry.description}</p>
+                                    <p className="text-sm text-muted-foreground">{format(new Date(entry.date), 'PP')}</p>
+                                    <p className="text-xs text-muted-foreground">Ref: {entry.sourceTransactionId}</p>
+                                </div>
+                                <div className={cn("text-right font-mono font-semibold", entry.balance < 0 ? "text-red-500" : "")}>
+                                    ৳{entry.balance.toFixed(2)}
+                                    <p className="text-xs font-normal">Balance</p>
+                                </div>
+                            </div>
+                            <Separator />
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <p className="text-muted-foreground">Debit</p>
+                                    <p className="font-mono">{entry.debit ? `৳${entry.debit.toFixed(2)}` : '-'}</p>
+                                </div>
+                                 <div className="text-right">
+                                    <p className="text-muted-foreground">Credit</p>
+                                    <p className="font-mono text-red-500">{entry.credit ? `৳${entry.credit.toFixed(2)}` : '-'}</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))
+            ) : (
+                 <div className="h-24 text-center flex items-center justify-center">
+                    No entries found for the selected criteria.
+                </div>
+            )}
+        </div>
+    );
+
     return (
         <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4">
                 <Select value={selectedAccount} onValueChange={setSelectedAccount}>
-                    <SelectTrigger className="sm:w-[250px]">
+                    <SelectTrigger className="w-full sm:w-[250px]">
                         <SelectValue placeholder="Select an account" />
                     </SelectTrigger>
                     <SelectContent>
@@ -95,46 +179,12 @@ function LedgerView() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Description</TableHead>
-                                <TableHead>Source</TableHead>
-                                <TableHead className="text-right">Debit</TableHead>
-                                <TableHead className="text-right">Credit</TableHead>
-                                <TableHead className="text-right">Balance</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {isLoading ? (
-                                [...Array(5)].map((_, i) => (
-                                    <TableRow key={i}>
-                                        <TableCell colSpan={6}><Skeleton className="h-6 w-full" /></TableCell>
-                                    </TableRow>
-                                ))
-                            ) : runningBalance.length > 0 ? (
-                                runningBalance.map(entry => (
-                                    <TableRow key={entry.id}>
-                                        <TableCell>{format(new Date(entry.date), 'PP')}</TableCell>
-                                        <TableCell>{entry.description}</TableCell>
-                                        <TableCell>{entry.sourceTransactionId}</TableCell>
-                                        <TableCell className="text-right font-mono">{entry.debit ? `৳${entry.debit.toFixed(2)}` : '-'}</TableCell>
-                                        <TableCell className="text-right font-mono text-red-500">{entry.credit ? `৳${entry.credit.toFixed(2)}` : '-'}</TableCell>
-                                        <TableCell className={cn("text-right font-mono", entry.balance < 0 ? "text-red-500" : "")}>
-                                            ৳{entry.balance.toFixed(2)}
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="h-24 text-center">
-                                        No entries found for the selected criteria.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                   <div className="hidden sm:block">
+                       {renderTable()}
+                   </div>
+                   <div className="sm:hidden">
+                       {renderCards()}
+                   </div>
                 </CardContent>
             </Card>
         </div>
@@ -143,7 +193,7 @@ function LedgerView() {
 
 function BalanceSheetView() {
     const [balanceSheet, setBalanceSheet] = React.useState<BalanceSheet | null>(null);
-    const [date, setDate] = React.useState<Date>(new Date());
+    const [date, setDate] = React.useState(new Date());
     const [isLoading, setIsLoading] = React.useState(true);
 
     React.useEffect(() => {
@@ -314,7 +364,8 @@ function JournalEntryView() {
                     </div>
                 </div>
                  <div className="w-full overflow-x-auto">
-                    <Table>
+                    {/* For larger screens */}
+                    <Table className="hidden sm:table">
                         <TableHeader>
                             <TableRow>
                                 <TableHead className="w-[40%]">Account</TableHead>
@@ -347,16 +398,48 @@ function JournalEntryView() {
                             ))}
                         </TableBody>
                     </Table>
+                     {/* For smaller screens */}
+                    <div className="sm:hidden space-y-4">
+                        {rows.map((row, index) => (
+                            <Card key={row.id}>
+                                <CardContent className="p-4 space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <Label>Entry #{index + 1}</Label>
+                                         {rows.length > 2 && <Button variant="ghost" size="icon" onClick={() => removeRow(row.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Account</Label>
+                                        <Select value={row.accountId} onValueChange={(value) => handleRowChange(row.id, 'accountId', value)}>
+                                            <SelectTrigger><SelectValue placeholder="Select Account" /></SelectTrigger>
+                                            <SelectContent>
+                                                {accounts.map(acc => <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                         <div className="space-y-2">
+                                             <Label>Debit</Label>
+                                            <Input type="number" placeholder="0.00" value={row.debit || ''} onChange={e => handleRowChange(row.id, 'debit', e.target.valueAsNumber || 0)} disabled={!!row.credit}/>
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label>Credit</Label>
+                                            <Input type="number" placeholder="0.00" value={row.credit || ''} onChange={e => handleRowChange(row.id, 'credit', e.target.valueAsNumber || 0)} disabled={!!row.debit}/>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-4">
                     <Button variant="outline" size="sm" onClick={addRow}><PlusCircle className="mr-2 h-4 w-4" /> Add Row</Button>
                     <div className="flex items-center gap-4 text-sm font-medium">
                         <div className="text-right">
-                            <p>Total Debits:</p>
+                            <p className="text-muted-foreground">Total Debits:</p>
                             <p className="font-mono">৳{totals.debit.toFixed(2)}</p>
                         </div>
                         <div className="text-right">
-                             <p>Total Credits:</p>
+                             <p className="text-muted-foreground">Total Credits:</p>
                             <p className="font-mono">৳{totals.credit.toFixed(2)}</p>
                         </div>
                         <div className={cn("text-right", isBalanced ? 'text-green-600' : 'text-destructive')}>
@@ -387,13 +470,13 @@ export default function AccountingPage() {
                     <TabsTrigger value="ledger">General Ledger</TabsTrigger>
                     <TabsTrigger value="sheet">Balance Sheet</TabsTrigger>
                 </TabsList>
-                 <TabsContent value="entry">
+                 <TabsContent value="entry" className="mt-6">
                     <JournalEntryView />
                 </TabsContent>
-                <TabsContent value="ledger">
+                <TabsContent value="ledger" className="mt-6">
                     <LedgerView />
                 </TabsContent>
-                <TabsContent value="sheet">
+                <TabsContent value="sheet" className="mt-6">
                     <BalanceSheetView />
                 </TabsContent>
             </Tabs>
