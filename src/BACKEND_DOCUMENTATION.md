@@ -525,6 +525,9 @@ Create RESTful API endpoints for each data domain. For example:
 - `POST /api/customers`
 - `PUT /api/customers/:id`
 - `DELETE /api/customers/:id`
+- `GET /api/accounting/accounts`
+- `POST /api/accounting/accounts`
+- `GET /api/accounting/ledger`
 
 ### **Specialized Endpoints for Performance**
 
