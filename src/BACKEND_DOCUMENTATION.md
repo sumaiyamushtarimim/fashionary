@@ -120,6 +120,16 @@ enum AttendanceStatus {
   OnLeave
 }
 
+// ---- Accounting Enums ----
+enum AccountType {
+  Asset
+  Liability
+  Equity
+  Revenue
+  Expense
+}
+
+
 // MODELS //
 
 model Product {
@@ -321,23 +331,21 @@ model Vendor {
 }
 
 model StaffMember {
-  id              String    @id @default(cuid())
-  clerkId         String    @unique // From Clerk Auth
-  name            String
-  email           String    @unique
-  role            StaffRole
-  lastLogin       DateTime
-  paymentType     String // Salary, Commission, Both
-  salaryDetails   Json? // { "amount": 25000, "frequency": "Monthly" }
+  id                String    @id @default(cuid())
+  clerkId           String    @unique // From Clerk Auth
+  name              String
+  email             String    @unique
+  role              StaffRole
+  lastLogin         DateTime
+  paymentType       String // Salary, Commission, Both
+  salaryDetails     Json? // { "amount": 25000, "frequency": "Monthly" }
   commissionDetails Json? // { "onOrderCreate": 50, "onOrderConfirm": 100, "onOrderPacked": 20, "targetEnabled": true, "targetPeriod": "Monthly", "targetCount": 100 }
-  permissions     Json // Store permission object as JSON
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  permissions       Json // Store permission object as JSON
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   assignedOrders    Order[]
   attendanceRecords AttendanceRecord[]
-  // Relationships for tracking earnings and payments would be more complex
-  // and might involve separate tables for income and payment history.
 }
 
 model AttendanceRecord {
@@ -476,6 +484,33 @@ model StockTransfer {
   fromLocation    StockLocation @relation("FromLocation", fields: [fromLocationId], references: [id])
   toLocation      StockLocation @relation("ToLocation", fields: [toLocationId], references: [id])
   movements       InventoryMovement[]
+}
+
+// ---- Accounting Module Models ----
+
+model Account {
+  id        String      @id @default(cuid())
+  name      String      @unique
+  type      AccountType
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  ledgerEntries LedgerEntry[]
+}
+
+model LedgerEntry {
+  id                  String   @id @default(cuid())
+  date                DateTime
+  description         String
+  sourceTransactionId String   @doc("e.g. ORD-2024-001 or EXP-001")
+  accountId           String
+  debit               Float
+  credit              Float
+  createdAt           DateTime @default(now())
+  
+  account Account @relation(fields: [accountId], references: [id])
+  
+  @@index([sourceTransactionId])
 }
 ```
 

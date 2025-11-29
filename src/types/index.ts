@@ -294,6 +294,7 @@ export type StaffMember = {
         analytics: Permission | boolean;
         issues: Permission | boolean;
         attendance: Permission | boolean;
+        accounting: Permission | boolean;
     };
 };
 
@@ -420,4 +421,40 @@ export type AttendanceRecord = {
     totalWorkDuration: number | null; // in minutes
     totalBreakDuration: number | null; // in minutes
     breaks: BreakRecord[];
+};
+
+// --- Accounting Module Types ---
+
+export type AccountType = 'Asset' | 'Liability' | 'Equity' | 'Revenue' | 'Expense';
+
+export type Account = {
+    id: string;
+    name: string;
+    type: AccountType;
+};
+
+export type LedgerEntry = {
+    id: string;
+    date: string;
+    description: string;
+    sourceTransactionId: string; // e.g. ORD-2024-001 or EXP-001
+    accountId: string;
+    debit: number;
+    credit: number;
+};
+
+export type BalanceSheetCategory = {
+    accounts: {
+        id: string;
+        name: string;
+        balance: number;
+    }[];
+    total: number;
+};
+
+export type BalanceSheet = {
+    asOf: string;
+    assets: BalanceSheetCategory;
+    liabilities: BalanceSheetCategory;
+    equity: BalanceSheetCategory;
 };
