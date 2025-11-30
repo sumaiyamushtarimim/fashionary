@@ -7,14 +7,19 @@ import { format } from 'date-fns';
 import { Logo } from '@/components/logo';
 import Barcode from 'react-barcode';
 
-export function InvoiceTemplate({ order }: { order: Order }) {
+export function InvoiceTemplate({ order, paperSize = 'a4' }: { order: Order, paperSize?: 'a4' | 'letter' }) {
     const subtotal = order.products.reduce((acc, p) => acc + p.price * p.quantity, 0);
     const shipping = order.shipping || 0;
     const total = subtotal + shipping;
+    
+    const printHeight = paperSize === 'a4' ? '297mm' : '11in';
 
     return (
         <>
-            <div className="invoice-page max-w-4xl mx-auto p-8 bg-white text-gray-800 print:shadow-none print:p-6">
+            <div 
+                className="invoice-page max-w-4xl mx-auto p-8 bg-white text-gray-800 print:shadow-none print:p-6"
+                style={{ '--page-height': printHeight } as React.CSSProperties}
+            >
                 <div className="invoice-content">
                     <header className="flex justify-between items-start pb-6 border-b">
                         <div className="flex items-center gap-4">
@@ -119,7 +124,7 @@ export function InvoiceTemplate({ order }: { order: Order }) {
             <style jsx global>{`
                 @media print {
                     .invoice-page {
-                        height: 297mm;
+                        height: var(--page-height); 
                         display: flex;
                         flex-direction: column;
                         justify-content: space-between;
