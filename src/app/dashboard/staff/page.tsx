@@ -88,77 +88,7 @@ const permissionModules: (keyof StaffMember['permissions'])[] = [
 ];
 const permissionActions: (keyof Permission)[] = ['create', 'read', 'update', 'delete'];
 
-export default function StaffPage() {
-    const [allStaff, setAllStaff] = useState<StaffMember[]>([]);
-    const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [isLoading, setIsLoading] = React.useState(true);
-    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-    const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
-
-    const [searchTerm, setSearchTerm] = useState('');
-    const [roleFilter, setRoleFilter] = useState('all');
-
-    useEffect(() => {
-        setIsLoading(true);
-        Promise.all([
-            getStaff(),
-            getBusinesses()
-        ]).then(([staffData, businessData]) => {
-            setAllStaff(staffData);
-            setAllBusinesses(businessData);
-            setIsLoading(false);
-        });
-    }, []);
-
-    const filteredStaff = useMemo(() => {
-        let staffList = allStaff;
-
-        if (roleFilter !== 'all') {
-            staffList = staffList.filter(s => s.role === roleFilter);
-        }
-
-        if (searchTerm) {
-            const lowercasedSearchTerm = searchTerm.toLowerCase();
-            staffList = staffList.filter(s => 
-                s.name.toLowerCase().includes(lowercasedSearchTerm) ||
-                s.email.toLowerCase().includes(lowercasedSearchTerm)
-            );
-        }
-        
-        return staffList;
-    }, [allStaff, roleFilter, searchTerm]);
-
-    const handleEditClick = (member: StaffMember) => {
-        setSelectedStaff(member);
-        setIsEditDialogOpen(true);
-    };
-
-    const handleAddClick = () => {
-        setSelectedStaff(null);
-        setIsAddDialogOpen(true);
-    };
-
-    const totals = React.useMemo(() => {
-        return allStaff.reduce((acc, member) => {
-            acc.totalDue += member.financials.dueAmount;
-            acc.totalEarned += member.financials.totalEarned;
-            return acc;
-        }, { totalDue: 0, totalEarned: 0 });
-    }, [allStaff]);
-
-    const totalPages = Math.ceil(filteredStaff.length / ITEMS_PER_PAGE);
-    const paginatedStaff = useMemo(() => {
-        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        return filteredStaff.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-    }, [currentPage, filteredStaff]);
-
-     useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm, roleFilter]);
-
-  const StaffForm = ({ staffMember, isEdit = false, businesses }: { staffMember?: StaffMember | null, isEdit?: boolean, businesses: Business[] }) => {
+const StaffForm = ({ staffMember, isEdit = false, businesses }: { staffMember?: StaffMember | null, isEdit?: boolean, businesses: Business[] }) => {
     const [role, setRole] = useState<StaffRole | undefined>(staffMember?.role);
     const [paymentType, setPaymentType] = useState<PaymentType | undefined>(staffMember?.paymentType);
     const [targetEnabled, setTargetEnabled] = useState<boolean>(staffMember?.commissionDetails?.targetEnabled || false);
@@ -411,6 +341,76 @@ export default function StaffPage() {
         );
     }
 
+export default function StaffPage() {
+    const [allStaff, setAllStaff] = useState<StaffMember[]>([]);
+    const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [isLoading, setIsLoading] = React.useState(true);
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+
+    const [searchTerm, setSearchTerm] = useState('');
+    const [roleFilter, setRoleFilter] = useState('all');
+
+    useEffect(() => {
+        setIsLoading(true);
+        Promise.all([
+            getStaff(),
+            getBusinesses()
+        ]).then(([staffData, businessData]) => {
+            setAllStaff(staffData);
+            setAllBusinesses(businessData);
+            setIsLoading(false);
+        });
+    }, []);
+
+    const filteredStaff = useMemo(() => {
+        let staffList = allStaff;
+
+        if (roleFilter !== 'all') {
+            staffList = staffList.filter(s => s.role === roleFilter);
+        }
+
+        if (searchTerm) {
+            const lowercasedSearchTerm = searchTerm.toLowerCase();
+            staffList = staffList.filter(s => 
+                s.name.toLowerCase().includes(lowercasedSearchTerm) ||
+                s.email.toLowerCase().includes(lowercasedSearchTerm)
+            );
+        }
+        
+        return staffList;
+    }, [allStaff, roleFilter, searchTerm]);
+
+    const handleEditClick = (member: StaffMember) => {
+        setSelectedStaff(member);
+        setIsEditDialogOpen(true);
+    };
+
+    const handleAddClick = () => {
+        setSelectedStaff(null);
+        setIsAddDialogOpen(true);
+    };
+
+    const totals = React.useMemo(() => {
+        return allStaff.reduce((acc, member) => {
+            acc.totalDue += member.financials.dueAmount;
+            acc.totalEarned += member.financials.totalEarned;
+            return acc;
+        }, { totalDue: 0, totalEarned: 0 });
+    }, [allStaff]);
+
+    const totalPages = Math.ceil(filteredStaff.length / ITEMS_PER_PAGE);
+    const paginatedStaff = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredStaff.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [currentPage, filteredStaff]);
+
+     useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, roleFilter]);
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
       <div className="flex items-center">
@@ -618,7 +618,7 @@ export default function StaffPage() {
             <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
                 <div>
                     Showing <strong>{paginatedStaff.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}-
-                    {Math.min(currentPage * ITEMS_PER_PAGE, paginatedStaff.length)}
+                    {Math.min(currentPage * ITEMS_PER_PAGE, filteredStaff.length)}
                     </strong> of <strong>{filteredStaff.length}</strong> staff members
                 </div>
                 {totalPages > 1 && (
