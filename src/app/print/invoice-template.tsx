@@ -119,18 +119,14 @@ export function InvoiceTemplate({ order }: { order: Order }) {
             <style jsx global>{`
                 @media print {
                     .invoice-page {
+                        height: 297mm;
                         display: flex;
                         flex-direction: column;
                         justify-content: space-between;
-                        height: 297mm;
-                        padding: 10mm;
-                        box-sizing: border-box;
                     }
                     .invoice-content {
-                        flex-grow: 1;
-                    }
-                    .invoice-footer {
-                        flex-shrink: 0;
+                       flex-grow: 1;
+                       padding-bottom: 10mm;
                     }
                 }
             `}</style>
