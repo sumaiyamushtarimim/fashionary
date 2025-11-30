@@ -565,7 +565,7 @@ export const staff: StaffMember[] = [
     {
         id: 'STAFF001',
         name: 'Admin User',
-        email: 'admin@fashionary.com',
+        email: 'commerciansbd@gmail.com',
         role: 'Admin',
         accessibleBusinessIds: ['BIZ001', 'BIZ002', 'BIZ003'],
         lastLogin: '2024-05-27T10:00:00Z',
