@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
-    CardDescription,
     CardFooter,
     CardHeader,
     CardTitle,
+    CardDescription,
 } from '@/components/ui/card';
 import {
     Dialog,
@@ -34,7 +34,7 @@ import { Separator } from '@/components/ui/separator';
 import { Save, Edit, User as UserIcon, Briefcase, DollarSign, BarChart2, Loader2, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 import { Pie, PieChart, Cell } from 'recharts';
 import { getStaffMemberByClerkId } from '@/services/staff';
 import type { StaffMember, OrderStatus, StaffIncome, StaffPayment } from '@/types';
@@ -50,12 +50,16 @@ const chartColors = [
     'hsl(var(--chart-5))',
 ];
 
-const PerformanceStatCard = ({ title, value, subtext }: { title: string, value: string | number, subtext?: string }) => (
-    <div className="rounded-lg border bg-card p-4 flex flex-col items-center justify-center text-center">
-        <p className="text-xs text-muted-foreground">{title}</p>
-        <p className="text-3xl font-bold">{value}</p>
-        {subtext && <p className="text-xs text-muted-foreground">{subtext}</p>}
-    </div>
+const PerformanceStatCard = ({ title, value, icon: Icon, iconClass }: { title: string, value: string | number, icon?: React.ElementType, iconClass?: string }) => (
+    <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{title}</CardTitle>
+            {Icon && <Icon className={cn("h-4 w-4 text-muted-foreground", iconClass)} />}
+        </CardHeader>
+        <CardContent>
+            <div className="text-2xl font-bold">{value}</div>
+        </CardContent>
+    </Card>
 );
 
 function HistoryDialog({ title, children, data }: { title: string, children: React.ReactNode, data: StaffIncome[] | StaffPayment[] }) {
@@ -82,8 +86,8 @@ function HistoryDialog({ title, children, data }: { title: string, children: Rea
                                 {data.map((item, index) => (
                                     <TableRow key={index}>
                                         <TableCell>{format(new Date(item.date), 'PP')}</TableCell>
-                                        {'orderId' in item && <TableCell>{item.orderId}</TableCell>}
-                                        {'action' in item && <TableCell><Badge variant="secondary">{item.action}</Badge></TableCell>}
+                                        {'orderId' in item && item.orderId && <TableCell>{item.orderId}</TableCell>}
+                                        {'action' in item && item.action && <TableCell><Badge variant="secondary">{item.action}</Badge></TableCell>}
                                         <TableCell>{'notes' in item ? item.notes : '-'}</TableCell>
                                         <TableCell className="text-right font-mono">৳{item.amount.toLocaleString()}</TableCell>
                                     </TableRow>
@@ -246,33 +250,43 @@ export default function AccountPage() {
                             </CardTitle>
                             <CardDescription>A summary of your order-related activities.</CardDescription>
                         </CardHeader>
-                        <CardContent className="grid gap-6 md:grid-cols-2">
-                            <div className="space-y-4 grid grid-cols-2 gap-4">
-                                <PerformanceStatCard title="Orders Created" value={loggedInStaff.performance.ordersCreated} />
-                                <PerformanceStatCard title="Orders Confirmed" value={loggedInStaff.performance.ordersConfirmed} />
-                                <PerformanceStatCard title="Confirmation Rate" value={`${confirmationRate.toFixed(1)}%`} />
-                                <PerformanceStatCard title="Cancellation Rate" value={`${cancellationRate.toFixed(1)}%`} />
-                                <div className="col-span-2">
-                                    <PerformanceStatCard title="Average Order Value" value={`৳${averageOrderValue.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}`} />
-                                </div>
+                        <CardContent className="grid gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <PerformanceStatCard title="Orders Created" value={loggedInStaff.performance.ordersCreated} icon={UserIcon} />
+                                <PerformanceStatCard title="Orders Confirmed" value={loggedInStaff.performance.ordersConfirmed} icon={UserIcon} />
+                                 <PerformanceStatCard 
+                                    title="Avg. Order Value" 
+                                    value={`৳${averageOrderValue.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}`}
+                                    icon={DollarSign} 
+                                />
+                                <PerformanceStatCard title="Confirmation Rate" value={`${confirmationRate.toFixed(1)}%`} icon={TrendingUp} iconClass="text-green-500"/>
+                                <PerformanceStatCard title="Cancellation Rate" value={`${cancellationRate.toFixed(1)}%`} icon={TrendingDown} iconClass="text-red-500"/>
                             </div>
-                             <div>
-                                {performanceChartData.length > 0 ? (
-                                    <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[250px]">
-                                        <PieChart>
-                                            <ChartTooltip content={<ChartTooltipContent nameKey="status" hideLabel />} />
-                                            <Pie data={performanceChartData} dataKey="value" nameKey="status" innerRadius={50} paddingAngle={5}>
-                                                {performanceChartData.map((entry) => (
-                                                    <Cell key={`cell-${entry.status}`} fill={entry.fill} />
-                                                ))}
-                                            </Pie>
-                                        </PieChart>
-                                    </ChartContainer>
-                                ) : (
-                                    <div className="flex items-center justify-center h-full text-muted-foreground">No performance data.</div>
-                                )}
-                             </div>
                         </CardContent>
+                        {performanceChartData.length > 0 && (
+                            <CardFooter>
+                                <ChartContainer
+                                    config={chartConfig}
+                                    className="mx-auto aspect-square h-[200px]"
+                                >
+                                    <PieChart>
+                                        <ChartTooltip
+                                            cursor={false}
+                                            content={<ChartTooltipContent hideLabel />}
+                                        />
+                                        <Pie data={performanceChartData} dataKey="value" nameKey="status" innerRadius={50} paddingAngle={5}>
+                                            {performanceChartData.map((entry) => (
+                                                <Cell key={entry.status} fill={entry.fill} />
+                                            ))}
+                                        </Pie>
+                                        <ChartLegend
+                                            content={<ChartLegendContent nameKey="status" />}
+                                            className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
+                                        />
+                                    </PieChart>
+                                </ChartContainer>
+                            </CardFooter>
+                        )}
                     </Card>
 
                 </div>
@@ -357,5 +371,4 @@ export default function AccountPage() {
             </div>
         </div>
     );
-
-    
+}
