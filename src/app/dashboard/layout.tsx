@@ -60,22 +60,11 @@ import { UnauthorizedAccessModal } from "@/components/ui/unauthorized-access-mod
 import { getNotifications } from "@/services/notifications";
 import type { Notification, StaffMember, StaffRole, Permission } from "@/types";
 
-const isPublicRoute = (pathname: string) => {
-    return pathname.startsWith('/shop') || pathname.startsWith('/track-order');
-}
-
-const hasAccess = (permission: Permission | boolean | undefined): boolean => {
-    if (permission === undefined) return false;
-    if (typeof permission === 'boolean') return permission;
-    if (typeof permission === 'object' && permission !== null) return permission.read;
-    return false;
-}
-
-// --- PERMISSIONS PRESETS for mocking in development ---
+// --- PERMISSIONS PRESETS ---
 const NO_ACCESS: Permission = { create: false, read: false, update: false, delete: false };
 const READ_ONLY: Permission = { create: false, read: true, update: false, delete: false };
 const CREATE_READ_UPDATE: Permission = { create: true, read: true, update: true, delete: false };
-const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: false };
+const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: true };
 
 const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
     Admin: {
@@ -142,6 +131,16 @@ const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
 };
 // --- END OF PERMISSIONS PRESETS ---
 
+const isPublicRoute = (pathname: string) => {
+    return pathname.startsWith('/shop') || pathname.startsWith('/track-order');
+}
+
+const hasAccess = (permission: Permission | boolean | undefined): boolean => {
+    if (permission === undefined) return false;
+    if (typeof permission === 'boolean') return permission;
+    if (typeof permission === 'object' && permission !== null) return permission.read;
+    return false;
+}
 
 const navItems = (permissions: StaffMember['permissions'] | null) => [
   { href: "/dashboard", icon: Home, label: "Dashboard", access: true },
@@ -495,8 +494,13 @@ export default function DashboardLayout({
     }
     
     if (isLoaded && isSignedIn && user) {
-        const userPermissions = user.publicMetadata.permissions as StaffMember['permissions'] | null;
-        setPermissions(userPermissions || null);
+        const userRole = user.publicMetadata.role as StaffRole | undefined;
+        if (userRole && PERMISSIONS[userRole]) {
+            setPermissions(PERMISSIONS[userRole]);
+        } else {
+            const userPermissions = user.publicMetadata.permissions as StaffMember['permissions'] | null;
+            setPermissions(userPermissions || null);
+        }
     }
   }, [isLoaded, isSignedIn, user, pathname]);
   
