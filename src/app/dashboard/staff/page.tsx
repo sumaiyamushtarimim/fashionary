@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { MoreHorizontal, PlusCircle, DollarSign, TrendingUp, KeyRound, ShieldCheck, User } from "lucide-react";
@@ -58,13 +59,14 @@ const paymentTypes: PaymentType[] = ['Salary', 'Commission', 'Both'];
 const staffRoles: StaffRole[] = [
     'Admin', 
     'Manager', 
+    'Moderator',
+    'Seller',
     'Packing Assistant', 
-    'Moderator', 
-    'Seller', 
     'Call Assistant', 
     'Call Centre Manager', 
     'Courier Manager', 
     'Courier Call Assistant',
+    'Vendor/Supplier',
     'Custom'
 ];
 const permissionModules: (keyof StaffMember['permissions'])[] = [

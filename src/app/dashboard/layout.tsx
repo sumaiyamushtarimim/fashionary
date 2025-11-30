@@ -356,7 +356,11 @@ function DevRoleSwitcher() {
                     <DropdownMenuRadioItem value="Admin">Admin</DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="Manager">Manager</DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="Moderator">Moderator</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="Seller">Seller</DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="Packing Assistant">Packing Assistant</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="Call Assistant">Call Assistant</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="Call Centre Manager">Call Centre Manager</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="Courier Manager">Courier Manager</DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
             </DropdownMenuContent>
         </DropdownMenu>

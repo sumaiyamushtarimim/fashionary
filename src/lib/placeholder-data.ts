@@ -595,7 +595,6 @@ export const staff: StaffMember[] = [
         performance: { ordersCreated: 120, ordersConfirmed: 110, statusBreakdown: { 'New': 10, 'Confirmed': 110, 'Packing Hold': 0, 'Canceled': 5, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Return Pending': 0, 'Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
         financials: { totalEarned: 18500, totalPaid: 10000, dueAmount: 8500 },
         paymentHistory: [
-            { date: '2024-05-01', amount: 5000, notes: 'Partial Commission Payout' },
             { date: '2024-04-15', amount: 5000, notes: 'Advance against commission' }
         ],
         incomeHistory: [
@@ -640,6 +639,36 @@ export const staff: StaffMember[] = [
         paymentHistory: [],
         incomeHistory: [],
         permissions: PERMISSIONS['Vendor/Supplier'],
+    },
+    {
+        id: 'STAFF005',
+        name: 'Courier Manager Guy',
+        email: 'courier.manager@fashionary.com',
+        role: 'Courier Manager',
+        accessibleBusinessIds: ['BIZ001', 'BIZ002'],
+        lastLogin: '2024-05-27T11:00:00Z',
+        paymentType: 'Salary',
+        salaryDetails: { amount: 25000, frequency: 'Monthly' },
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Return Pending': 0, 'Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
+        financials: { totalEarned: 50000, totalPaid: 50000, dueAmount: 0 },
+        paymentHistory: [{ date: '2024-05-01', amount: 25000, notes: 'April Salary' }, { date: '2024-04-01', amount: 25000, notes: 'March Salary' }],
+        incomeHistory: [],
+        permissions: PERMISSIONS['Courier Manager'],
+    },
+    {
+        id: 'STAFF006',
+        name: 'Call Center Agent',
+        email: 'call.agent@fashionary.com',
+        role: 'Call Assistant',
+        accessibleBusinessIds: ['BIZ001'],
+        lastLogin: '2024-05-27T15:00:00Z',
+        paymentType: 'Salary',
+        salaryDetails: { amount: 18000, frequency: 'Monthly' },
+        performance: { ordersCreated: 10, ordersConfirmed: 8, statusBreakdown: { 'New': 2, 'Confirmed': 8, 'Packing Hold': 0, 'Canceled': 1, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Return Pending': 0, 'Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
+        financials: { totalEarned: 36000, totalPaid: 30000, dueAmount: 6000 },
+        paymentHistory: [{ date: '2024-05-01', amount: 18000, notes: 'April Salary'}, { date: '2024-04-15', amount: 12000, notes: 'Partial Salary'}],
+        incomeHistory: [],
+        permissions: PERMISSIONS['Call Assistant'],
     },
 ];
 
