@@ -131,27 +131,26 @@ export default clerkMiddleware((auth, req) => {
     }
     
     const userRole = sessionClaims?.publicMetadata?.role as StaffRole | undefined;
-    let permissions: StaffMember['permissions'] | undefined;
-
-    if (userRole === 'Admin') {
-        // If role is Admin, grant full access and stop further checks for this user.
-        return NextResponse.next();
-    } else if (userRole && PERMISSIONS[userRole]) {
-        permissions = PERMISSIONS[userRole];
+    let userPermissions: StaffMember['permissions'] | undefined;
+    
+    if (userRole && userRole !== 'Custom' && PERMISSIONS[userRole]) {
+        userPermissions = PERMISSIONS[userRole];
     } else {
-        permissions = sessionClaims?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
+        userPermissions = sessionClaims?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
     }
 
-    if (!permissions) {
-        if (pathname !== '/dashboard' && pathname !== '/dashboard/account' && pathname !== '/dashboard/notifications') {
-            const redirectUrl = new URL('/dashboard?error=unauthorized', req.url);
-            return NextResponse.redirect(redirectUrl);
-        }
+    // Default dashboard, account, and notifications pages are accessible to all logged-in users
+    if (pathname === '/dashboard' || pathname === '/dashboard/account' || pathname === '/dashboard/notifications') {
         return NextResponse.next();
     }
-
-    // Default dashboard and account pages are accessible to all logged-in users
-    if (pathname === '/dashboard' || pathname === '/dashboard/account' || pathname === '/dashboard/notifications') {
+    
+    if (!userPermissions) {
+        const redirectUrl = new URL('/dashboard?error=unauthorized', req.url);
+        return NextResponse.redirect(redirectUrl);
+    }
+    
+    // For Admins, grant full access to everything without further checks.
+    if (userRole === 'Admin') {
         return NextResponse.next();
     }
 
@@ -159,9 +158,9 @@ export default clerkMiddleware((auth, req) => {
 
     if (requiredPermissionKey) {
         const permissionKey = pagePermissions[requiredPermissionKey];
-        const userPermission = permissions[permissionKey];
+        const permissionForPage = userPermissions[permissionKey];
         
-        if (!hasAccess(userPermission)) {
+        if (!hasAccess(permissionForPage)) {
             const redirectUrl = new URL(req.headers.get('referer') || '/dashboard', req.url);
             redirectUrl.searchParams.set('error', 'unauthorized');
             return NextResponse.redirect(redirectUrl);
