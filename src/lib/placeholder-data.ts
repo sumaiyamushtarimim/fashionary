@@ -1,12 +1,13 @@
 
+
 import { PlaceHolderImages } from './placeholder-images';
 import type { Order, Product, Customer, Category, ExpenseCategory, Business, PurchaseOrder, StaffMember, Supplier, Vendor, Expense, InventoryItem, InventoryMovement, WooCommerceIntegration, OrderStatus, CourierService, Permission, StaffRole, StockLocation, CourierIntegration, Issue, IssueLog, AttendanceRecord, BreakRecord, Account } from '@/types';
 
 
 export const businesses: Business[] = [
-    { id: 'BIZ001', name: 'Fashionary Main' },
-    { id: 'BIZ002', name: 'Urban Threads' },
-    { id: 'BIZ003', name: 'Kids Fashion Co.' },
+    { id: 'BIZ001', name: 'Fashionary Main', logo: '/logo-full.svg' },
+    { id: 'BIZ002', name: 'Urban Threads', logo: 'https://placehold.co/100x100/A78BFA/FFFFFF/png?text=UT' },
+    { id: 'BIZ003', name: 'Kids Fashion Co.', logo: 'https://placehold.co/100x100/F472B6/FFFFFF/png?text=KFC' },
 ];
 
 export const stockLocations: StockLocation[] = [
@@ -612,10 +613,9 @@ export const staff: StaffMember[] = [
             onOrderPacked: 20,
         },
         performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 150, 'Shipped': 0, 'Delivered': 0, 'Return Pending': 0, 'Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
-        financials: { totalEarned: 15000, totalPaid: 13000, dueAmount: 2000 },
+        financials: { totalEarned: 15000, totalPaid: 10000, dueAmount: 5000 },
         paymentHistory: [
-            { date: '2024-05-01', amount: 10000, notes: 'April Salary' },
-            { date: '2024-05-01', amount: 3000, notes: 'Packing Commission' }
+            { date: '2024-05-01', amount: 10000, notes: 'April Salary' }
         ],
         incomeHistory: [
             { date: '2024-04-25', orderId: 'ORD-2024-001', action: 'Packed', amount: 20 },

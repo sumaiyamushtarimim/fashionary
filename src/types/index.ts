@@ -73,6 +73,7 @@ export type CourierService = 'Pathao' | 'RedX' | 'Steadfast' | 'Carrybee';
 export type Business = {
     id: string;
     name: string;
+    logo?: string;
 };
 
 export type OrderProduct = {
