@@ -142,7 +142,7 @@ const calculateStaffMemberDetails = (member: StaffMember): StaffMember => {
             ...member.financials,
             totalEarned: totalEarned,
             totalPaid: totalPaid,
-            dueAmount: totalEarned - totalPaid,
+            dueAmount: Math.max(0, totalEarned - totalPaid),
         }
     };
 };
@@ -183,4 +183,3 @@ export async function makePayment(staffId: string, amount: number, notes: string
     
 
     
-

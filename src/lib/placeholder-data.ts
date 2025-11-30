@@ -612,9 +612,9 @@ export const staff: StaffMember[] = [
             onOrderPacked: 20,
         },
         performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 150, 'Shipped': 0, 'Delivered': 0, 'Return Pending': 0, 'Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
-        financials: { totalEarned: 15000, totalPaid: 15000, dueAmount: 0 },
+        financials: { totalEarned: 15000, totalPaid: 13000, dueAmount: 2000 },
         paymentHistory: [
-            { date: '2024-05-01', amount: 12000, notes: 'April Salary' },
+            { date: '2024-05-01', amount: 10000, notes: 'April Salary' },
             { date: '2024-05-01', amount: 3000, notes: 'Packing Commission' }
         ],
         incomeHistory: [
