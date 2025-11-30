@@ -108,6 +108,7 @@ export type Order = {
   assignedTo?: string;
   assignedToId?: string;
   businessId: string;
+  businessName?: string;
   platform: OrderPlatform;
   shippingAddress: {
     address: string;
@@ -197,6 +198,7 @@ export type Payment = {
     check: number;
     checkDate: string;
     checkStatus?: CheckStatus;
+    physicalInvoiceUrl?: string;
 };
 
 export type PurchaseOrder = {
@@ -244,6 +246,7 @@ export type StaffRole =
     | 'Call Centre Manager' 
     | 'Courier Manager' 
     | 'Courier Call Assistant'
+    | 'Vendor/Supplier'
     | 'Custom';
 
 export type StaffMember = {

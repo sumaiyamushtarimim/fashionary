@@ -227,6 +227,7 @@ export const orders: Order[] = [
         assignedTo: 'Saleha Akter',
         assignedToId: 'STAFF002',
         businessId: 'BIZ001',
+        businessName: 'Fashionary Main',
         platform: 'Website',
         shippingAddress: { address: '123 Maple St', district: 'Dhaka', country: 'Bangladesh' },
         paymentMethod: 'Cash on Delivery',
@@ -257,6 +258,7 @@ export const orders: Order[] = [
         assignedTo: 'Admin User',
         assignedToId: 'STAFF001',
         businessId: 'BIZ002',
+        businessName: 'Urban Threads',
         platform: 'Facebook',
         shippingAddress: { address: '456 Oak Ave', district: 'Chittagong', country: 'Bangladesh' },
         paymentMethod: 'bKash',
@@ -283,6 +285,7 @@ export const orders: Order[] = [
         createdBy: 'Charlie Brown',
         confirmedBy: 'Admin',
         businessId: 'BIZ001',
+        businessName: 'Fashionary Main',
         platform: 'Instagram',
         shippingAddress: { address: '789 Pine Ln', district: 'Sylhet', country: 'Bangladesh' },
         paymentMethod: 'Nagad',
@@ -309,6 +312,7 @@ export const orders: Order[] = [
         createdBy: 'Diana Prince',
         confirmedBy: '',
         businessId: 'BIZ003',
+        businessName: 'Kids Fashion Co.',
         platform: 'TikTok',
         shippingAddress: { address: '101 Wonder Rd', district: 'Dhaka', country: 'Bangladesh' },
         paymentMethod: 'Cash on Delivery',
@@ -336,6 +340,7 @@ export const orders: Order[] = [
         assignedTo: 'Saleha Akter',
         assignedToId: 'STAFF002',
         businessId: 'BIZ001',
+        businessName: 'Fashionary Main',
         platform: 'Website',
         shippingAddress: { address: '123 Maple St', district: 'Dhaka', country: 'Bangladesh' },
         paymentMethod: 'Cash on Delivery',
@@ -417,6 +422,7 @@ export const purchaseOrders: PurchaseOrder[] = [
             check: 100000,
             checkDate: '2024-05-15',
             checkStatus: 'Passed',
+            physicalInvoiceUrl: '/invoices/fabric-po-001.pdf',
         }
     },
     { 
@@ -538,6 +544,12 @@ const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
         partners: NO_ACCESS, courierReport: READ_ONLY, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
         issues: { ...CREATE_READ_UPDATE, create: false, read: true, update: true, delete: false }, attendance: NO_ACCESS, accounting: NO_ACCESS,
     },
+    'Vendor/Supplier': {
+        orders: NO_ACCESS, packingOrders: NO_ACCESS, products: NO_ACCESS, inventory: NO_ACCESS,
+        customers: NO_ACCESS, purchases: { create: false, read: true, update: true, delete: false }, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
+        partners: NO_ACCESS, courierReport: NO_ACCESS, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
+        issues: NO_ACCESS, attendance: NO_ACCESS, accounting: NO_ACCESS,
+    },
     'Custom': NO_ACCESS,
 };
 // --- END OF PERMISSIONS PRESETS ---
@@ -600,6 +612,19 @@ export const staff: StaffMember[] = [
         paymentHistory: [{ date: '2024-05-01', amount: 15000, notes: 'April Salary' }],
         incomeHistory: [],
         permissions: PERMISSIONS['Packing Assistant'],
+    },
+     {
+        id: 'STAFF004',
+        name: 'Fabric House Ltd.',
+        email: 'rahim@fabric-house.com',
+        role: 'Vendor/Supplier',
+        lastLogin: '2024-05-25T11:00:00Z',
+        paymentType: 'Commission', // This is not applicable but needs a value
+        performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Return Pending': 0, 'Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
+        financials: { totalEarned: 225000, totalPaid: 50000, dueAmount: 175000 },
+        paymentHistory: [],
+        incomeHistory: [],
+        permissions: PERMISSIONS['Vendor/Supplier'],
     },
 ];
 

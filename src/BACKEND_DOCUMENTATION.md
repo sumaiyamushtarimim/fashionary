@@ -97,6 +97,7 @@ enum StaffRole {
   CallCentreManager
   CourierManager
   CourierCallAssistant
+  VendorSupplier @map("Vendor/Supplier")
   Custom
 }
 
@@ -288,16 +289,17 @@ model PurchaseOrderLog {
 
 // Payment for a specific part of a PO
 model PurchasePayment {
-  id          String      @id @default(cuid())
-  poId        String
-  vendorId    String?
-  paymentFor  String // e.g., "Fabric", "Printing", "Cutting"
-  cash        Float
-  check       Float
-  checkDate   DateTime?
-  checkStatus CheckStatus?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id                  String      @id @default(cuid())
+  poId                String
+  vendorId            String?
+  paymentFor          String // e.g., "Fabric", "Printing", "Cutting"
+  cash                Float
+  check               Float
+  checkDate           DateTime?
+  checkStatus         CheckStatus?
+  physicalInvoiceUrl  String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
 
   purchaseOrder PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
   vendor        Vendor?         @relation(fields: [vendorId], references: [id])

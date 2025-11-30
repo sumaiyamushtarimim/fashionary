@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Check, Printer, Package, Truck, Minus, Plus, History, FileText, Scissors } from "lucide-react";
+import { Check, Printer, Package, Truck, Minus, Plus, History, FileText, Scissors, UploadCloud, Eye } from "lucide-react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -28,15 +28,14 @@ import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getPurchaseOrderById } from "@/services/purchases";
 import { getSuppliers, getVendors } from "@/services/partners";
-import type { PurchaseOrder, PurchaseOrderLog, Supplier, Vendor } from "@/types";
+import type { PurchaseOrder, PurchaseOrderLog, Supplier, Vendor, Payment } from "@/types";
+import { useUser } from "@clerk/nextjs";
 
-type Payment = {
-    cash: number;
-    check: number;
-    checkDate: string;
-}
+type EnrichedPayment = Payment & {
+    physicalInvoiceUrl?: string;
+};
 
-const initialPaymentState: Payment = { cash: 0, check: 0, checkDate: '' };
+const initialPaymentState: EnrichedPayment = { cash: 0, check: 0, checkDate: '', physicalInvoiceUrl: undefined };
 
 const productionSteps = [
     { id: 'fabric', name: 'Fabric Ordered', status: 'complete', icon: Package },
@@ -55,15 +54,32 @@ const statusIcons: Record<string, React.ElementType> = {
 };
 
 
-const calculateDue = (totalCost: number, payment: Payment) => {
+const calculateDue = (totalCost: number, payment: EnrichedPayment) => {
     const paid = (Number(payment.cash) || 0) + (Number(payment.check) || 0);
     return totalCost - paid;
 };
 
-const PaymentSection = ({ cost, payment, onPaymentChange, due, costDisabled = false }: { cost: number, payment: Payment, onPaymentChange: (field: keyof Payment, value: any) => void, due: number, costDisabled?: boolean }) => (
+const PaymentSection = ({ cost, payment, onPaymentChange, due, title, showUpload, onUpload }: { cost: number, payment: EnrichedPayment, onPaymentChange: (field: keyof EnrichedPayment, value: any) => void, due: number, title: string, showUpload: boolean, onUpload: () => void }) => (
     <>
         <Separator />
-        <Label className="font-medium">Payment</Label>
+        <div className="flex justify-between items-center">
+            <Label className="font-medium">{title} Payment</Label>
+             {showUpload && (
+                <div>
+                    {payment.physicalInvoiceUrl ? (
+                         <Button variant="outline" size="sm">
+                            <Eye className="mr-2 h-4 w-4"/>
+                            Show Physical Invoice
+                        </Button>
+                    ) : (
+                         <Button variant="outline" size="sm" onClick={onUpload}>
+                            <UploadCloud className="mr-2 h-4 w-4"/>
+                            Upload Invoice
+                        </Button>
+                    )}
+                </div>
+            )}
+        </div>
         <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label htmlFor={`cash-${cost}`}>Cash Amount</Label>
@@ -123,7 +139,7 @@ function PurchaseOrderHistory({ logs }: { logs: PurchaseOrderLog[] }) {
                                 return (
                                     <li key={`${log.timestamp}-${index}`} className="relative flex items-start gap-4">
                                         <div className={cn(
-                                            "w-8 h-8 rounded-full flex items-center justify-center bg-background border",
+                                            "w-8 h-8 rounded-full flex items-center justify-center bg-background border-2",
                                             isLast ? "border-primary" : "border-border"
                                         )}>
                                             <Icon className={cn("h-4 w-4", isLast ? "text-primary" : "text-muted-foreground")} />
@@ -164,6 +180,7 @@ function PurchaseOrderHistory({ logs }: { logs: PurchaseOrderLog[] }) {
 export default function PurchaseOrderDetailsPage() {
     const params = useParams();
     const poId = params.id as string;
+    const { user } = useUser();
     
     const [purchaseOrder, setPurchaseOrder] = useState<PurchaseOrder | undefined>(undefined);
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -172,13 +189,15 @@ export default function PurchaseOrderDetailsPage() {
 
     const [printingQty, setPrintingQty] = useState<number>(0);
     const [printingCost, setPrintingCost] = useState<number>(0);
-    const [printingPayment, setPrintingPayment] = useState<Payment>(initialPaymentState);
+    const [printingPayment, setPrintingPayment] = useState<EnrichedPayment>(initialPaymentState);
     
     const [cuttingQty, setCuttingQty] = useState<number>(0);
     const [cuttingCost, setCuttingCost] = useState<number>(0);
-    const [cuttingPayment, setCuttingPayment] = useState<Payment>(initialPaymentState);
+    const [cuttingPayment, setCuttingPayment] = useState<EnrichedPayment>(initialPaymentState);
 
     const [finalReceivedQty, setFinalReceivedQty] = useState<number>(0);
+    
+    const userRole = user?.publicMetadata?.role as string | undefined;
 
     React.useEffect(() => {
         if (poId) {
@@ -195,13 +214,15 @@ export default function PurchaseOrderDetailsPage() {
                     setPrintingQty(poData.items);
                     setCuttingQty(poData.items);
                     setFinalReceivedQty(poData.items);
+                    if (poData.printingPayment) setPrintingPayment(poData.printingPayment);
+                    if (poData.cuttingPayment) setCuttingPayment(poData.cuttingPayment);
                 }
                 setIsLoading(false);
             });
         }
     }, [poId]);
 
-    const handlePaymentChange = (setter: React.Dispatch<React.SetStateAction<Payment>>, field: keyof Payment, value: string | number) => {
+    const handlePaymentChange = (setter: React.Dispatch<React.SetStateAction<EnrichedPayment>>, field: keyof EnrichedPayment, value: string | number) => {
         setter(prev => ({ ...prev, [field]: value }));
     };
     
@@ -209,6 +230,16 @@ export default function PurchaseOrderDetailsPage() {
     const cuttingDue = useMemo(() => calculateDue(cuttingCost, cuttingPayment), [cuttingCost, cuttingPayment]);
     
     const supplier = useMemo(() => suppliers.find(s => s.name === purchaseOrder?.supplier), [suppliers, purchaseOrder]);
+
+    const canUserInteract = (partnerName?: string) => {
+        if (userRole === 'Admin' || userRole === 'Manager') {
+            return true;
+        }
+        if (userRole === 'Vendor/Supplier' && user?.fullName === partnerName) {
+            return true;
+        }
+        return false;
+    }
 
     if (isLoading) {
         return <div className="p-6">Loading Purchase Order...</div>
@@ -343,12 +374,12 @@ export default function PurchaseOrderDetailsPage() {
                         <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                             <div className="space-y-2">
                                 <Label>Printing Vendor</Label>
-                                <Select>
+                                <Select defaultValue={purchaseOrder.printingVendor}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a printing vendor" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {vendors.filter(v => v.type === 'Printing').map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                        {vendors.filter(v => v.type === 'Printing').map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -363,10 +394,13 @@ export default function PurchaseOrderDetailsPage() {
                         </div>
                         
                         <PaymentSection 
+                            title="Printing"
                             cost={printingCost}
                             payment={printingPayment}
                             onPaymentChange={(field, value) => handlePaymentChange(setPrintingPayment, field, value)}
                             due={printingDue}
+                            showUpload={canUserInteract(purchaseOrder.printingVendor)}
+                            onUpload={() => alert('Upload invoice for printing')}
                         />
                     </CardContent>
                     <CardFooter>
@@ -388,12 +422,12 @@ export default function PurchaseOrderDetailsPage() {
                          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                             <div className="space-y-2">
                                 <Label>Cutting Vendor</Label>
-                                <Select>
+                                <Select defaultValue={purchaseOrder.cuttingVendor}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a cutting vendor" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {vendors.filter(v => v.type === 'Cutting').map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                        {vendors.filter(v => v.type === 'Cutting').map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -408,10 +442,13 @@ export default function PurchaseOrderDetailsPage() {
                         </div>
                         
                         <PaymentSection 
+                            title="Cutting"
                             cost={cuttingCost}
                             payment={cuttingPayment}
                             onPaymentChange={(field, value) => handlePaymentChange(setCuttingPayment, field, value)}
                             due={cuttingDue}
+                            showUpload={canUserInteract(purchaseOrder.cuttingVendor)}
+                            onUpload={() => alert('Upload invoice for cutting')}
                         />
                     </CardContent>
                     <CardFooter>
