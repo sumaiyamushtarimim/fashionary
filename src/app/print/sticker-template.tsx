@@ -10,7 +10,6 @@ export function StickerTemplate({ order }: { order: Order }) {
     const total = order.products.reduce((acc, p) => acc + p.price * p.quantity, 0) + order.shipping;
     const codAmount = total - order.paidAmount;
 
-    // Use businessName from order if available, otherwise fallback to existing logic
     const businessName = order.businessName || (order.businessId === 'BIZ002' ? 'Urban Threads' : 'Fashionary');
 
     return (
@@ -24,16 +23,14 @@ export function StickerTemplate({ order }: { order: Order }) {
                     </header>
 
                     {/* Recipient Info */}
-                     <section className="py-2 space-y-1">
+                    <section className="py-2 space-y-1">
                         <div className="flex items-center gap-2">
-                            <div className="w-1/2 flex items-center gap-2">
-                                <User className="w-4 h-4 shrink-0" />
-                                <p className="font-bold text-base leading-snug truncate">{order.customerName}</p>
-                            </div>
-                            <div className="w-1/2 flex items-center gap-2">
-                                <Phone className="w-4 h-4 shrink-0" />
-                                <p className="text-sm font-bold">{order.customerPhone}</p>
-                            </div>
+                            <User className="w-4 h-4 shrink-0" />
+                            <p className="font-bold text-base leading-snug truncate">{order.customerName}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                             <Phone className="w-4 h-4 shrink-0" />
+                             <p className="text-sm font-bold">{order.customerPhone}</p>
                         </div>
                         <div className="flex items-start gap-2 pt-1">
                             <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
@@ -42,7 +39,7 @@ export function StickerTemplate({ order }: { order: Order }) {
                     </section>
                     
                     {/* Barcode */}
-                    <section className="text-center my-2">
+                    <section className="text-center my-2 flex justify-center">
                        <Barcode value={order.id} height={35} width={1.5} fontSize={12} margin={0} />
                     </section>
                     
@@ -96,11 +93,4 @@ export function StickerTemplate({ order }: { order: Order }) {
             `}</style>
         </>
     );
-}
-
-// Helper to get business name, assuming you might not have it directly on the order object.
-// In a real app, the order object should ideally contain the businessName.
-function getBusinessNameFromId(businessId: string, businesses: {id: string, name: string}[]) {
-    const business = businesses.find(b => b.id === businessId);
-    return business ? business.name : 'Fashionary';
 }
