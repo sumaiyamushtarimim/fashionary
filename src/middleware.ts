@@ -1,5 +1,4 @@
 
-
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from 'next/server';
 import type { Permission, StaffRole, StaffMember } from '@/types';
@@ -10,44 +9,18 @@ const isPublicRoute = createRouteMatcher([
     '/sign-in(.*)',
     '/sign-up(.*)',
     '/',
+    '/api/delivery-report(.*)',
 ]);
 
 const isProtectedRoute = createRouteMatcher([
   '/dashboard(.*)',
 ]);
 
-// Maps dashboard pages to the required permissions
-const pagePermissions: Record<string, keyof StaffMember['permissions']> = {
-    '/dashboard/orders': 'orders',
-    '/dashboard/packing-orders': 'packingOrders',
-    '/dashboard/products': 'products',
-    '/dashboard/inventory': 'inventory',
-    '/dashboard/customers': 'customers',
-    '/dashboard/purchases': 'purchases',
-    '/dashboard/expenses': 'expenses',
-    '/dashboard/check-passing': 'checkPassing',
-    '/dashboard/partners': 'partners',
-    '/dashboard/courier-report': 'courierReport',
-    '/dashboard/analytics': 'analytics',
-    '/dashboard/accounting': 'accounting',
-    '/dashboard/staff': 'staff',
-    '/dashboard/settings': 'settings',
-    '/dashboard/issues': 'issues',
-    '/dashboard/attendance': 'attendance',
-};
-
-const hasAccess = (permission: Permission | boolean | undefined): boolean => {
-    if (permission === undefined) return false;
-    if (typeof permission === 'boolean') return permission;
-    if (typeof permission === 'object' && permission !== null) return permission.read;
-    return false;
-}
-
 // --- PERMISSIONS PRESETS ---
 const NO_ACCESS: Permission = { create: false, read: false, update: false, delete: false };
 const READ_ONLY: Permission = { create: false, read: true, update: false, delete: false };
 const CREATE_READ_UPDATE: Permission = { create: true, read: true, update: true, delete: false };
-const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: false };
+const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: true };
 
 const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
     Admin: {
@@ -110,64 +83,80 @@ const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
         partners: NO_ACCESS, courierReport: NO_ACCESS, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
         issues: NO_ACCESS, attendance: NO_ACCESS, accounting: NO_ACCESS,
     },
-    'Custom': NO_ACCESS,
+    'Custom': NO_ACCESS, // Default for custom, expect permissions object
 };
-// --- END OF PERMISSIONS PRESETS ---
 
+const pagePermissions: Record<string, keyof StaffMember['permissions']> = {
+    '/dashboard/orders': 'orders',
+    '/dashboard/packing-orders': 'packingOrders',
+    '/dashboard/products': 'products',
+    '/dashboard/inventory': 'inventory',
+    '/dashboard/customers': 'customers',
+    '/dashboard/purchases': 'purchases',
+    '/dashboard/expenses': 'expenses',
+    '/dashboard/check-passing': 'checkPassing',
+    '/dashboard/partners': 'partners',
+    '/dashboard/courier-report': 'courierReport',
+    '/dashboard/analytics': 'analytics',
+    '/dashboard/accounting': 'accounting',
+    '/dashboard/staff': 'staff',
+    '/dashboard/settings': 'settings',
+    '/dashboard/issues': 'issues',
+    '/dashboard/attendance': 'attendance',
+};
+
+const hasReadAccess = (permission: Permission | boolean | undefined): boolean => {
+    if (permission === undefined) return false;
+    if (typeof permission === 'boolean') return permission;
+    return permission.read;
+};
 
 export default clerkMiddleware((auth, req) => {
-  const { userId, sessionClaims } = auth();
-  const pathname = req.nextUrl.pathname;
-
-  if (isPublicRoute(req)) {
-    return NextResponse.next();
-  }
-
   if (isProtectedRoute(req)) {
-    if (!userId) {
-      const signInUrl = new URL('/sign-in', req.url);
-      signInUrl.searchParams.set('redirect_url', req.url);
-      return NextResponse.redirect(signInUrl);
-    }
+    auth().protect(); // This ensures the user is authenticated.
+
+    const { sessionClaims } = auth();
+    const pathname = req.nextUrl.pathname;
     
     const userRole = sessionClaims?.publicMetadata?.role as StaffRole | undefined;
-    let userPermissions: StaffMember['permissions'] | undefined;
+    let userPermissions = sessionClaims?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
     
+    // If a standard role is defined, use the preset permissions for that role.
     if (userRole && userRole !== 'Custom' && PERMISSIONS[userRole]) {
         userPermissions = PERMISSIONS[userRole];
-    } else {
-        userPermissions = sessionClaims?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
     }
-
-    // Default dashboard, account, and notifications pages are accessible to all logged-in users
+    
+    // Admins get access to everything, no need for further checks.
+    if (userRole === 'Admin') {
+        return NextResponse.next();
+    }
+    
+    // Allow access to core dashboard pages for any authenticated user.
     if (pathname === '/dashboard' || pathname === '/dashboard/account' || pathname === '/dashboard/notifications') {
         return NextResponse.next();
     }
     
-    if (!userPermissions) {
-        const redirectUrl = new URL('/dashboard?error=unauthorized', req.url);
-        return NextResponse.redirect(redirectUrl);
-    }
-    
-    // For Admins, grant full access to everything without further checks.
-    if (userRole === 'Admin') {
-        return NextResponse.next();
-    }
-
+    // Find the required permission for the current page.
     const requiredPermissionKey = Object.keys(pagePermissions).find(key => pathname.startsWith(key));
 
     if (requiredPermissionKey) {
+        if (!userPermissions) {
+            const redirectUrl = new URL('/dashboard?error=unauthorized', req.url);
+            return NextResponse.redirect(redirectUrl);
+        }
+
         const permissionKey = pagePermissions[requiredPermissionKey];
         const permissionForPage = userPermissions[permissionKey];
         
-        if (!hasAccess(permissionForPage)) {
+        if (!hasReadAccess(permissionForPage)) {
             const redirectUrl = new URL(req.headers.get('referer') || '/dashboard', req.url);
             redirectUrl.searchParams.set('error', 'unauthorized');
             return NextResponse.redirect(redirectUrl);
         }
     }
   }
-   return NextResponse.next();
+
+  return NextResponse.next();
 });
 
 export const config = {
