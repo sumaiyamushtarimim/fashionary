@@ -43,7 +43,7 @@ const hasAccess = (permission: Permission | boolean | undefined): boolean => {
     return false;
 }
 
-// --- PERMISSIONS PRESETS for mocking in development ---
+// --- PERMISSIONS PRESETS ---
 const NO_ACCESS: Permission = { create: false, read: false, update: false, delete: false };
 const READ_ONLY: Permission = { create: false, read: true, update: false, delete: false };
 const CREATE_READ_UPDATE: Permission = { create: true, read: true, update: true, delete: false };
@@ -130,41 +130,32 @@ export default clerkMiddleware((auth, req) => {
       return NextResponse.redirect(signInUrl);
     }
     
-    const userEmail = sessionClaims?.email;
-    const superAdminEmail = 'commerciansbd@gmail.com';
-    const isSuperAdmin = userEmail === superAdminEmail;
-
-    let role: StaffRole | undefined;
     let permissions: StaffMember['permissions'] | undefined;
-    
-    // Hardcode admin role for a specific email
-    if (isSuperAdmin) {
-        role = 'Admin';
+    const userRole = sessionClaims?.publicMetadata?.role as StaffRole | undefined;
+
+    if (userRole === 'Admin') {
         permissions = PERMISSIONS.Admin;
     } else {
         // --- Development Role-Switching Logic ---
         if (process.env.NODE_ENV === 'development') {
             const mockRole = req.cookies.get('mock_role')?.value as StaffRole | undefined;
             if (mockRole && PERMISSIONS[mockRole]) {
-                role = mockRole;
                 permissions = PERMISSIONS[mockRole];
             }
         }
         
         // If not in dev mode or no mock role is set, use Clerk's session claims
         if (!permissions) {
-            role = sessionClaims?.publicMetadata?.role as StaffRole | undefined;
             permissions = sessionClaims?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
         }
     }
     
-    // Super admin can access everything, so we can return early.
-    if (isSuperAdmin) {
+    if (userRole === 'Admin') {
         return NextResponse.next();
     }
     
     // If no role or permissions, only allow dashboard access
-    if (!role || !permissions) {
+    if (!userRole || !permissions) {
         if (pathname !== '/dashboard' && pathname !== '/dashboard/account' && pathname !== '/dashboard/notifications') {
             const redirectUrl = new URL('/dashboard?error=unauthorized', req.url);
             return NextResponse.redirect(redirectUrl);
