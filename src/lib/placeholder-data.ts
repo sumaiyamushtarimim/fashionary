@@ -1,5 +1,4 @@
 
-
 import { PlaceHolderImages } from './placeholder-images';
 import type { Order, Product, Customer, Category, ExpenseCategory, Business, PurchaseOrder, StaffMember, Supplier, Vendor, Expense, InventoryItem, InventoryMovement, WooCommerceIntegration, OrderStatus, CourierService, Permission, StaffRole, StockLocation, CourierIntegration, Issue, IssueLog, AttendanceRecord, BreakRecord, Account } from '@/types';
 
@@ -588,9 +587,9 @@ export const staff: StaffMember[] = [
             targetCount: 100,
         },
         performance: { ordersCreated: 120, ordersConfirmed: 110, statusBreakdown: { 'New': 10, 'Confirmed': 110, 'Packing Hold': 0, 'Canceled': 5, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Return Pending': 0, 'Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
-        financials: { totalEarned: 18500, totalPaid: 15000, dueAmount: 3500 },
+        financials: { totalEarned: 18500, totalPaid: 10000, dueAmount: 8500 },
         paymentHistory: [
-            { date: '2024-05-01', amount: 10000, notes: 'Partial Commission Payout' },
+            { date: '2024-05-01', amount: 5000, notes: 'Partial Commission Payout' },
             { date: '2024-04-15', amount: 5000, notes: 'Advance against commission' }
         ],
         incomeHistory: [
