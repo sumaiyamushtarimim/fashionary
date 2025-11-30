@@ -26,6 +26,7 @@ export function UnauthorizedAccessModal() {
 
   const handleClose = () => {
     setIsOpen(false);
+    // Use router.replace to clean the URL without adding to history
     router.replace('/dashboard');
   };
 
