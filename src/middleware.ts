@@ -134,15 +134,12 @@ export default clerkMiddleware((auth, req) => {
     let permissions: StaffMember['permissions'] | undefined;
 
     if (userRole === 'Admin') {
-        permissions = PERMISSIONS.Admin;
+        // If role is Admin, grant full access and stop further checks for this user.
+        return NextResponse.next();
     } else if (userRole && PERMISSIONS[userRole]) {
         permissions = PERMISSIONS[userRole];
     } else {
         permissions = sessionClaims?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
-    }
-    
-    if (permissions === PERMISSIONS.Admin) {
-        return NextResponse.next();
     }
 
     if (!permissions) {
