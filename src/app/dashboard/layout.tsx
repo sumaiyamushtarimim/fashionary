@@ -58,17 +58,17 @@ import { PageLoader } from "@/components/ui/page-loader";
 import { UnauthorizedAccessModal } from "@/components/ui/unauthorized-access-modal";
 import { getNotifications } from "@/services/notifications";
 import type { Notification, StaffMember, StaffRole, Permission } from "@/types";
-import { headers } from "next/headers";
+import { PermissionsProvider, usePermissions } from "@/components/ui/permissions-provider";
+
 
 const isPublicRoute = (pathname: string) => {
     return pathname.startsWith('/shop') || pathname.startsWith('/track-order');
 }
 
-const hasAccess = (permission: Permission | boolean | undefined): boolean => {
+const hasReadAccess = (permission: Permission | boolean | undefined): boolean => {
     if (permission === undefined) return false;
     if (typeof permission === 'boolean') return permission;
-    if (typeof permission === 'object' && permission !== null) return permission.read;
-    return false;
+    return permission.read;
 }
 
 const navItems = (permissions: StaffMember['permissions'] | null) => [
@@ -76,27 +76,27 @@ const navItems = (permissions: StaffMember['permissions'] | null) => [
   { 
       label: "Orders", 
       icon: ShoppingCart, 
-      access: hasAccess(permissions?.orders),
+      access: hasReadAccess(permissions?.orders),
       subItems: [
-          { href: "/dashboard/orders/all", label: "All Orders", access: hasAccess(permissions?.orders) },
-          { href: "/dashboard/orders/incomplete", label: "Incomplete Orders", access: hasAccess(permissions?.orders) },
+          { href: "/dashboard/orders/all", label: "All Orders", access: hasReadAccess(permissions?.orders) },
+          { href: "/dashboard/orders/incomplete", label: "Incomplete Orders", access: hasReadAccess(permissions?.orders) },
       ]
   },
-  { href: "/dashboard/issues", icon: AlertCircle, label: "Issues", access: hasAccess(permissions?.issues) },
-  { href: "/dashboard/packing-orders", icon: ClipboardList, label: "Packing Orders", access: hasAccess(permissions?.packingOrders) },
-  { href: "/dashboard/courier-report", icon: FileSearch, label: "Courier Report", access: hasAccess(permissions?.courierReport) },
-  { href: "/dashboard/products", icon: Package, label: "Products", access: hasAccess(permissions?.products) },
-  { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory", access: hasAccess(permissions?.inventory) },
-  { href: "/dashboard/customers", icon: Users, label: "Customers", access: hasAccess(permissions?.customers) },
-  { href: "/dashboard/purchases", icon: Truck, label: "Purchases", access: hasAccess(permissions?.purchases) },
-  { href: "/dashboard/expenses", icon: Wallet, label: "Expenses", access: hasAccess(permissions?.expenses) },
-  { href: "/dashboard/check-passing", icon: Landmark, label: "Check Passing", access: hasAccess(permissions?.checkPassing) },
-  { href: "/dashboard/partners", icon: Handshake, label: "Partners", access: hasAccess(permissions?.partners) },
-  { href: "/dashboard/analytics", icon: BarChartHorizontal, label: "Analytics", access: hasAccess(permissions?.analytics) },
-  { href: "/dashboard/accounting", icon: BookUser, label: "Accounting", access: hasAccess(permissions?.accounting) },
-  { href: "/dashboard/staff", icon: User, label: "Staff", access: hasAccess(permissions?.staff) },
-  { href: "/dashboard/attendance", icon: Clock, label: "Attendance", access: hasAccess(permissions?.attendance) },
-  { href: "/dashboard/settings", icon: Settings, label: "Settings", access: hasAccess(permissions?.settings) },
+  { href: "/dashboard/issues", icon: AlertCircle, label: "Issues", access: hasReadAccess(permissions?.issues) },
+  { href: "/dashboard/packing-orders", icon: ClipboardList, label: "Packing Orders", access: hasReadAccess(permissions?.packingOrders) },
+  { href: "/dashboard/courier-report", icon: FileSearch, label: "Courier Report", access: hasReadAccess(permissions?.courierReport) },
+  { href: "/dashboard/products", icon: Package, label: "Products", access: hasReadAccess(permissions?.products) },
+  { href: "/dashboard/inventory", icon: Warehouse, label: "Inventory", access: hasReadAccess(permissions?.inventory) },
+  { href: "/dashboard/customers", icon: Users, label: "Customers", access: hasReadAccess(permissions?.customers) },
+  { href: "/dashboard/purchases", icon: Truck, label: "Purchases", access: hasReadAccess(permissions?.purchases) },
+  { href: "/dashboard/expenses", icon: Wallet, label: "Expenses", access: hasReadAccess(permissions?.expenses) },
+  { href: "/dashboard/check-passing", icon: Landmark, label: "Check Passing", access: hasReadAccess(permissions?.checkPassing) },
+  { href: "/dashboard/partners", icon: Handshake, label: "Partners", access: hasReadAccess(permissions?.partners) },
+  { href: "/dashboard/analytics", icon: BarChartHorizontal, label: "Analytics", access: hasReadAccess(permissions?.analytics) },
+  { href: "/dashboard/accounting", icon: BookUser, label: "Accounting", access: hasReadAccess(permissions?.accounting) },
+  { href: "/dashboard/staff", icon: User, label: "Staff", access: hasReadAccess(permissions?.staff) },
+  { href: "/dashboard/attendance", icon: Clock, label: "Attendance", access: hasReadAccess(permissions?.attendance) },
+  { href: "/dashboard/settings", icon: Settings, label: "Settings", access: hasReadAccess(permissions?.settings) },
 ];
 
 
@@ -395,52 +395,19 @@ function AttendanceWidget() {
     )
 }
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
   const [isMobileNavOpen, setIsMobileNavOpen] = React.useState(false);
   const { isLoaded, isSignedIn, user } = useUser();
-  const [permissions, setPermissions] = useState<StaffMember['permissions'] | null>(null);
-
+  const permissions = usePermissions();
+  
   React.useEffect(() => {
     if (isLoaded && !isSignedIn && !isPublicRoute(pathname)) {
         router.push('/sign-in');
     }
   }, [isLoaded, isSignedIn, pathname, router]);
-  
-  React.useEffect(() => {
-    // This is a client component, so we can't use `headers()` directly.
-    // Instead, a parent server component should pass the permissions down.
-    // For this client-side layout, we'll fetch them, but this has limitations.
-    // The proper way is to handle this in a server component that wraps this layout.
-    // But since `middleware` is now passing the header, we can assume it will be available
-    // in server components that render this layout.
-    // For now, this fallback to Clerk data will work for client-side rendering.
-    if (process.env.NODE_ENV === 'development') {
-        const mockRole = document.cookie.split('; ').find(row => row.startsWith('mock_role='))?.split('=')[1] as StaffRole | undefined;
-        // This is a simplified mock from the original `middleware.ts` for dev purposes.
-        const NO_ACCESS: Permission = { create: false, read: false, update: false, delete: false };
-        const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: true };
-        const devPermissions = { Admin: { orders: FULL_ACCESS, packingOrders: FULL_ACCESS, products: FULL_ACCESS, inventory: FULL_ACCESS, customers: FULL_ACCESS, purchases: FULL_ACCESS, expenses: FULL_ACCESS, checkPassing: FULL_ACCESS, partners: FULL_ACCESS, courierReport: FULL_ACCESS, staff: FULL_ACCESS, settings: FULL_ACCESS, analytics: FULL_ACCESS, issues: FULL_ACCESS, attendance: FULL_ACCESS, accounting: FULL_ACCESS }};
-        if (mockRole && devPermissions[mockRole as keyof typeof devPermissions]) {
-            setPermissions(devPermissions[mockRole as keyof typeof devPermissions]);
-            return;
-        }
-    }
-    
-    if (isLoaded && isSignedIn && user) {
-        // Fallback to public metadata if header method fails on client-side navigation
-        const metaPerms = user.publicMetadata.permissions as StaffMember['permissions'] | null;
-        if (metaPerms) {
-            setPermissions(metaPerms);
-        }
-    }
-  }, [isLoaded, isSignedIn, user, pathname]);
   
   React.useEffect(() => {
     getNotifications().then(setNotifications);
@@ -575,4 +542,16 @@ export default function DashboardLayout({
       </div>
     </div>
   );
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <PermissionsProvider>
+      <DashboardLayoutContent>{children}</DashboardLayoutContent>
+    </PermissionsProvider>
+  )
 }

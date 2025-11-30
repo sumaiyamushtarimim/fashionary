@@ -1,13 +1,17 @@
 
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from 'next/server';
-import type { Permission, StaffMember, StaffRole } from '@/types';
+import { auth } from '@clerk/nextjs/server';
+import * as React from 'react';
+import type { StaffMember, StaffRole } from '@/types';
+
+type PermissionsContextType = StaffMember['permissions'] | null;
+
+const PermissionsContext = React.createContext<PermissionsContextType>(null);
 
 // --- PERMISSIONS PRESETS ---
-const NO_ACCESS: Permission = { create: false, read: false, update: false, delete: false };
-const READ_ONLY: Permission = { create: false, read: true, update: false, delete: false };
-const CREATE_READ_UPDATE: Permission = { create: true, read: true, update: true, delete: false };
-const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: true };
+const FULL_ACCESS = { create: true, read: true, update: true, delete: true };
+const READ_ONLY = { create: false, read: true, update: false, delete: false };
+const CREATE_READ_UPDATE = { create: true, read: true, update: true, delete: false };
+const NO_ACCESS = { create: false, read: false, update: false, delete: false };
 
 const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
     Admin: {
@@ -72,81 +76,32 @@ const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
     },
     'Custom': NO_ACCESS,
 };
+// --- END OF PERMISSIONS PRESETS ---
 
-const pagePermissions: Record<string, keyof StaffMember['permissions']> = {
-    '/dashboard/orders': 'orders',
-    '/dashboard/packing-orders': 'packingOrders',
-    '/dashboard/products': 'products',
-    '/dashboard/inventory': 'inventory',
-    '/dashboard/customers': 'customers',
-    '/dashboard/purchases': 'purchases',
-    '/dashboard/expenses': 'expenses',
-    '/dashboard/check-passing': 'checkPassing',
-    '/dashboard/partners': 'partners',
-    '/dashboard/courier-report': 'courierReport',
-    '/dashboard/analytics': 'analytics',
-    '/dashboard/accounting': 'accounting',
-    '/dashboard/staff': 'staff',
-    '/dashboard/settings': 'settings',
-    '/dashboard/issues': 'issues',
-    '/dashboard/attendance': 'attendance',
-};
 
-const hasReadAccess = (permission: Permission | boolean | undefined): boolean => {
-    if (permission === undefined) return false;
-    if (typeof permission === 'boolean') return permission;
-    return permission.read;
-};
+export function PermissionsProvider({ children }: { children: React.ReactNode }) {
+  const { sessionClaims } = auth();
+  
+  let permissions: PermissionsContextType = null;
+  const userRole = sessionClaims?.publicMetadata?.role as StaffRole | undefined;
 
-const isPublicRoute = createRouteMatcher(['/shop(.*)', '/track-order(.*)', '/sign-in(.*)', '/sign-up(.*)', '/', '/api/delivery-report(.*)', '/print(.*)']);
-const isProtectedRoute = createRouteMatcher(['/dashboard(.*)']);
+  if (userRole && PERMISSIONS[userRole]) {
+      permissions = PERMISSIONS[userRole];
+  } else if (sessionClaims?.publicMetadata?.permissions) {
+      permissions = sessionClaims.publicMetadata.permissions as StaffMember['permissions'];
+  }
 
-export default clerkMiddleware((auth, req) => {
-    if (!isProtectedRoute(req)) {
-        return NextResponse.next();
-    }
+  return (
+    <PermissionsContext.Provider value={permissions}>
+      {children}
+    </PermissionsContext.Provider>
+  );
+}
 
-    const { sessionClaims, redirectToSignIn } = auth();
-    if (!sessionClaims) {
-        return redirectToSignIn();
-    }
-    
-    const pathname = req.nextUrl.pathname;
-
-    const userRole = sessionClaims.publicMetadata?.role as StaffRole | undefined;
-    let userPermissions: StaffMember['permissions'] | undefined;
-
-    if (userRole && PERMISSIONS[userRole]) {
-        userPermissions = PERMISSIONS[userRole];
-    } else if (sessionClaims.publicMetadata?.permissions) {
-        userPermissions = sessionClaims.publicMetadata.permissions as StaffMember['permissions'];
-    }
-
-    if (!userPermissions) {
-        if (pathname === '/dashboard' || pathname === '/dashboard/account' || pathname === '/dashboard/notifications') {
-             // Allow access to basic dashboard pages even with no explicit permissions
-            return NextResponse.next();
-        }
-        const unauthorizedUrl = new URL(req.headers.get('referer') || '/dashboard', req.url);
-        unauthorizedUrl.searchParams.set('error', 'unauthorized');
-        return NextResponse.redirect(unauthorizedUrl);
-    }
-    
-    const requiredPermissionKey = Object.keys(pagePermissions).find(key => pathname.startsWith(key));
-    
-    if (requiredPermissionKey) {
-        const permissionKey = pagePermissions[requiredPermissionKey];
-        const permissionForPage = userPermissions[permissionKey];
-        if (!hasReadAccess(permissionForPage)) {
-            const unauthorizedUrl = new URL(req.headers.get('referer') || '/dashboard', req.url);
-            unauthorizedUrl.searchParams.set('error', 'unauthorized');
-            return NextResponse.redirect(unauthorizedUrl);
-        }
-    }
-
-    return NextResponse.next();
-});
-
-export const config = {
-    matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
-};
+export function usePermissions() {
+  const context = React.useContext(PermissionsContext);
+  if (context === undefined) {
+    throw new Error('usePermissions must be used within a PermissionsProvider');
+  }
+  return context;
+}
