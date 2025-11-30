@@ -14,8 +14,8 @@ export function InvoiceTemplate({ order }: { order: Order }) {
 
     return (
         <div className="max-w-4xl mx-auto p-8 bg-white text-gray-800 print:shadow-none print:p-8">
-            <div className="flex flex-col">
-                <div>
+            <div className="flex flex-col justify-between min-h-[90vh]">
+                <div className="flex-grow">
                     <header className="flex justify-between items-start pb-6 border-b">
                         <div className="flex items-center gap-4">
                             <Logo variant="icon" />
