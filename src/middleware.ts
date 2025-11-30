@@ -116,7 +116,7 @@ const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
 
 
 export default clerkMiddleware((auth, req) => {
-  const { userId, sessionClaims, user } = auth();
+  const { userId, sessionClaims } = auth();
   const pathname = req.nextUrl.pathname;
 
   if (isPublicRoute(req)) {
@@ -130,30 +130,21 @@ export default clerkMiddleware((auth, req) => {
       return NextResponse.redirect(signInUrl);
     }
     
+    const userRole = sessionClaims?.publicMetadata?.role as StaffRole | undefined;
     let permissions: StaffMember['permissions'] | undefined;
-    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-    const userEmail = user?.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress;
 
-    // Highest priority: Check if the user's email matches the admin email from env variables
-    if (adminEmail && userEmail === adminEmail) {
+    if (userRole === 'Admin') {
         permissions = PERMISSIONS.Admin;
+    } else if (userRole && PERMISSIONS[userRole]) {
+        permissions = PERMISSIONS[userRole];
     } else {
-        // Fallback to checking Clerk's publicMetadata
-        const userRole = sessionClaims?.publicMetadata?.role as StaffRole | undefined;
-        if (userRole && PERMISSIONS[userRole]) {
-            permissions = PERMISSIONS[userRole];
-        } else {
-            // For custom roles, get permissions directly
-            permissions = sessionClaims?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
-        }
+        permissions = sessionClaims?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
     }
     
-    // If user is admin (from any method), allow access to everything.
     if (permissions === PERMISSIONS.Admin) {
         return NextResponse.next();
     }
-    
-    // If no role or permissions, only allow essential pages.
+
     if (!permissions) {
         if (pathname !== '/dashboard' && pathname !== '/dashboard/account' && pathname !== '/dashboard/notifications') {
             const redirectUrl = new URL('/dashboard?error=unauthorized', req.url);
