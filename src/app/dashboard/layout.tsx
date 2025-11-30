@@ -132,6 +132,12 @@ const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
         partners: NO_ACCESS, courierReport: READ_ONLY, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
         issues: { ...CREATE_READ_UPDATE, create: false, read: true, update: true, delete: false }, attendance: NO_ACCESS, accounting: NO_ACCESS,
     },
+    'Vendor/Supplier': {
+        orders: NO_ACCESS, packingOrders: NO_ACCESS, products: NO_ACCESS, inventory: NO_ACCESS,
+        customers: NO_ACCESS, purchases: { create: false, read: true, update: true, delete: false }, expenses: NO_ACCESS, checkPassing: NO_ACCESS,
+        partners: NO_ACCESS, courierReport: NO_ACCESS, staff: NO_ACCESS, settings: NO_ACCESS, analytics: NO_ACCESS,
+        issues: NO_ACCESS, attendance: NO_ACCESS, accounting: NO_ACCESS,
+    },
     'Custom': NO_ACCESS,
 };
 // --- END OF PERMISSIONS PRESETS ---

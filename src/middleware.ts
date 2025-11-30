@@ -18,7 +18,7 @@ const isProtectedRoute = createRouteMatcher([
 
 // Maps dashboard pages to the required permissions
 const pagePermissions: Record<string, keyof StaffMember['permissions']> = {
-    '/dashboard/orders/all': 'orders',
+    '/dashboard/orders': 'orders',
     '/dashboard/packing-orders': 'packingOrders',
     '/dashboard/products': 'products',
     '/dashboard/inventory': 'inventory',

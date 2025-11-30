@@ -1,4 +1,3 @@
-
 # Backend Integration Guide for Fashionary
 
 ## Introduction
@@ -196,6 +195,8 @@ model Order {
   createdBy       String? // Staff name or ID
   confirmedBy     String? // Staff name or ID
   businessId      String?
+  businessName    String?
+  businessLogo    String?
   platform        OrderPlatform?
   paymentMethod   PaymentMethod
   paidAmount      Float
@@ -422,6 +423,7 @@ model ExpenseCategory {
 model Business {
   id     String   @id @default(cuid())
   name   String   @unique
+  logo   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
