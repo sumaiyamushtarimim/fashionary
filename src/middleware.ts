@@ -109,8 +109,16 @@ export default clerkMiddleware((auth, req) => {
     const { sessionClaims } = auth().protect();
 
     const pathname = req.nextUrl.pathname;
-    const userRole = sessionClaims.publicMetadata?.role as StaffRole | undefined;
-
+    
+    // In development, allow role override via cookie
+    let userRole : StaffRole | undefined = sessionClaims.publicMetadata?.role as StaffRole | undefined;
+    if (process.env.NODE_ENV === 'development') {
+        const mockRole = req.cookies.get('mock_role')?.value as StaffRole | undefined;
+        if (mockRole && PERMISSIONS[mockRole]) {
+            userRole = mockRole;
+        }
+    }
+    
     let userPermissions: StaffMember['permissions'] | undefined;
     
     if (userRole && PERMISSIONS[userRole]) {
@@ -123,7 +131,7 @@ export default clerkMiddleware((auth, req) => {
         if (pathname === '/dashboard' || pathname === '/dashboard/account' || pathname === '/dashboard/notifications') {
             return NextResponse.next();
         }
-        const unauthorizedUrl = new URL('/dashboard', req.url);
+        const unauthorizedUrl = new URL(req.headers.get('referer') || '/dashboard', req.url);
         unauthorizedUrl.searchParams.set('error', 'unauthorized');
         return NextResponse.redirect(unauthorizedUrl);
     }
