@@ -1,5 +1,5 @@
 
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher, auth } from "@clerk/nextjs/server";
 import { NextResponse } from 'next/server';
 import type { Permission, StaffMember, StaffRole } from '@/types';
 
@@ -72,8 +72,6 @@ const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
     },
     'Custom': NO_ACCESS,
 };
-// --- END OF PERMISSIONS PRESETS ---
-
 
 const pagePermissions: Record<string, keyof StaffMember['permissions']> = {
     '/dashboard/orders': 'orders',
@@ -107,11 +105,8 @@ export default clerkMiddleware((auth, req) => {
         return NextResponse.next();
     }
 
-    const { sessionClaims, redirectToSignIn } = auth();
-    if (!sessionClaims) {
-        return redirectToSignIn();
-    }
-    
+    const { sessionClaims } = auth.protect();
+
     const pathname = req.nextUrl.pathname;
     const userRole = sessionClaims.publicMetadata?.role as StaffRole | undefined;
 
@@ -124,11 +119,11 @@ export default clerkMiddleware((auth, req) => {
     }
 
     if (!userPermissions) {
-         if (pathname === '/dashboard' || pathname === '/dashboard/account' || pathname === '/dashboard/notifications') {
+        if (pathname === '/dashboard' || pathname === '/dashboard/account' || pathname === '/dashboard/notifications') {
             return NextResponse.next();
         }
         const unauthorizedUrl = new URL('/dashboard', req.url);
-        unauthorizedUrl.searchParams.set('error', 'no-permissions');
+        unauthorizedUrl.searchParams.set('error', 'unauthorized');
         return NextResponse.redirect(unauthorizedUrl);
     }
     
