@@ -1,3 +1,4 @@
+
 # Backend Integration Guide for Fashionary
 
 ## Introduction
@@ -348,6 +349,18 @@ model StaffMember {
 
   assignedOrders    Order[]
   attendanceRecords AttendanceRecord[]
+  payments          StaffPayment[]
+}
+
+model StaffPayment {
+  id          String   @id @default(cuid())
+  staffId     String
+  staff       StaffMember @relation(fields: [staffId], references: [id])
+  date        DateTime @db.Date
+  amount      Float
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model AttendanceRecord {
@@ -620,6 +633,28 @@ This endpoint applies a single action to multiple orders at once.
   "failed": [
     { "orderId": "ORD-2024-002", "reason": "Invalid status for this action" }
   ]
+}
+```
+
+#### **Staff Payment**
+
+This endpoint records a payment made to a staff member.
+
+**Endpoint:** `POST /api/staff/{staffId}/payments`
+
+**Request Body:**
+```json
+{
+  "amount": 15000.00,
+  "notes": "Salary advance for May 2024"
+}
+```
+
+**Success Response (200 OK):**
+```json
+{
+  "status": "success",
+  "message": "Payment of ৳15000.00 recorded for Staff Member."
 }
 ```
 

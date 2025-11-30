@@ -161,6 +161,7 @@ export async function getStaffMemberById(id: string): Promise<StaffMember | unde
 }
 
 export async function makePayment(staffId: string, amount: number, notes: string): Promise<StaffMember | undefined> {
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
     const memberIndex = staff.findIndex(s => s.id === staffId);
     if (memberIndex === -1) {
         return Promise.resolve(undefined);
@@ -175,8 +176,9 @@ export async function makePayment(staffId: string, amount: number, notes: string
 
     member.paymentHistory.unshift(newPayment);
     member.financials.totalPaid += amount;
-    member.financials.dueAmount -= amount;
-
+    
+    // Recalculate due amount after payment.
+    // The getStaffMemberById function already does this, so we call it to get the freshest data.
     staff[memberIndex] = member;
 
     return getStaffMemberById(staffId);
@@ -184,4 +186,5 @@ export async function makePayment(staffId: string, amount: number, notes: string
     
 
     
+
 
