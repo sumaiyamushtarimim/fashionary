@@ -587,12 +587,16 @@ export const staff: StaffMember[] = [
             targetPeriod: 'Monthly',
             targetCount: 100,
         },
-        performance: { ordersCreated: 120, ordersConfirmed: 110, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Return Pending': 0, 'Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
-        financials: { totalEarned: 17000, totalPaid: 15000, dueAmount: 2000 },
-        paymentHistory: [{ date: '2024-05-15', amount: 15000, notes: 'Commission Payout' }],
+        performance: { ordersCreated: 120, ordersConfirmed: 110, statusBreakdown: { 'New': 10, 'Confirmed': 110, 'Packing Hold': 0, 'Canceled': 5, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 'Return Pending': 0, 'Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
+        financials: { totalEarned: 18500, totalPaid: 15000, dueAmount: 3500 },
+        paymentHistory: [
+            { date: '2024-05-01', amount: 10000, notes: 'Partial Commission Payout' },
+            { date: '2024-04-15', amount: 5000, notes: 'Advance against commission' }
+        ],
         incomeHistory: [
             { date: '2024-05-24', orderId: 'ORD-2024-001', action: 'Created', amount: 50 },
             { date: '2024-05-24', orderId: 'ORD-2024-001', action: 'Confirmed', amount: 100 },
+            { date: '2024-05-28', orderId: 'ORD-2024-005', action: 'Created', amount: 50 },
         ],
         permissions: PERMISSIONS.Moderator,
     },
@@ -603,15 +607,21 @@ export const staff: StaffMember[] = [
         role: 'Packing Assistant',
         accessibleBusinessIds: ['BIZ001'],
         lastLogin: '2024-05-27T09:00:00Z',
-        paymentType: 'Salary',
-        salaryDetails: { amount: 15000, frequency: 'Monthly' },
+        paymentType: 'Both',
+        salaryDetails: { amount: 12000, frequency: 'Monthly' },
         commissionDetails: {
             onOrderPacked: 20,
         },
         performance: { ordersCreated: 0, ordersConfirmed: 0, statusBreakdown: { 'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 'In-Courier': 0, 'RTS (Ready to Ship)': 150, 'Shipped': 0, 'Delivered': 0, 'Return Pending': 0, 'Returned': 0, 'Partial': 0, 'Incomplete': 0, 'Incomplete-Cancelled': 0 } },
-        financials: { totalEarned: 75000, totalPaid: 60000, dueAmount: 15000 },
-        paymentHistory: [{ date: '2024-05-01', amount: 15000, notes: 'April Salary' }],
-        incomeHistory: [],
+        financials: { totalEarned: 15000, totalPaid: 15000, dueAmount: 0 },
+        paymentHistory: [
+            { date: '2024-05-01', amount: 12000, notes: 'April Salary' },
+            { date: '2024-05-01', amount: 3000, notes: 'Packing Commission' }
+        ],
+        incomeHistory: [
+            { date: '2024-04-25', orderId: 'ORD-2024-001', action: 'Packed', amount: 20 },
+            { date: '2024-04-26', orderId: 'ORD-2024-002', action: 'Packed', amount: 20 },
+        ],
         permissions: PERMISSIONS['Packing Assistant'],
     },
      {
