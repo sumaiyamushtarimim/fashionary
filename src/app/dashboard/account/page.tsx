@@ -67,28 +67,34 @@ function HistoryDialog({ title, children, data }: { title: string, children: Rea
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
                 <div className="max-h-[60vh] overflow-y-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Date</TableHead>
-                                {'orderId' in data[0] && <TableHead>Order ID</TableHead>}
-                                {'action' in data[0] && <TableHead>Action</TableHead>}
-                                <TableHead>Notes</TableHead>
-                                <TableHead className="text-right">Amount</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {data.map((item, index) => (
-                                <TableRow key={index}>
-                                    <TableCell>{format(new Date(item.date), 'PP')}</TableCell>
-                                    {'orderId' in item && <TableCell>{item.orderId}</TableCell>}
-                                    {'action' in item && <TableCell><Badge variant="secondary">{item.action}</Badge></TableCell>}
-                                    <TableCell>{'notes' in item ? item.notes : '-'}</TableCell>
-                                    <TableCell className="text-right font-mono">৳{item.amount.toLocaleString()}</TableCell>
+                    {data && data.length > 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Date</TableHead>
+                                    {'orderId' in data[0] && <TableHead>Order ID</TableHead>}
+                                    {'action' in data[0] && <TableHead>Action</TableHead>}
+                                    <TableHead>Notes</TableHead>
+                                    <TableHead className="text-right">Amount</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {data.map((item, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>{format(new Date(item.date), 'PP')}</TableCell>
+                                        {'orderId' in item && <TableCell>{item.orderId}</TableCell>}
+                                        {'action' in item && <TableCell><Badge variant="secondary">{item.action}</Badge></TableCell>}
+                                        <TableCell>{'notes' in item ? item.notes : '-'}</TableCell>
+                                        <TableCell className="text-right font-mono">৳{item.amount.toLocaleString()}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <div className="text-center text-muted-foreground py-8">
+                            No history found.
+                        </div>
+                    )}
                 </div>
             </DialogContent>
         </Dialog>
@@ -144,8 +150,8 @@ export default function AccountPage() {
         const cancellationRate = ordersCreated > 0 ? (canceledCount / ordersCreated) * 100 : 0;
         
         const totalConfirmedValue = loggedInStaff.incomeHistory.reduce((acc, item) => {
-            if(item.action === 'Confirmed') {
-                return acc + item.amount / (loggedInStaff.commissionDetails?.onOrderConfirm! / 100);
+            if(item.action === 'Confirmed' && loggedInStaff.commissionDetails?.onOrderConfirm) {
+                return acc + item.amount / (loggedInStaff.commissionDetails.onOrderConfirm / 100);
             }
             return acc;
         }, 0);
@@ -351,4 +357,5 @@ export default function AccountPage() {
             </div>
         </div>
     );
-}
+
+    
