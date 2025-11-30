@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -254,14 +255,18 @@ export default function AccountPage() {
                                 <>
                                     <Separator />
                                     <p className='font-medium'>Commission</p>
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">On Order Create</span>
-                                        <span>৳{loggedInStaff.commissionDetails.onOrderCreate.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">On Order Confirm</span>
-                                        <span>৳{loggedInStaff.commissionDetails.onOrderConfirm.toFixed(2)}</span>
-                                    </div>
+                                    {loggedInStaff.commissionDetails.onOrderCreate && (
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">On Order Create</span>
+                                            <span>৳{loggedInStaff.commissionDetails.onOrderCreate.toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                    {loggedInStaff.commissionDetails.onOrderConfirm && (
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">On Order Confirm</span>
+                                            <span>৳{loggedInStaff.commissionDetails.onOrderConfirm.toFixed(2)}</span>
+                                        </div>
+                                    )}
                                 </>
                             )}
                         </CardContent>
