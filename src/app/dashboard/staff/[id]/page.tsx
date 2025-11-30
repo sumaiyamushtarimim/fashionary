@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, MoreVertical, User, Briefcase, DollarSign, BarChart2, CheckCircle, PlusCircle, Activity, TrendingUp } from 'lucide-react';
+import { ChevronLeft, MoreVertical, User, Briefcase, DollarSign, BarChart2, CheckCircle, PlusCircle, Activity, TrendingUp, KeyRound, Clock, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,13 +26,15 @@ import {
 import { Pie, PieChart, Cell } from "recharts";
 import { Separator } from '@/components/ui/separator';
 import { getStaffMemberById, makePayment } from '@/services/staff';
-import type { StaffMember, OrderStatus, StaffIncome } from '@/types';
+import { getStaffAttendanceHistory } from '@/services/attendance';
+import type { StaffMember, OrderStatus, StaffIncome, Permission, AttendanceRecord } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { formatDistanceToNow, format } from 'date-fns';
 
 const statusColors: Record<OrderStatus, string> = {
     'New': 'bg-blue-500/20 text-blue-700',
@@ -51,6 +53,25 @@ const statusColors: Record<OrderStatus, string> = {
     'Incomplete-Cancelled': 'bg-red-500/20 text-red-700',
 };
 
+const permissionModules: (keyof StaffMember['permissions'])[] = [
+    'orders', 'packingOrders',
+    'products', 
+    'inventory',
+    'customers', 
+    'purchases', 
+    'expenses',
+    'checkPassing',
+    'partners',
+    'courierReport',
+    'analytics',
+    'staff', 
+    'settings',
+    'issues',
+    'attendance',
+    'accounting',
+];
+const permissionActions: (keyof Permission)[] = ['create', 'read', 'update', 'delete'];
+
 const chartColors = [
     'hsl(var(--chart-1))',
     'hsl(var(--chart-2))',
@@ -64,6 +85,7 @@ export default function StaffDetailsPage() {
     const staffId = params.id as string;
     const { toast } = useToast();
     const [staffMember, setStaffMember] = React.useState<StaffMember | undefined>(undefined);
+    const [attendanceHistory, setAttendanceHistory] = React.useState<AttendanceRecord[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
     const [isPaymentDialogOpen, setIsPaymentDialogOpen] = React.useState(false);
     const [paymentAmount, setPaymentAmount] = React.useState(0);
@@ -72,10 +94,14 @@ export default function StaffDetailsPage() {
     React.useEffect(() => {
         if (staffId) {
             setIsLoading(true);
-            getStaffMemberById(staffId).then(data => {
-                setStaffMember(data);
-                if (data) {
-                    setPaymentAmount(data.financials.dueAmount);
+            Promise.all([
+                getStaffMemberById(staffId),
+                getStaffAttendanceHistory(staffId)
+            ]).then(([staffData, attendanceData]) => {
+                setStaffMember(staffData);
+                setAttendanceHistory(attendanceData);
+                if (staffData) {
+                    setPaymentAmount(staffData.financials.dueAmount);
                 }
                 setIsLoading(false);
             });
@@ -96,6 +122,8 @@ export default function StaffDetailsPage() {
         setIsPaymentDialogOpen(false);
         setPaymentNotes('');
     };
+    
+    const todayAttendance = attendanceHistory.find(a => format(new Date(a.date), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd'));
 
     if (isLoading) {
         return (
@@ -286,6 +314,59 @@ export default function StaffDetailsPage() {
                                 </DialogFooter>
                             </DialogContent>
                         </Dialog>
+                    </CardContent>
+                </Card>
+            </div>
+             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                 <Card>
+                    <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+                        <Clock className="w-6 h-6 text-muted-foreground" />
+                        <CardTitle>Attendance</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Today's Status</span>
+                            {todayAttendance ? <Badge variant="outline">{todayAttendance.status}</Badge> : <Badge variant="secondary">N/A</Badge>}
+                        </div>
+                         <div className="flex justify-between">
+                            <span className="text-muted-foreground">Total Work (Today)</span>
+                            <span>{todayAttendance?.totalWorkDuration ? `${Math.floor(todayAttendance.totalWorkDuration / 60)}h ${todayAttendance.totalWorkDuration % 60}m` : 'N/A'}</span>
+                        </div>
+                    </CardContent>
+                </Card>
+                 <Card className="lg:col-span-2">
+                    <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+                        <KeyRound className="w-6 h-6 text-muted-foreground" />
+                        <CardTitle>Permissions</CardTitle>
+                    </CardHeader>
+                     <CardContent className="pt-4">
+                        {staffMember.role === 'Custom' ? (
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Module</TableHead>
+                                        <TableHead className="text-center">Create</TableHead>
+                                        <TableHead className="text-center">Read</TableHead>
+                                        <TableHead className="text-center">Update</TableHead>
+                                        <TableHead className="text-center">Delete</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {permissionModules.map(module => (
+                                        <TableRow key={module}>
+                                            <TableCell className="font-medium capitalize">{module.replace(/([A-Z])/g, ' $1')}</TableCell>
+                                            {permissionActions.map(action => (
+                                                <TableCell key={action} className="text-center">
+                                                    {(staffMember.permissions[module] as Permission)?.[action] ? <CheckCircle className="w-5 h-5 text-green-500 mx-auto"/> : <XCircle className="w-5 h-5 text-red-500 mx-auto"/>}
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        ) : (
+                            <p className="text-sm text-muted-foreground p-4 text-center">Permissions are managed by the <Badge variant="secondary">{staffMember.role}</Badge> role.</p>
+                        )}
                     </CardContent>
                 </Card>
             </div>

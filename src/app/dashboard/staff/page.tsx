@@ -1,8 +1,7 @@
 
-
 'use client';
 
-import { MoreHorizontal, PlusCircle, DollarSign, TrendingUp, KeyRound, ShieldCheck } from "lucide-react";
+import { MoreHorizontal, PlusCircle, DollarSign, TrendingUp, KeyRound, ShieldCheck, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,6 +48,7 @@ import { getStaff } from "@/services/staff";
 import { getBusinesses } from "@/services/partners";
 import type { StaffMember, Permission, StaffRole, Business } from "@/types";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -79,7 +79,10 @@ const permissionModules: (keyof StaffMember['permissions'])[] = [
     'courierReport',
     'analytics',
     'staff', 
-    'settings'
+    'settings',
+    'issues',
+    'attendance',
+    'accounting',
 ];
 const permissionActions: (keyof Permission)[] = ['create', 'read', 'update', 'delete'];
 
@@ -92,6 +95,9 @@ export default function StaffPage() {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
 
+    const [searchTerm, setSearchTerm] = useState('');
+    const [roleFilter, setRoleFilter] = useState('all');
+
     useEffect(() => {
         setIsLoading(true);
         Promise.all([
@@ -103,6 +109,24 @@ export default function StaffPage() {
             setIsLoading(false);
         });
     }, []);
+
+    const filteredStaff = useMemo(() => {
+        let staffList = allStaff;
+
+        if (roleFilter !== 'all') {
+            staffList = staffList.filter(s => s.role === roleFilter);
+        }
+
+        if (searchTerm) {
+            const lowercasedSearchTerm = searchTerm.toLowerCase();
+            staffList = staffList.filter(s => 
+                s.name.toLowerCase().includes(lowercasedSearchTerm) ||
+                s.email.toLowerCase().includes(lowercasedSearchTerm)
+            );
+        }
+        
+        return staffList;
+    }, [allStaff, roleFilter, searchTerm]);
 
     const handleEditClick = (member: StaffMember) => {
         setSelectedStaff(member);
@@ -122,11 +146,15 @@ export default function StaffPage() {
         }, { totalDue: 0, totalEarned: 0 });
     }, [allStaff]);
 
-    const totalPages = Math.ceil(allStaff.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(filteredStaff.length / ITEMS_PER_PAGE);
     const paginatedStaff = useMemo(() => {
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        return allStaff.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-    }, [currentPage, allStaff]);
+        return filteredStaff.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [currentPage, filteredStaff]);
+
+     useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, roleFilter]);
 
   const StaffForm = ({ staffMember, isEdit = false, businesses }: { staffMember?: StaffMember | null, isEdit?: boolean, businesses: Business[] }) => {
     const [role, setRole] = useState<StaffRole | undefined>(staffMember?.role);
@@ -149,6 +177,8 @@ export default function StaffPage() {
             settings: { create: false, read: false, update: false, delete: false },
             analytics: { create: false, read: true, update: false, delete: false },
             issues: { create: false, read: true, update: false, delete: false },
+            attendance: { create: false, read: true, update: false, delete: false },
+            accounting: { create: false, read: true, update: false, delete: false },
         }
     );
      useEffect(() => {
@@ -437,7 +467,28 @@ export default function StaffPage() {
       </div>
 
       <Card>
-        <CardContent className="pt-6">
+        <CardHeader>
+            <div className="flex flex-col sm:flex-row gap-4">
+                <Input
+                    placeholder="Search by name or email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="max-w-sm"
+                />
+                <Select value={roleFilter} onValueChange={setRoleFilter}>
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="Filter by role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Roles</SelectItem>
+                        {staffRoles.map(role => (
+                            <SelectItem key={role} value={role}>{role}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+        </CardHeader>
+        <CardContent className="pt-0">
           {isLoading ? (
             <div className="h-48 flex items-center justify-center text-muted-foreground">Loading staff...</div>
           ) : (
@@ -448,8 +499,8 @@ export default function StaffPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead className="hidden md:table-cell">Email</TableHead>
-                  <TableHead>Role</TableHead>
+                  <TableHead className="hidden md:table-cell">Role</TableHead>
+                  <TableHead>Business Access</TableHead>
                   <TableHead className="hidden lg:table-cell">Last Login</TableHead>
                   <TableHead className="text-right">Total Due</TableHead>
                   <TableHead>
@@ -461,13 +512,23 @@ export default function StaffPage() {
                 {paginatedStaff.map((member) => (
                   <TableRow key={member.id}>
                     <TableCell className="font-medium">
-                      <Link href={`/dashboard/staff/${member.id}`} className="hover:underline">
-                        {member.name}
-                      </Link>
+                       <div className="flex items-center gap-2">
+                           <div className={cn("w-2 h-2 rounded-full", new Date().getTime() - new Date(member.lastLogin).getTime() < 86400000 ? "bg-green-500" : "bg-gray-400" )}></div>
+                           <Link href={`/dashboard/staff/${member.id}`} className="hover:underline">
+                                {member.name}
+                            </Link>
+                       </div>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">{member.email}</TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <Badge variant="outline">{member.role}</Badge>
+                    </TableCell>
+                    <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                            {member.accessibleBusinessIds?.map(id => {
+                                const business = allBusinesses.find(b => b.id === id);
+                                return business ? <Badge key={id} variant="secondary">{business.name}</Badge> : null;
+                            })}
+                        </div>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       {formatDistanceToNow(new Date(member.lastLogin), { addSuffix: true })}
@@ -509,11 +570,14 @@ export default function StaffPage() {
                   <Card key={member.id} className="overflow-hidden">
                       <CardContent className="p-4 space-y-3">
                           <div className="flex justify-between items-start">
-                              <div>
-                                  <Link href={`/dashboard/staff/${member.id}`} className="font-semibold hover:underline">
-                                      {member.name}
-                                  </Link>
-                                  <p className="text-sm text-muted-foreground">{member.email}</p>
+                              <div className="flex items-center gap-2">
+                                <div className={cn("w-2 h-2 rounded-full", new Date().getTime() - new Date(member.lastLogin).getTime() < 86400000 ? "bg-green-500" : "bg-gray-400" )}></div>
+                                <div>
+                                    <Link href={`/dashboard/staff/${member.id}`} className="font-semibold hover:underline">
+                                        {member.name}
+                                    </Link>
+                                    <p className="text-sm text-muted-foreground">{member.email}</p>
+                                </div>
                               </div>
                               <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
@@ -551,9 +615,9 @@ export default function StaffPage() {
         <CardFooter>
             <div className="w-full flex items-center justify-between text-xs text-muted-foreground">
                 <div>
-                    Showing <strong>{(currentPage - 1) * ITEMS_PER_PAGE + 1}-
-                    {Math.min(currentPage * ITEMS_PER_PAGE, allStaff.length)}
-                    </strong> of <strong>{allStaff.length}</strong> staff members
+                    Showing <strong>{paginatedStaff.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}-
+                    {Math.min(currentPage * ITEMS_PER_PAGE, paginatedStaff.length)}
+                    </strong> of <strong>{filteredStaff.length}</strong> staff members
                 </div>
                 {totalPages > 1 && (
                     <Pagination>
@@ -597,5 +661,3 @@ export default function StaffPage() {
     </div>
   );
 }
-
-    

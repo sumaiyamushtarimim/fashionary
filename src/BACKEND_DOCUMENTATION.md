@@ -53,9 +53,11 @@ enum OrderStatus {
   ReadyToShip   @map("RTS (Ready to Ship)")
   Shipped
   Delivered
-  ReturnPending
+  ReturnPending @map("Return Pending")
   Returned
   Partial
+  Incomplete
+  IncompleteCancelled @map("Incomplete-Cancelled")
 }
 
 enum PurchaseOrderStatus {
@@ -114,6 +116,7 @@ enum CourierService {
   Pathao
   RedX
   Steadfast
+  Carrybee
 }
 
 enum AttendanceStatus {
@@ -350,6 +353,8 @@ model StaffMember {
   assignedOrders    Order[]
   attendanceRecords AttendanceRecord[]
   payments          StaffPayment[]
+  
+  accessibleBusinesses Business[] @relation("StaffBusinessAccess")
 }
 
 model StaffPayment {
@@ -423,6 +428,8 @@ model Business {
   orders   Order[]
   expenses Expense[]
   courierIntegrations CourierIntegration[]
+  
+  accessibleStaff StaffMember[] @relation("StaffBusinessAccess")
 }
 
 model CourierIntegration {

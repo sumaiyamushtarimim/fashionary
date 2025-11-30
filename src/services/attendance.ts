@@ -2,7 +2,7 @@
 
 import { staff } from '@/lib/placeholder-data';
 import type { AttendanceRecord, BreakRecord } from '@/types';
-import { differenceInMinutes, isSameDay, eachDayOfInterval, format } from 'date-fns';
+import { differenceInMinutes, isSameDay, eachDayOfInterval, format, subDays } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 
 // This is a more robust mock data generator
@@ -95,8 +95,7 @@ export async function getStaffAttendanceHistory(staffId: string): Promise<Attend
     const today = new Date();
     const records: AttendanceRecord[] = [];
     for(let i=0; i < 30; i++) {
-        const date = new Date();
-        date.setDate(today.getDate() - i);
+        const date = subDays(today, i);
         const dayRecord = generateMockAttendanceForDate(date).find(r => r.staffId === staffId);
         if (dayRecord) {
             records.push(dayRecord);
