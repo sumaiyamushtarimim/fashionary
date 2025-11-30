@@ -472,7 +472,8 @@ export const purchaseOrders: PurchaseOrder[] = [
             cash: 0,
             check: 15000,
             checkDate: '2024-06-25',
-            checkStatus: 'Pending'
+            checkStatus: 'Pending',
+            physicalInvoiceUrl: '/invoices/printing-po-003.pdf',
         },
         cuttingVendor: 'Perfect Cutters',
         cuttingPayment: {

@@ -1,4 +1,5 @@
 
+
 import { purchaseOrders } from '@/lib/placeholder-data';
 import { PurchaseOrder, Payment } from '@/types';
 
@@ -18,15 +19,21 @@ export async function updatePurchaseOrder(id: string, updates: Partial<PurchaseO
         return undefined;
     }
 
-    const updatedPO = {
-        ...purchaseOrders[poIndex],
-        ...updates
-    };
+    const originalOrder = purchaseOrders[poIndex];
 
-    purchaseOrders[poIndex] = updatedPO;
+    // Deep merge for nested payment objects
+    const updatedOrder = {
+        ...originalOrder,
+        ...updates,
+        fabricPayment: updates.fabricPayment ? { ...originalOrder.fabricPayment, ...updates.fabricPayment } : originalOrder.fabricPayment,
+        printingPayment: updates.printingPayment ? { ...originalOrder.printingPayment, ...updates.printingPayment } : originalOrder.printingPayment,
+        cuttingPayment: updates.cuttingPayment ? { ...originalOrder.cuttingPayment, ...updates.cuttingPayment } : originalOrder.cuttingPayment,
+    };
+    
+    purchaseOrders[poIndex] = updatedOrder;
     
     // In a real app, this would be a single API call. Here we simulate it.
-    console.log("Updated PO in mock data:", updatedPO);
+    console.log("Updated PO in mock data:", updatedOrder);
 
-    return Promise.resolve(updatedPO);
+    return Promise.resolve(updatedOrder);
 }
