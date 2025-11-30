@@ -29,13 +29,13 @@ export function StickerTemplate({ order }: { order: Order }) {
                             <User className="w-4 h-4" />
                             <p className="font-bold text-base leading-snug">{order.customerName}</p>
                         </div>
-                        <div className="flex items-start gap-2">
-                            <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
-                            <p className="text-xs leading-snug">{order.shippingAddress.address}, {order.shippingAddress.district}</p>
-                        </div>
                         <div className="flex items-center gap-2">
                             <Phone className="w-4 h-4" />
                             <p className="text-sm font-bold mt-1">{order.customerPhone}</p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                            <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
+                            <p className="text-xs leading-snug">{order.shippingAddress.address}, {order.shippingAddress.district}</p>
                         </div>
                     </section>
                     
