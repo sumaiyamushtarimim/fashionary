@@ -132,20 +132,29 @@ export default clerkMiddleware((auth, req) => {
     
     let role: StaffRole | undefined;
     let permissions: StaffMember['permissions'] | undefined;
-
-    // --- Development Role-Switching Logic ---
-    if (process.env.NODE_ENV === 'development') {
-        const mockRole = req.cookies.get('mock_role')?.value as StaffRole | undefined;
-        if (mockRole && PERMISSIONS[mockRole]) {
-            role = mockRole;
-            permissions = PERMISSIONS[mockRole];
-        }
-    }
     
-    // If not in dev mode or no mock role is set, use Clerk's session claims
-    if (!permissions) {
-        role = auth().sessionClaims?.publicMetadata?.role as StaffRole | undefined;
-        permissions = auth().sessionClaims?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
+    const userEmail = auth().sessionClaims?.email;
+    const superAdminEmail = 'commerciansbd@gmail.com';
+
+    // Hardcode admin role for a specific email
+    if (userEmail === superAdminEmail) {
+        role = 'Admin';
+        permissions = PERMISSIONS.Admin;
+    } else {
+        // --- Development Role-Switching Logic ---
+        if (process.env.NODE_ENV === 'development') {
+            const mockRole = req.cookies.get('mock_role')?.value as StaffRole | undefined;
+            if (mockRole && PERMISSIONS[mockRole]) {
+                role = mockRole;
+                permissions = PERMISSIONS[mockRole];
+            }
+        }
+        
+        // If not in dev mode or no mock role is set, use Clerk's session claims
+        if (!permissions) {
+            role = auth().sessionClaims?.publicMetadata?.role as StaffRole | undefined;
+            permissions = auth().sessionClaims?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
+        }
     }
     
     // If no role or permissions, only allow dashboard access
