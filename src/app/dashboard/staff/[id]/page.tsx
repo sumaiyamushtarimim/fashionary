@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, MoreVertical, User, Briefcase, DollarSign, BarChart2, CheckCircle, PlusCircle, Activity, TrendingUp, KeyRound, Clock, UserCheck } from 'lucide-react';
+import { ChevronLeft, MoreVertical, User, Briefcase, DollarSign, BarChart2, CheckCircle, PlusCircle, Activity, TrendingUp, KeyRound, Clock, UserCheck, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -365,7 +365,7 @@ export default function StaffDetailsPage() {
                                 </TableBody>
                             </Table>
                         ) : (
-                            <p className="text-sm text-muted-foreground p-4 text-center">Permissions are managed by the <Badge variant="secondary">{staffMember.role}</Badge> role.</p>
+                            <div className="text-sm text-muted-foreground p-4 text-center">Permissions are managed by the <Badge variant="secondary">{staffMember.role}</Badge> role.</div>
                         )}
                     </CardContent>
                 </Card>
