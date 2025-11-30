@@ -110,6 +110,7 @@ export type Order = {
   assignedToId?: string;
   businessId: string;
   businessName?: string;
+  businessLogo?: string;
   platform: OrderPlatform;
   shippingAddress: {
     address: string;

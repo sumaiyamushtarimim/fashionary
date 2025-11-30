@@ -13,6 +13,9 @@ export function InvoiceTemplate({ order, paperSize = 'a4' }: { order: Order, pap
     const total = subtotal + shipping;
     
     const printHeight = paperSize === 'a4' ? '297mm' : '11in';
+    
+    const businessName = order.businessName || 'Fashionary';
+    const businessLogo = order.businessLogo || '/logo-icon.svg';
 
     return (
         <>
@@ -23,9 +26,9 @@ export function InvoiceTemplate({ order, paperSize = 'a4' }: { order: Order, pap
                 <div className="invoice-content">
                     <header className="flex justify-between items-start pb-6 border-b">
                         <div className="flex items-center gap-4">
-                            <Logo variant="icon" />
+                            <Image src={businessLogo} alt={`${businessName} Logo`} width={40} height={40} className="rounded-md" />
                             <div>
-                                <h1 className="text-2xl font-bold font-headline text-primary">Fashionary</h1>
+                                <h1 className="text-2xl font-bold font-headline text-primary">{businessName}</h1>
                                 <p className="text-sm text-gray-500">123 Fashion Ave, Dhaka</p>
                             </div>
                         </div>
