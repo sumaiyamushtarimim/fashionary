@@ -101,50 +101,46 @@ const hasReadAccess = (permission: Permission | boolean | undefined): boolean =>
 const isProtectedRoute = createRouteMatcher(['/dashboard(.*)']);
 
 export default clerkMiddleware((auth, req) => {
-    if (!isProtectedRoute(req)) {
-        return NextResponse.next();
-    }
-    
-    // This protects all routes matching /dashboard(.*)
-    const { sessionClaims } = auth().protect();
-
-    const pathname = req.nextUrl.pathname;
-    
-    // In development, allow role override via cookie
-    let userRole : StaffRole | undefined = sessionClaims.publicMetadata?.role as StaffRole | undefined;
-    if (process.env.NODE_ENV === 'development') {
-        const mockRole = req.cookies.get('mock_role')?.value as StaffRole | undefined;
-        if (mockRole && PERMISSIONS[mockRole]) {
-            userRole = mockRole;
+    if (isProtectedRoute(req)) {
+        const { userId, sessionClaims } = auth();
+        
+        if (!userId) {
+            const signInUrl = new URL('/sign-in', req.url);
+            signInUrl.searchParams.set('redirect_url', req.url);
+            return NextResponse.redirect(signInUrl);
         }
-    }
-    
-    let userPermissions: StaffMember['permissions'] | undefined;
-    
-    if (userRole && PERMISSIONS[userRole]) {
-        userPermissions = PERMISSIONS[userRole];
-    } else if (sessionClaims.publicMetadata?.permissions) {
-        userPermissions = sessionClaims.publicMetadata.permissions as StaffMember['permissions'];
-    }
 
-    if (!userPermissions) {
-        if (pathname === '/dashboard' || pathname === '/dashboard/account' || pathname === '/dashboard/notifications') {
-            return NextResponse.next();
+        const pathname = req.nextUrl.pathname;
+        
+        let userRole: StaffRole | undefined = sessionClaims?.publicMetadata?.role as StaffRole | undefined;
+
+        let userPermissions: StaffMember['permissions'] | undefined;
+        
+        if (userRole && PERMISSIONS[userRole]) {
+            userPermissions = PERMISSIONS[userRole];
+        } else if (sessionClaims?.publicMetadata?.permissions) {
+            userPermissions = sessionClaims.publicMetadata.permissions as StaffMember['permissions'];
         }
-        const unauthorizedUrl = new URL(req.headers.get('referer') || '/dashboard', req.url);
-        unauthorizedUrl.searchParams.set('error', 'unauthorized');
-        return NextResponse.redirect(unauthorizedUrl);
-    }
-    
-    const requiredPermissionKey = Object.keys(pagePermissions).find(key => pathname.startsWith(key));
-    
-    if (requiredPermissionKey) {
-        const permissionKey = pagePermissions[requiredPermissionKey];
-        const permissionForPage = userPermissions[permissionKey];
-        if (!hasReadAccess(permissionForPage)) {
+
+        if (!userPermissions) {
+            if (pathname === '/dashboard' || pathname === '/dashboard/account' || pathname === '/dashboard/notifications') {
+                 return NextResponse.next();
+            }
             const unauthorizedUrl = new URL(req.headers.get('referer') || '/dashboard', req.url);
             unauthorizedUrl.searchParams.set('error', 'unauthorized');
             return NextResponse.redirect(unauthorizedUrl);
+        }
+        
+        const requiredPermissionKey = Object.keys(pagePermissions).find(key => pathname.startsWith(key));
+        
+        if (requiredPermissionKey) {
+            const permissionKey = pagePermissions[requiredPermissionKey];
+            const permissionForPage = userPermissions[permissionKey];
+            if (!hasReadAccess(permissionForPage)) {
+                const unauthorizedUrl = new URL(req.headers.get('referer') || '/dashboard', req.url);
+                unauthorizedUrl.searchParams.set('error', 'unauthorized');
+                return NextResponse.redirect(unauthorizedUrl);
+            }
         }
     }
 

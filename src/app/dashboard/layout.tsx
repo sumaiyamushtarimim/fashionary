@@ -60,7 +60,6 @@ import { getNotifications } from "@/services/notifications";
 import type { Notification, StaffMember, StaffRole, Permission } from "@/types";
 import { PermissionsProvider, usePermissions } from "@/components/ui/permissions-provider";
 
-
 const isPublicRoute = (pathname: string) => {
     return pathname.startsWith('/shop') || pathname.startsWith('/track-order');
 }
@@ -425,8 +424,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     router.push(href);
   };
 
-
-  if (!isLoaded || !permissions) {
+  if (!isLoaded) {
       return (
           <div className="flex items-center justify-center min-h-screen">
               <PageLoader />
