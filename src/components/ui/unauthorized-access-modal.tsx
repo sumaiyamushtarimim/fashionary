@@ -5,12 +5,12 @@ import * as React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from '@/components/ui/button';
 import { Ban } from 'lucide-react';
 
 export function UnauthorizedAccessModal() {
@@ -25,17 +25,13 @@ export function UnauthorizedAccessModal() {
   }, [searchParams]);
 
   const handleClose = () => {
-    // Create a new URLSearchParams object without the 'error' parameter
-    const newSearchParams = new URLSearchParams(searchParams.toString());
-    newSearchParams.delete('error');
-    
-    // Use router.replace to update the URL without adding to history
-    router.replace(`${window.location.pathname}?${newSearchParams.toString()}`);
     setIsOpen(false);
+    // Use replace to avoid adding a new entry to the browser history
+    router.replace('/dashboard');
   };
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={handleClose}>
+    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
@@ -46,9 +42,9 @@ export function UnauthorizedAccessModal() {
             You do not have the necessary permissions to access this page. Please contact your administrator if you believe this is an error.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogAction onClick={handleClose} className="w-full">
-          Go Back
-        </AlertDialogAction>
+        <Button onClick={handleClose} className="w-full">
+          Go to Dashboard
+        </Button>
       </AlertDialogContent>
     </AlertDialog>
   );
