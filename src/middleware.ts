@@ -116,7 +116,7 @@ const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
 
 
 export default clerkMiddleware((auth, req) => {
-  const { userId, sessionClaims, redirectToSignIn } = auth();
+  const { userId, sessionClaims } = auth();
   const pathname = req.nextUrl.pathname;
 
   if (isPublicRoute(req)) {
@@ -130,14 +130,15 @@ export default clerkMiddleware((auth, req) => {
       return NextResponse.redirect(signInUrl);
     }
     
+    const userEmail = sessionClaims?.email;
+    const superAdminEmail = 'commerciansbd@gmail.com';
+    const isSuperAdmin = userEmail === superAdminEmail;
+
     let role: StaffRole | undefined;
     let permissions: StaffMember['permissions'] | undefined;
     
-    const userEmail = auth().sessionClaims?.email;
-    const superAdminEmail = 'commerciansbd@gmail.com';
-
     // Hardcode admin role for a specific email
-    if (userEmail === superAdminEmail) {
+    if (isSuperAdmin) {
         role = 'Admin';
         permissions = PERMISSIONS.Admin;
     } else {
@@ -152,9 +153,14 @@ export default clerkMiddleware((auth, req) => {
         
         // If not in dev mode or no mock role is set, use Clerk's session claims
         if (!permissions) {
-            role = auth().sessionClaims?.publicMetadata?.role as StaffRole | undefined;
-            permissions = auth().sessionClaims?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
+            role = sessionClaims?.publicMetadata?.role as StaffRole | undefined;
+            permissions = sessionClaims?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
         }
+    }
+    
+    // Super admin can access everything, so we can return early.
+    if (isSuperAdmin) {
+        return NextResponse.next();
     }
     
     // If no role or permissions, only allow dashboard access
