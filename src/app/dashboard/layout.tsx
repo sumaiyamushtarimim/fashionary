@@ -312,7 +312,7 @@ function UserMenu() {
         return <Skeleton className="h-8 w-8 rounded-full" />;
     }
 
-    return <UserButton afterSignOutUrl="/" userProfileUrl="/dashboard/account" />;
+    return <UserButton afterSignOutUrl="/" />;
 }
 
 function DevRoleSwitcher() {
@@ -616,6 +616,12 @@ export default function DashboardLayout({
                 </DropdownMenuFooter>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Button variant="outline" size="icon" className="h-8 w-8" asChild>
+            <Link href="/dashboard/account">
+              <User className="h-4 w-4" />
+              <span className="sr-only">My Account</span>
+            </Link>
+          </Button>
           <UserMenu />
         </header>
         <main className="flex flex-1 flex-col bg-background overflow-y-auto">
