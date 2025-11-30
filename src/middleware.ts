@@ -4,10 +4,10 @@ import { NextResponse } from 'next/server';
 import type { Permission, StaffMember, StaffRole } from '@/types';
 
 // --- PERMISSIONS PRESETS ---
-const NO_ACCESS: Permission = { create: false, read: false, update: false, delete: false };
-const READ_ONLY: Permission = { create: false, read: true, update: false, delete: false };
-const CREATE_READ_UPDATE: Permission = { create: true, read: true, update: true, delete: false };
-const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: true };
+const FULL_ACCESS = { create: true, read: true, update: true, delete: true };
+const READ_ONLY = { create: false, read: true, update: false, delete: false };
+const CREATE_READ_UPDATE = { create: true, read: true, update: true, delete: false };
+const NO_ACCESS = { create: false, read: false, update: false, delete: false };
 
 const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
     Admin: {
@@ -72,6 +72,8 @@ const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
     },
     'Custom': NO_ACCESS,
 };
+// --- END OF PERMISSIONS PRESETS ---
+
 
 const pagePermissions: Record<string, keyof StaffMember['permissions']> = {
     '/dashboard/orders': 'orders',
@@ -98,7 +100,6 @@ const hasReadAccess = (permission: Permission | boolean | undefined): boolean =>
     return permission.read;
 };
 
-const isPublicRoute = createRouteMatcher(['/shop(.*)', '/track-order(.*)', '/sign-in(.*)', '/sign-up(.*)', '/', '/api/delivery-report(.*)', '/print(.*)']);
 const isProtectedRoute = createRouteMatcher(['/dashboard(.*)']);
 
 export default clerkMiddleware((auth, req) => {
@@ -112,10 +113,10 @@ export default clerkMiddleware((auth, req) => {
     }
     
     const pathname = req.nextUrl.pathname;
-
     const userRole = sessionClaims.publicMetadata?.role as StaffRole | undefined;
-    let userPermissions: StaffMember['permissions'] | undefined;
 
+    let userPermissions: StaffMember['permissions'] | undefined;
+    
     if (userRole && PERMISSIONS[userRole]) {
         userPermissions = PERMISSIONS[userRole];
     } else if (sessionClaims.publicMetadata?.permissions) {
@@ -123,12 +124,11 @@ export default clerkMiddleware((auth, req) => {
     }
 
     if (!userPermissions) {
-        if (pathname === '/dashboard' || pathname === '/dashboard/account' || pathname === '/dashboard/notifications') {
-             // Allow access to basic dashboard pages even with no explicit permissions
+         if (pathname === '/dashboard' || pathname === '/dashboard/account' || pathname === '/dashboard/notifications') {
             return NextResponse.next();
         }
-        const unauthorizedUrl = new URL(req.headers.get('referer') || '/dashboard', req.url);
-        unauthorizedUrl.searchParams.set('error', 'unauthorized');
+        const unauthorizedUrl = new URL('/dashboard', req.url);
+        unauthorizedUrl.searchParams.set('error', 'no-permissions');
         return NextResponse.redirect(unauthorizedUrl);
     }
     

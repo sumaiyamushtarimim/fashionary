@@ -1,13 +1,14 @@
 
-import { auth } from '@clerk/nextjs/server';
+'use client'
+
 import * as React from 'react';
 import type { StaffMember, StaffRole } from '@/types';
+import { useUser } from '@clerk/nextjs';
 
 type PermissionsContextType = StaffMember['permissions'] | null;
 
 const PermissionsContext = React.createContext<PermissionsContextType>(null);
 
-// --- PERMISSIONS PRESETS ---
 const FULL_ACCESS = { create: true, read: true, update: true, delete: true };
 const READ_ONLY = { create: false, read: true, update: false, delete: false };
 const CREATE_READ_UPDATE = { create: true, read: true, update: true, delete: false };
@@ -76,32 +77,34 @@ const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
     },
     'Custom': NO_ACCESS,
 };
-// --- END OF PERMISSIONS PRESETS ---
-
 
 export function PermissionsProvider({ children }: { children: React.ReactNode }) {
-  const { sessionClaims } = auth();
-  
-  let permissions: PermissionsContextType = null;
-  const userRole = sessionClaims?.publicMetadata?.role as StaffRole | undefined;
+    const { user } = useUser();
 
-  if (userRole && PERMISSIONS[userRole]) {
-      permissions = PERMISSIONS[userRole];
-  } else if (sessionClaims?.publicMetadata?.permissions) {
-      permissions = sessionClaims.publicMetadata.permissions as StaffMember['permissions'];
-  }
+    const permissions = React.useMemo(() => {
+        const userRole = user?.publicMetadata?.role as StaffRole | undefined;
+        const customPermissions = user?.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
 
-  return (
-    <PermissionsContext.Provider value={permissions}>
-      {children}
-    </PermissionsContext.Provider>
-  );
+        if (userRole && PERMISSIONS[userRole]) {
+            return PERMISSIONS[userRole];
+        }
+        if (customPermissions) {
+            return customPermissions;
+        }
+        return null;
+    }, [user]);
+
+    return (
+        <PermissionsContext.Provider value={permissions}>
+            {children}
+        </PermissionsContext.Provider>
+    );
 }
 
 export function usePermissions() {
-  const context = React.useContext(PermissionsContext);
-  if (context === undefined) {
-    throw new Error('usePermissions must be used within a PermissionsProvider');
-  }
-  return context;
+    const context = React.useContext(PermissionsContext);
+    if (context === undefined) {
+        throw new Error('usePermissions must be used within a PermissionsProvider');
+    }
+    return context;
 }
