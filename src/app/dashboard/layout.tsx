@@ -58,7 +58,10 @@ import { PageLoader } from "@/components/ui/page-loader";
 import { UnauthorizedAccessModal } from "@/components/ui/unauthorized-access-modal";
 import { getNotifications } from "@/services/notifications";
 import type { Notification, StaffMember, StaffRole, Permission } from "@/types";
-import { PermissionsProvider, usePermissions } from "@/components/ui/permissions-provider";
+import { PermissionsProvider, usePermissions } from "@/hooks/use-permissions";
+import { useAuthorization } from "@/hooks/use-authorization";
+import { PERMISSIONS } from '@/lib/permissions';
+
 
 const isPublicRoute = (pathname: string) => {
     return pathname.startsWith('/shop') || pathname.startsWith('/track-order');
@@ -401,6 +404,8 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const [isMobileNavOpen, setIsMobileNavOpen] = React.useState(false);
   const { isLoaded, isSignedIn } = useUser();
   const permissions = usePermissions();
+  
+  useAuthorization(permissions);
   
   React.useEffect(() => {
     if (isLoaded && !isSignedIn && !isPublicRoute(pathname)) {
