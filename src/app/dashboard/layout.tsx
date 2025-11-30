@@ -302,17 +302,17 @@ function MobileNavLinks({ onLinkClick, permissions }: { onLinkClick: () => void,
 }
 
 function UserMenu() {
-    const [isMounted, setIsMounted] = useState(false);
+    const [isMounted, useState] = React.useState(false);
     
-    useEffect(() => {
-        setIsMounted(true);
+    React.useEffect(() => {
+        useState(true);
     }, []);
 
     if (!isMounted) {
         return <Skeleton className="h-8 w-8 rounded-full" />;
     }
 
-    return <UserButton afterSignOutUrl="/" />;
+    return <UserButton afterSignOutUrl="/" userProfileUrl="/dashboard/account" />;
 }
 
 function DevRoleSwitcher() {
