@@ -92,7 +92,7 @@ export default function BulkPrintPage() {
                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 print:block">
                          {orders.map((order, index) => (
                             <div key={order.id} className={cn(
-                                "flex justify-center items-start bg-white shadow-lg print:shadow-none print:w-full print:h-screen",
+                                "flex justify-center items-start bg-white shadow-lg print:shadow-none print:w-full",
                                 index < orders.length - 1 && "page-break"
                             )}>
                                 <StickerTemplate order={order} />
