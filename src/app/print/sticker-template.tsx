@@ -1,10 +1,10 @@
-
 'use client';
 
 import type { Order } from '@/types';
 import { format } from 'date-fns';
 import Barcode from 'react-barcode';
 import React from 'react';
+import { User, Phone, MapPin } from 'lucide-react';
 
 export function StickerTemplate({ order }: { order: Order }) {
     const total = order.products.reduce((acc, p) => acc + p.price * p.quantity, 0) + order.shipping;
@@ -24,11 +24,19 @@ export function StickerTemplate({ order }: { order: Order }) {
                     </header>
 
                     {/* Recipient Info */}
-                    <section className="py-2">
-                        <h2 className="text-xs font-bold uppercase mb-1">Recipient:</h2>
-                        <p className="font-bold text-base leading-snug">{order.customerName}</p>
-                        <p className="text-xs leading-snug">{order.shippingAddress.address}, {order.shippingAddress.district}</p>
-                        <p className="text-sm font-bold mt-1">{order.customerPhone}</p>
+                    <section className="py-2 space-y-1">
+                        <div className="flex items-center gap-2">
+                            <User className="w-4 h-4" />
+                            <p className="font-bold text-base leading-snug">{order.customerName}</p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                            <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
+                            <p className="text-xs leading-snug">{order.shippingAddress.address}, {order.shippingAddress.district}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Phone className="w-4 h-4" />
+                            <p className="text-sm font-bold mt-1">{order.customerPhone}</p>
+                        </div>
                     </section>
                     
                     {/* Barcode */}
