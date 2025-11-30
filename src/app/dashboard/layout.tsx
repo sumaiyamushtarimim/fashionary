@@ -399,7 +399,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
   const [isMobileNavOpen, setIsMobileNavOpen] = React.useState(false);
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { isLoaded, isSignedIn } = useUser();
   const permissions = usePermissions();
   
   React.useEffect(() => {
@@ -424,7 +424,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     router.push(href);
   };
 
-  if (!isLoaded) {
+  if (!isLoaded || permissions === null) {
       return (
           <div className="flex items-center justify-center min-h-screen">
               <PageLoader />
