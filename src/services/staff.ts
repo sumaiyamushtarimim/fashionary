@@ -1,8 +1,7 @@
 
-
 import { staff, orders } from '@/lib/placeholder-data';
-import { StaffMember, OrderStatus, Order } from '@/types';
-import { startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth, isWithinInterval } from 'date-fns';
+import { StaffMember, OrderStatus, Order, StaffPayment } from '@/types';
+import { startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth, isWithinInterval, format } from 'date-fns';
 
 function getPeriod(period: 'Daily' | 'Weekly' | 'Monthly'): { start: Date, end: Date } {
     const now = new Date();
@@ -161,6 +160,28 @@ export async function getStaffMemberById(id: string): Promise<StaffMember | unde
     return Promise.resolve(updatedMember);
 }
 
+export async function makePayment(staffId: string, amount: number, notes: string): Promise<StaffMember | undefined> {
+    const memberIndex = staff.findIndex(s => s.id === staffId);
+    if (memberIndex === -1) {
+        return Promise.resolve(undefined);
+    }
+
+    const member = staff[memberIndex];
+    const newPayment: StaffPayment = {
+        date: format(new Date(), 'yyyy-MM-dd'),
+        amount: amount,
+        notes: notes
+    };
+
+    member.paymentHistory.unshift(newPayment);
+    member.financials.totalPaid += amount;
+    member.financials.dueAmount -= amount;
+
+    staff[memberIndex] = member;
+
+    return getStaffMemberById(staffId);
+}
     
 
     
+

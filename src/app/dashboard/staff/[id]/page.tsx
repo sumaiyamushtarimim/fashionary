@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -26,9 +25,14 @@ import {
 } from "@/components/ui/chart";
 import { Pie, PieChart, Cell } from "recharts";
 import { Separator } from '@/components/ui/separator';
-import { getStaffMemberById } from '@/services/staff';
+import { getStaffMemberById, makePayment } from '@/services/staff';
 import type { StaffMember, OrderStatus, StaffIncome } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 const statusColors: Record<OrderStatus, string> = {
     'New': 'bg-blue-500/20 text-blue-700',
@@ -58,19 +62,41 @@ const chartColors = [
 export default function StaffDetailsPage() {
     const params = useParams();
     const staffId = params.id as string;
+    const { toast } = useToast();
     const [staffMember, setStaffMember] = React.useState<StaffMember | undefined>(undefined);
     const [isLoading, setIsLoading] = React.useState(true);
+    const [isPaymentDialogOpen, setIsPaymentDialogOpen] = React.useState(false);
+    const [paymentAmount, setPaymentAmount] = React.useState(0);
+    const [paymentNotes, setPaymentNotes] = React.useState('');
 
     React.useEffect(() => {
         if (staffId) {
             setIsLoading(true);
             getStaffMemberById(staffId).then(data => {
                 setStaffMember(data);
+                if (data) {
+                    setPaymentAmount(data.financials.dueAmount);
+                }
                 setIsLoading(false);
             });
         }
     }, [staffId]);
     
+    const handleClearDue = async () => {
+        if (!staffMember || !paymentAmount) return;
+
+        const updatedStaffMember = await makePayment(staffId, paymentAmount, paymentNotes);
+        if (updatedStaffMember) {
+            setStaffMember(updatedStaffMember);
+            toast({
+                title: "Payment Successful",
+                description: `Paid ৳${paymentAmount} to ${staffMember.name}.`,
+            });
+        }
+        setIsPaymentDialogOpen(false);
+        setPaymentNotes('');
+    };
+
     if (isLoading) {
         return (
             <div className="flex flex-1 flex-col gap-6 p-4 lg:gap-8 lg:p-6">
@@ -220,9 +246,46 @@ export default function StaffDetailsPage() {
                                 <span className={cn(staffMember.financials.dueAmount > 0 && "text-destructive")}>৳{staffMember.financials.dueAmount.toLocaleString()}</span>
                             </div>
                         </div>
-                         <Button className="w-full">
-                            <CheckCircle className="mr-2 h-4 w-4" /> Clear Due
-                        </Button>
+                        <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="w-full" disabled={staffMember.financials.dueAmount <= 0}>
+                                    <CheckCircle className="mr-2 h-4 w-4" /> Clear Due
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Make a Payment to {staffMember.name}</DialogTitle>
+                                    <DialogDescription>
+                                        Enter the amount you want to pay. The current due is ৳{staffMember.financials.dueAmount.toLocaleString()}.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="payment-amount">Payment Amount</Label>
+                                        <Input
+                                            id="payment-amount"
+                                            type="number"
+                                            value={paymentAmount}
+                                            onChange={(e) => setPaymentAmount(parseFloat(e.target.value) || 0)}
+                                            max={staffMember.financials.dueAmount}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="payment-notes">Notes (Optional)</Label>
+                                        <Textarea
+                                            id="payment-notes"
+                                            placeholder="e.g., May salary advance"
+                                            value={paymentNotes}
+                                            onChange={(e) => setPaymentNotes(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                                <DialogFooter>
+                                    <Button variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>Cancel</Button>
+                                    <Button onClick={handleClearDue}>Confirm Payment</Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
                     </CardContent>
                 </Card>
             </div>
@@ -382,5 +445,3 @@ export default function StaffDetailsPage() {
         </div>
     );
 }
-
-    
