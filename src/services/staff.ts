@@ -16,23 +16,11 @@ function getPeriod(period: 'Daily' | 'Weekly' | 'Monthly'): { start: Date, end: 
     }
 }
 
-export async function getStaff(): Promise<StaffMember[]> {
-    // This is a simplified version. In a real app, performance data would be calculated on the backend.
-    return Promise.resolve(staff);
-}
-
-export async function getStaffMemberById(id: string): Promise<StaffMember | undefined> {
-    const member = staff.find((s) => s.id === id);
-    if (!member) return Promise.resolve(undefined);
-
-    // In a real app, this data would come from an API or be calculated in the backend.
-    // For mock purposes, we recalculate some stats here.
+const calculateStaffMemberDetails = (member: StaffMember): StaffMember => {
     const createdOrders = orders.filter(o => o.createdBy === member.name);
     const confirmedOrders = orders.filter(o => o.confirmedBy === member.name);
-    // Mocking packed orders. In a real app, this would be tracked properly.
     const packedOrders = orders.filter(o => o.status === 'RTS (Ready to Ship)' || o.status === 'Shipped' || o.status === 'Delivered');
 
-    // Recalculate income history based on commission targets
     let incomeHistory: StaffMember['incomeHistory'] = []; 
     
     if (member.commissionDetails?.targetEnabled && member.commissionDetails.targetPeriod && member.commissionDetails.targetCount) {
@@ -43,7 +31,7 @@ export async function getStaffMemberById(id: string): Promise<StaffMember | unde
 
         if(member.role === 'Packing Assistant') {
             relevantOrders = packedOrders.filter(o => {
-                const orderDate = new Date(o.date); // Assuming packing date is close to order date for mock
+                const orderDate = new Date(o.date);
                 return isWithinInterval(orderDate, { start, end });
             }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
             orderCount = relevantOrders.length;
@@ -88,10 +76,9 @@ export async function getStaffMemberById(id: string): Promise<StaffMember | unde
             }
         });
 
-    } else { // Handle non-target based commission
+    } else { 
          orders.forEach(order => {
             if (member.role === 'Packing Assistant' && member.commissionDetails?.onOrderPacked) {
-                // Mock logic: assume this staff packed the order
                 if (packedOrders.some(p => p.id === order.id)) {
                     incomeHistory.push({
                         date: order.date,
@@ -121,7 +108,6 @@ export async function getStaffMemberById(id: string): Promise<StaffMember | unde
         });
     }
 
-
     const statusBreakdown: Record<OrderStatus, number> = {
         'New': 0, 'Confirmed': 0, 'Packing Hold': 0, 'Canceled': 0, 'Hold': 0, 
         'In-Courier': 0, 'RTS (Ready to Ship)': 0, 'Shipped': 0, 'Delivered': 0, 
@@ -134,15 +120,16 @@ export async function getStaffMemberById(id: string): Promise<StaffMember | unde
         }
     });
     
-    // For packing assistants, their performance is packing, not creating/confirming
     if (member.role === 'Packing Assistant') {
         statusBreakdown['RTS (Ready to Ship)'] = packedOrders.length;
     }
+    
+    const salary = member.paymentType === 'Salary' || member.paymentType === 'Both' ? member.salaryDetails?.amount || 0 : 0;
+    const totalCommission = incomeHistory.reduce((acc, item) => acc + item.amount, 0);
+    const totalEarned = salary + totalCommission;
+    const totalPaid = member.paymentHistory.reduce((acc, p) => acc + p.amount, 0);
 
-
-    const totalEarned = incomeHistory.reduce((acc, item) => acc + item.amount, 0) + (member.salaryDetails?.amount || 0);
-
-    const updatedMember = {
+    return {
         ...member,
         performance: {
             ...member.performance,
@@ -154,9 +141,22 @@ export async function getStaffMemberById(id: string): Promise<StaffMember | unde
         financials: {
             ...member.financials,
             totalEarned: totalEarned,
-            dueAmount: totalEarned - member.financials.totalPaid,
+            totalPaid: totalPaid,
+            dueAmount: totalEarned - totalPaid,
         }
     };
+};
+
+export async function getStaff(): Promise<StaffMember[]> {
+  const calculatedStaff = staff.map(member => calculateStaffMemberDetails(member));
+  return Promise.resolve(calculatedStaff);
+}
+
+export async function getStaffMemberById(id: string): Promise<StaffMember | undefined> {
+    const member = staff.find((s) => s.id === id);
+    if (!member) return Promise.resolve(undefined);
+    
+    const updatedMember = calculateStaffMemberDetails(member);
     return Promise.resolve(updatedMember);
 }
 
@@ -175,10 +175,7 @@ export async function makePayment(staffId: string, amount: number, notes: string
     };
 
     member.paymentHistory.unshift(newPayment);
-    member.financials.totalPaid += amount;
-    
-    // Recalculate due amount after payment.
-    // The getStaffMemberById function already does this, so we call it to get the freshest data.
+    // Financials will be recalculated by getStaffMemberById
     staff[memberIndex] = member;
 
     return getStaffMemberById(staffId);
@@ -186,5 +183,4 @@ export async function makePayment(staffId: string, amount: number, notes: string
     
 
     
-
 
