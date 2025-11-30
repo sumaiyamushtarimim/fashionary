@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import * as React from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -14,24 +15,14 @@ import { Button } from '@/components/ui/button';
 import { Ban } from 'lucide-react';
 
 export function UnauthorizedAccessModal() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const [isOpen, setIsOpen] = React.useState(false);
-
-  React.useEffect(() => {
-    if (searchParams.get('error') === 'unauthorized') {
-      setIsOpen(true);
-    }
-  }, [searchParams]);
-
-  const handleClose = () => {
-    setIsOpen(false);
-    // Use router.replace to clean the URL without adding to history
+  
+  const handleGoToDashboard = () => {
     router.replace('/dashboard');
   };
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={handleClose}>
+    <AlertDialog open={true}>
       <AlertDialogContent>
         <AlertDialogHeader>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
@@ -42,7 +33,7 @@ export function UnauthorizedAccessModal() {
             You do not have the necessary permissions to access this page. Please contact your administrator if you believe this is an error.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <Button onClick={handleClose} className="w-full">
+        <Button onClick={handleGoToDashboard} className="w-full">
           Go to Dashboard
         </Button>
       </AlertDialogContent>

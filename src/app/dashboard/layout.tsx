@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from "next/link";
@@ -404,8 +405,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const [isMobileNavOpen, setIsMobileNavOpen] = React.useState(false);
   const { isLoaded, isSignedIn } = useUser();
   const permissions = usePermissions();
-  
-  useAuthorization(permissions);
+  const { isAuthorized, isChecking } = useAuthorization();
   
   React.useEffect(() => {
     if (isLoaded && !isSignedIn && !isPublicRoute(pathname)) {
@@ -537,10 +537,9 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           <UserMenu />
         </header>
         <main className="flex flex-1 flex-col bg-background overflow-y-auto">
-          <Suspense fallback={<PageLoader />}>
-            <UnauthorizedAccessModal />
-          </Suspense>
-          {children}
+          {isChecking && <PageLoader />}
+          {!isChecking && !isAuthorized && <UnauthorizedAccessModal />}
+          {!isChecking && isAuthorized && children}
         </main>
       </div>
     </div>

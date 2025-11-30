@@ -1,9 +1,11 @@
 
+
 'use client';
 
 import * as React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import type { StaffMember } from '@/types';
+import { usePermissions } from './use-permissions';
 
 const ROUTE_PERMISSIONS: Record<string, keyof StaffMember['permissions']> = {
     '/dashboard/staff': 'staff',
@@ -24,14 +26,24 @@ const ROUTE_PERMISSIONS: Record<string, keyof StaffMember['permissions']> = {
     '/dashboard/accounting': 'accounting',
 };
 
-export function useAuthorization(permissions: StaffMember['permissions'] | null) {
+export function useAuthorization() {
   const pathname = usePathname();
-  const router = useRouter();
+  const permissions = usePermissions();
+  const [isChecking, setIsChecking] = React.useState(true);
+  const [isAuthorized, setIsAuthorized] = React.useState(false);
 
   React.useEffect(() => {
     if (permissions === null) {
-      // Permissions are not yet loaded, do nothing.
+      // Permissions not yet loaded
+      setIsChecking(true);
       return;
+    }
+
+    // Default to authorized for the main dashboard page
+    if (pathname === '/dashboard') {
+        setIsAuthorized(true);
+        setIsChecking(false);
+        return;
     }
 
     const requiredPermissionKey = Object.keys(ROUTE_PERMISSIONS).find(
@@ -48,11 +60,15 @@ export function useAuthorization(permissions: StaffMember['permissions'] | null)
             hasAccess = permission.read;
         }
         
-        if (!hasAccess) {
-            // Redirect to a specific page and show an unauthorized message
-            router.replace('/dashboard?error=unauthorized');
-        }
+        setIsAuthorized(hasAccess);
+    } else {
+        // If route is not in the permission map, allow access by default
+        setIsAuthorized(true);
     }
     
-  }, [pathname, permissions, router]);
+    setIsChecking(false);
+
+  }, [pathname, permissions]);
+
+  return { isAuthorized, isChecking };
 }
