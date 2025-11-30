@@ -2,6 +2,7 @@
 'use client';
 
 import * as React from 'react';
+import { useUser, UserProfile } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -11,18 +12,35 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Save, Edit, X, User, Briefcase, DollarSign, BarChart2, Loader2 } from 'lucide-react';
+import { Save, Edit, User as UserIcon, Briefcase, DollarSign, BarChart2, Loader2, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
 import { Pie, PieChart, Cell } from 'recharts';
-import { getStaffMemberById } from '@/services/staff';
-import type { StaffMember, OrderStatus } from '@/types';
+import { getStaffMemberByClerkId } from '@/services/staff';
+import type { StaffMember, OrderStatus, StaffIncome, StaffPayment } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
 
 const chartColors = [
     'hsl(var(--chart-1))',
@@ -32,22 +50,70 @@ const chartColors = [
     'hsl(var(--chart-5))',
 ];
 
+const PerformanceStatCard = ({ title, value, subtext }: { title: string, value: string | number, subtext?: string }) => (
+    <div className="rounded-lg border bg-card p-4 flex flex-col items-center justify-center text-center">
+        <p className="text-xs text-muted-foreground">{title}</p>
+        <p className="text-3xl font-bold">{value}</p>
+        {subtext && <p className="text-xs text-muted-foreground">{subtext}</p>}
+    </div>
+);
+
+function HistoryDialog({ title, children, data }: { title: string, children: React.ReactNode, data: StaffIncome[] | StaffPayment[] }) {
+    return (
+        <Dialog>
+            <DialogTrigger asChild>{children}</DialogTrigger>
+            <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>{title}</DialogTitle>
+                </DialogHeader>
+                <div className="max-h-[60vh] overflow-y-auto">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                {'orderId' in data[0] && <TableHead>Order ID</TableHead>}
+                                {'action' in data[0] && <TableHead>Action</TableHead>}
+                                <TableHead>Notes</TableHead>
+                                <TableHead className="text-right">Amount</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {data.map((item, index) => (
+                                <TableRow key={index}>
+                                    <TableCell>{format(new Date(item.date), 'PP')}</TableCell>
+                                    {'orderId' in item && <TableCell>{item.orderId}</TableCell>}
+                                    {'action' in item && <TableCell><Badge variant="secondary">{item.action}</Badge></TableCell>}
+                                    <TableCell>{'notes' in item ? item.notes : '-'}</TableCell>
+                                    <TableCell className="text-right font-mono">৳{item.amount.toLocaleString()}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 export default function AccountPage() {
     const { toast } = useToast();
-    const [isEditing, setIsEditing] = React.useState(false);
-    const [loggedInStaff, setLoggedInStaff] = React.useState<StaffMember | undefined>(undefined);
+    const { user: clerkUser, isLoaded } = useUser();
+    const [loggedInStaff, setLoggedInStaff] = React.useState<StaffMember | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const [isSaving, setIsSaving] = React.useState(false);
-    const [isUpdatingPassword, setIsUpdatingPassword] = React.useState(false);
 
     React.useEffect(() => {
-        // In a real app, you would get the logged-in user's ID from your auth context
-        const staffId = 'STAFF003'; 
-        getStaffMemberById(staffId).then(data => {
-            setLoggedInStaff(data);
+        if (isLoaded && clerkUser) {
+            getStaffMemberByClerkId(clerkUser.id).then(data => {
+                if (data) {
+                    setLoggedInStaff(data);
+                }
+                setIsLoading(false);
+            });
+        } else if (isLoaded) {
             setIsLoading(false);
-        });
-    }, []);
+        }
+    }, [isLoaded, clerkUser]);
 
     const performanceChartData = React.useMemo(() => {
         if (!loggedInStaff) return [];
@@ -68,30 +134,32 @@ export default function AccountPage() {
         }, {} as ChartConfig);
     }, [performanceChartData]);
     
-    const handleSaveChanges = () => {
-        setIsSaving(true);
-        setTimeout(() => {
-            setIsEditing(false);
-            setIsSaving(false);
-            toast({
-                title: "Profile Updated",
-                description: "Your account information has been successfully saved.",
-            })
-        }, 1500);
-    };
+    const { confirmationRate, cancellationRate, averageOrderValue } = React.useMemo(() => {
+        if (!loggedInStaff) return { confirmationRate: 0, cancellationRate: 0, averageOrderValue: 0 };
 
-    const handleUpdatePassword = () => {
-        setIsUpdatingPassword(true);
-        setTimeout(() => {
-            setIsUpdatingPassword(false);
-            toast({
-                title: "Password Updated",
-                description: "Your password has been changed successfully.",
-            });
-        }, 1500);
-    }
+        const { ordersCreated, ordersConfirmed } = loggedInStaff.performance;
+        const canceledCount = loggedInStaff.performance.statusBreakdown['Canceled'] || 0;
 
-    if (isLoading || !loggedInStaff) {
+        const confirmationRate = ordersCreated > 0 ? (ordersConfirmed / ordersCreated) * 100 : 0;
+        const cancellationRate = ordersCreated > 0 ? (canceledCount / ordersCreated) * 100 : 0;
+        
+        const totalConfirmedValue = loggedInStaff.incomeHistory.reduce((acc, item) => {
+            if(item.action === 'Confirmed') {
+                return acc + item.amount / (loggedInStaff.commissionDetails?.onOrderConfirm! / 100);
+            }
+            return acc;
+        }, 0);
+        const averageOrderValue = ordersConfirmed > 0 ? totalConfirmedValue / ordersConfirmed : 0;
+
+
+        return {
+            confirmationRate,
+            cancellationRate,
+            averageOrderValue
+        };
+    }, [loggedInStaff]);
+
+    if (isLoading || !isLoaded) {
         return (
              <div className="flex-1 space-y-6 p-4 lg:p-6">
                 <Skeleton className="h-12 w-1/3" />
@@ -109,6 +177,16 @@ export default function AccountPage() {
         );
     }
 
+    if (!loggedInStaff) {
+        return (
+            <div className="flex-1 space-y-6 p-4 lg:p-6 text-center">
+                <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h2 className="mt-4 text-xl font-semibold">Staff Profile Not Found</h2>
+                <p className="mt-2 text-muted-foreground">We couldn't find a staff profile associated with your account.</p>
+            </div>
+        )
+    }
+
     return (
         <div className="flex-1 space-y-6 p-4 lg:p-6">
             <div className="flex items-center justify-between">
@@ -118,23 +196,17 @@ export default function AccountPage() {
                         Manage your account settings and view your performance.
                     </p>
                 </div>
-                {isEditing ? (
-                    <div className="flex items-center gap-2">
-                         <Button variant="outline" onClick={() => setIsEditing(false)} disabled={isSaving}>
-                            <X className="mr-2 h-4 w-4" />
-                            Cancel
+                 <Dialog>
+                    <DialogTrigger asChild>
+                         <Button variant="outline">
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Profile
                         </Button>
-                        <Button onClick={handleSaveChanges} disabled={isSaving}>
-                            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                            {isSaving ? 'Saving...' : 'Save Changes'}
-                        </Button>
-                    </div>
-                ) : (
-                    <Button variant="outline" onClick={() => setIsEditing(true)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit Profile
-                    </Button>
-                )}
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-4xl p-0">
+                       <UserProfile routing="hash" />
+                    </DialogContent>
+                </Dialog>
             </div>
             
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -147,7 +219,7 @@ export default function AccountPage() {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Name</Label>
-                                <Input id="name" defaultValue={loggedInStaff.name} disabled={!isEditing || isSaving} />
+                                <Input id="name" defaultValue={loggedInStaff.name} disabled />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email</Label>
@@ -159,35 +231,6 @@ export default function AccountPage() {
                             </div>
                         </CardContent>
                     </Card>
-
-                    {isEditing && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Change Password</CardTitle>
-                                <CardDescription>Update your login password.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="current-password">Current Password</Label>
-                                    <Input id="current-password" type="password" disabled={isUpdatingPassword} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="new-password">New Password</Label>
-                                    <Input id="new-password" type="password" disabled={isUpdatingPassword} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="confirm-password">Confirm New Password</Label>
-                                    <Input id="confirm-password" type="password" disabled={isUpdatingPassword} />
-                                </div>
-                            </CardContent>
-                             <CardFooter>
-                                <Button className="ml-auto" onClick={handleUpdatePassword} disabled={isUpdatingPassword}>
-                                    {isUpdatingPassword ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                    {isUpdatingPassword ? 'Updating...' : 'Update Password'}
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    )}
                     
                      <Card>
                         <CardHeader>
@@ -198,14 +241,13 @@ export default function AccountPage() {
                             <CardDescription>A summary of your order-related activities.</CardDescription>
                         </CardHeader>
                         <CardContent className="grid gap-6 md:grid-cols-2">
-                            <div className="space-y-4">
-                                <div className="rounded-lg border bg-card p-4 flex flex-col items-center justify-center text-center">
-                                    <p className="text-xs text-muted-foreground">Orders Created</p>
-                                    <p className="text-3xl font-bold">{loggedInStaff.performance.ordersCreated}</p>
-                                </div>
-                                <div className="rounded-lg border bg-card p-4 flex flex-col items-center justify-center text-center">
-                                    <p className="text-xs text-muted-foreground">Orders Confirmed</p>
-                                    <p className="text-3xl font-bold">{loggedInStaff.performance.ordersConfirmed}</p>
+                            <div className="space-y-4 grid grid-cols-2 gap-4">
+                                <PerformanceStatCard title="Orders Created" value={loggedInStaff.performance.ordersCreated} />
+                                <PerformanceStatCard title="Orders Confirmed" value={loggedInStaff.performance.ordersConfirmed} />
+                                <PerformanceStatCard title="Confirmation Rate" value={`${confirmationRate.toFixed(1)}%`} />
+                                <PerformanceStatCard title="Cancellation Rate" value={`${cancellationRate.toFixed(1)}%`} />
+                                <div className="col-span-2">
+                                    <PerformanceStatCard title="Average Order Value" value={`৳${averageOrderValue.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}`} />
                                 </div>
                             </div>
                              <div>
@@ -294,6 +336,14 @@ export default function AccountPage() {
                                     <span className={cn(loggedInStaff.financials.dueAmount > 0 && "text-destructive")}>Due Amount</span>
                                     <span className={cn(loggedInStaff.financials.dueAmount > 0 && "text-destructive")}>৳{loggedInStaff.financials.dueAmount.toLocaleString()}</span>
                                 </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <HistoryDialog title="Income History" data={loggedInStaff.incomeHistory}>
+                                    <Button variant="outline" className="w-full">View Income</Button>
+                                </HistoryDialog>
+                                <HistoryDialog title="Payment History" data={loggedInStaff.paymentHistory}>
+                                    <Button variant="outline" className="w-full">View Payments</Button>
+                                </HistoryDialog>
                             </div>
                         </CardContent>
                     </Card>

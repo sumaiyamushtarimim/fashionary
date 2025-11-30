@@ -1,4 +1,5 @@
 
+
 import { staff, orders } from '@/lib/placeholder-data';
 import { StaffMember, OrderStatus, Order, StaffPayment } from '@/types';
 import { startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth, isWithinInterval, format } from 'date-fns';
@@ -155,6 +156,20 @@ export async function getStaff(): Promise<StaffMember[]> {
 export async function getStaffMemberById(id: string): Promise<StaffMember | undefined> {
     const member = staff.find((s) => s.id === id);
     if (!member) return Promise.resolve(undefined);
+    
+    const updatedMember = calculateStaffMemberDetails(member);
+    return Promise.resolve(updatedMember);
+}
+
+export async function getStaffMemberByClerkId(clerkId: string): Promise<StaffMember | undefined> {
+    const member = staff.find((s) => s.clerkId === clerkId);
+    if (!member) {
+        // Fallback for development if no clerkId matches
+        console.warn(`No staff member found for clerkId: ${clerkId}. Falling back to STAFF001.`);
+        const fallbackMember = staff.find(s => s.id === 'STAFF001');
+        if (!fallbackMember) return undefined;
+        return Promise.resolve(calculateStaffMemberDetails(fallbackMember));
+    }
     
     const updatedMember = calculateStaffMemberDetails(member);
     return Promise.resolve(updatedMember);
