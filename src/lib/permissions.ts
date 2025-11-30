@@ -1,9 +1,5 @@
 
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from 'next/server';
-import type { StaffMember, StaffRole, Permission } from './types';
-
-const isProtectedRoute = createRouteMatcher(['/dashboard(.*)']);
+import type { StaffMember, StaffRole, Permission } from '@/types';
 
 // Permission presets for each role
 const NO_ACCESS: Permission = { create: false, read: false, update: false, delete: false };
@@ -11,7 +7,7 @@ const READ_ONLY: Permission = { create: false, read: true, update: false, delete
 const CREATE_READ_UPDATE: Permission = { create: true, read: true, update: true, delete: false };
 const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: true };
 
-const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
+export const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
     Admin: {
         orders: FULL_ACCESS, packingOrders: FULL_ACCESS, products: FULL_ACCESS, inventory: FULL_ACCESS,
         customers: FULL_ACCESS, purchases: FULL_ACCESS, expenses: FULL_ACCESS, checkPassing: FULL_ACCESS,
@@ -73,85 +69,4 @@ const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
         issues: NO_ACCESS, attendance: NO_ACCESS, accounting: NO_ACCESS,
     },
     'Custom': NO_ACCESS,
-};
-
-// Map routes to the required permission key
-const ROUTE_PERMISSIONS: Record<string, keyof StaffMember['permissions']> = {
-  '/dashboard/orders': 'orders',
-  '/dashboard/issues': 'issues',
-  '/dashboard/packing-orders': 'packingOrders',
-  '/dashboard/courier-report': 'courierReport',
-  '/dashboard/products': 'products',
-  '/dashboard/inventory': 'inventory',
-  '/dashboard/customers': 'customers',
-  '/dashboard/purchases': 'purchases',
-  '/dashboard/expenses': 'expenses',
-  '/dashboard/check-passing': 'checkPassing',
-  '/dashboard/partners': 'partners',
-  '/dashboard/analytics': 'analytics',
-  '/dashboard/accounting': 'accounting',
-  '/dashboard/staff': 'staff',
-  '/dashboard/attendance': 'attendance',
-  '/dashboard/settings': 'settings',
-};
-
-export default clerkMiddleware((auth, req) => {
-  if (isProtectedRoute(req)) {
-    const { sessionClaims } = auth();
-
-    if (!sessionClaims) {
-        return NextResponse.redirect(new URL('/sign-in', req.url));
-    }
-    
-    // Determine user permissions from role or custom metadata
-    const role = sessionClaims.publicMetadata?.role as StaffRole | undefined;
-    const customPermissions = sessionClaims.publicMetadata?.permissions as StaffMember['permissions'] | undefined;
-    
-    let userPermissions: StaffMember['permissions'] | undefined;
-    
-    if (role && PERMISSIONS[role] && role !== 'Custom') {
-        userPermissions = PERMISSIONS[role];
-    } else if (customPermissions) {
-        userPermissions = customPermissions;
-    }
-
-    if (!userPermissions) {
-       const unauthorizedUrl = new URL(req.nextUrl.origin + '/dashboard');
-       unauthorizedUrl.searchParams.set('error', 'unauthorized');
-       return NextResponse.redirect(unauthorizedUrl);
-    }
-    
-    const path = req.nextUrl.pathname;
-
-    // Allow access to the main dashboard page for all authenticated users
-    if (path === '/dashboard' || path === '/dashboard/account' || path === '/dashboard/notifications') {
-      return NextResponse.next();
-    }
-    
-    const routePermissionKey = Object.keys(ROUTE_PERMISSIONS).find(p => path.startsWith(p));
-    
-    if (routePermissionKey) {
-        const permissionKey = ROUTE_PERMISSIONS[routePermissionKey];
-        const permission = userPermissions[permissionKey];
-        let hasAccess = false;
-
-        if (typeof permission === 'boolean') {
-            hasAccess = permission;
-        } else if (typeof permission === 'object' && permission !== null) {
-            hasAccess = permission.read;
-        }
-
-        if (!hasAccess) {
-             const unauthorizedUrl = new URL(req.nextUrl.origin + '/dashboard');
-             unauthorizedUrl.searchParams.set('error', 'unauthorized');
-             return NextResponse.redirect(unauthorizedUrl);
-        }
-    }
-  }
-
-  return NextResponse.next();
-});
-
-export const config = {
-  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
 };

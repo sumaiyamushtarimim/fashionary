@@ -26,7 +26,6 @@ export function UnauthorizedAccessModal() {
 
   const handleClose = () => {
     setIsOpen(false);
-    // Use replace to avoid adding a new entry to the browser history
     router.replace('/dashboard');
   };
 
