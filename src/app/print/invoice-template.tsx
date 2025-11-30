@@ -14,8 +14,20 @@ export function InvoiceTemplate({ order }: { order: Order }) {
 
     return (
         <>
+            <style jsx global>{`
+                @media print {
+                    @page {
+                        @bottom-center {
+                            content: element(footer);
+                        }
+                    }
+                }
+                .invoice-footer {
+                    position: running(footer);
+                }
+            `}</style>
             <div className="invoice-page max-w-4xl mx-auto p-8 bg-white text-gray-800 print:shadow-none print:p-6">
-                <div className="invoice-content">
+                <div className="invoice-content pb-[50px]">
                     <header className="flex justify-between items-start pb-6 border-b">
                         <div className="flex items-center gap-4">
                             <Logo variant="icon" />
@@ -116,20 +128,6 @@ export function InvoiceTemplate({ order }: { order: Order }) {
                     <p className="text-center text-sm text-gray-500">Thank you for your purchase!</p>
                 </footer>
             </div>
-            <style jsx global>{`
-                @media print {
-                    .invoice-page {
-                        height: 297mm;
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: space-between;
-                    }
-                    .invoice-content {
-                       flex-grow: 1;
-                       padding-bottom: 10mm;
-                    }
-                }
-            `}</style>
         </>
     );
 }
