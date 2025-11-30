@@ -13,8 +13,8 @@ export function InvoiceTemplate({ order }: { order: Order }) {
     const total = subtotal + shipping;
 
     return (
-        <div className="max-w-4xl mx-auto p-8 bg-white text-gray-800 print:shadow-none print:p-8 min-h-screen flex flex-col">
-            <div className="flex-grow">
+        <div className="relative max-w-4xl mx-auto p-8 bg-white text-gray-800 print:shadow-none print:p-8 min-h-[95vh]">
+            <div className="pb-[50px]">
                 <header className="flex justify-between items-start pb-6 border-b">
                     <div className="flex items-center gap-4">
                         <Logo variant="icon" />
@@ -111,7 +111,7 @@ export function InvoiceTemplate({ order }: { order: Order }) {
                 </section>
             </div>
 
-            <footer className="mt-8 border-t pt-4">
+            <footer className="absolute bottom-8 left-8 right-8 border-t pt-4">
                 <p className="text-center text-sm text-gray-500">Thank you for your purchase!</p>
             </footer>
         </div>
