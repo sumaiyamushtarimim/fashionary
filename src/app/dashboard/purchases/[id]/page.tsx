@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,6 +11,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -27,10 +33,11 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getPurchaseOrderById } from "@/services/purchases";
+import { getPurchaseOrderById, updatePurchaseOrder } from "@/services/purchases";
 import { getSuppliers, getVendors } from "@/services/partners";
 import type { PurchaseOrder, PurchaseOrderLog, Supplier, Vendor, Payment } from "@/types";
 import { useUser } from "@clerk/nextjs";
+import Image from "next/image";
 
 type EnrichedPayment = Payment & {
     physicalInvoiceUrl?: string;
@@ -60,7 +67,7 @@ const calculateDue = (totalCost: number, payment: EnrichedPayment) => {
     return totalCost - paid;
 };
 
-const PaymentSection = ({ cost, payment, onPaymentChange, due, title, showUpload, onUpload }: { cost: number, payment: EnrichedPayment, onPaymentChange: (field: keyof EnrichedPayment, value: any) => void, due: number, title: string, showUpload: boolean, onUpload: () => void }) => (
+const PaymentSection = ({ cost, payment, onPaymentChange, due, title, showUpload, onUpload, onViewImage }: { cost: number, payment: EnrichedPayment, onPaymentChange: (field: keyof EnrichedPayment, value: any) => void, due: number, title: string, showUpload: boolean, onUpload: () => void, onViewImage: (url: string) => void }) => (
     <>
         <Separator />
         <div className="flex justify-between items-center">
@@ -68,7 +75,7 @@ const PaymentSection = ({ cost, payment, onPaymentChange, due, title, showUpload
              {showUpload && (
                 <div>
                     {payment.physicalInvoiceUrl ? (
-                         <Button variant="outline" size="sm">
+                         <Button variant="outline" size="sm" onClick={() => onViewImage(payment.physicalInvoiceUrl!)}>
                             <Eye className="mr-2 h-4 w-4"/>
                             Show Physical Invoice
                         </Button>
@@ -199,6 +206,11 @@ export default function PurchaseOrderDetailsPage() {
 
     const [finalReceivedQty, setFinalReceivedQty] = useState<number>(0);
     
+    const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
+    const [viewingImageUrl, setViewingImageUrl] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [uploadTarget, setUploadTarget] = useState<'fabric' | 'printing' | 'cutting' | null>(null);
+
     const userRole = user?.publicMetadata?.role as string | undefined;
 
     React.useEffect(() => {
@@ -245,6 +257,37 @@ export default function PurchaseOrderDetailsPage() {
         return false;
     }
 
+    const handleViewImage = (url: string) => {
+        setViewingImageUrl(url);
+        setIsImageViewerOpen(true);
+    };
+
+    const handleUploadClick = (target: 'fabric' | 'printing' | 'cutting') => {
+        setUploadTarget(target);
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file && uploadTarget && purchaseOrder) {
+            // Mocking upload by creating a blob URL. A real app would upload to a server/storage.
+            const objectUrl = URL.createObjectURL(file);
+            console.log(`Uploading for ${uploadTarget}, URL: ${objectUrl}`);
+            
+            const paymentKey = `${uploadTarget}Payment` as 'fabricPayment' | 'printingPayment' | 'cuttingPayment';
+            const updatedPayment = { ...purchaseOrder[paymentKey], physicalInvoiceUrl: objectUrl };
+
+            await updatePurchaseOrder(purchaseOrder.id, { [paymentKey]: updatedPayment });
+
+            if (uploadTarget === 'fabric') setFabricPayment(prev => ({...prev, physicalInvoiceUrl: objectUrl}));
+            if (uploadTarget === 'printing') setPrintingPayment(prev => ({...prev, physicalInvoiceUrl: objectUrl}));
+            if (uploadTarget === 'cutting') setCuttingPayment(prev => ({...prev, physicalInvoiceUrl: objectUrl}));
+
+            setUploadTarget(null);
+        }
+    };
+
+
     if (isLoading) {
         return <div className="p-6">Loading Purchase Order...</div>
     }
@@ -260,6 +303,7 @@ export default function PurchaseOrderDetailsPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-8 p-4 lg:gap-6 lg:p-6">
+        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
         <div className="flex items-center justify-between">
             <div>
                 <h1 className="font-headline text-2xl font-bold">
@@ -351,7 +395,8 @@ export default function PurchaseOrderDetailsPage() {
                             onPaymentChange={(field, value) => handlePaymentChange(setFabricPayment, field, value)}
                             due={fabricDue}
                             showUpload={canUserInteract(purchaseOrder.supplier)}
-                            onUpload={() => alert('Upload invoice for Fabric')}
+                            onUpload={() => handleUploadClick('fabric')}
+                            onViewImage={handleViewImage}
                         />
                     </CardContent>
                     <CardFooter>
@@ -398,7 +443,8 @@ export default function PurchaseOrderDetailsPage() {
                             onPaymentChange={(field, value) => handlePaymentChange(setPrintingPayment, field, value)}
                             due={printingDue}
                             showUpload={canUserInteract(purchaseOrder.printingVendor)}
-                            onUpload={() => alert('Upload invoice for printing')}
+                            onUpload={() => handleUploadClick('printing')}
+                            onViewImage={handleViewImage}
                         />
                     </CardContent>
                     <CardFooter>
@@ -442,7 +488,8 @@ export default function PurchaseOrderDetailsPage() {
                             onPaymentChange={(field, value) => handlePaymentChange(setCuttingPayment, field, value)}
                             due={cuttingDue}
                             showUpload={canUserInteract(purchaseOrder.cuttingVendor)}
-                            onUpload={() => alert('Upload invoice for cutting')}
+                            onUpload={() => handleUploadClick('cutting')}
+                            onViewImage={handleViewImage}
                         />
                     </CardContent>
                     <CardFooter>
@@ -470,6 +517,21 @@ export default function PurchaseOrderDetailsPage() {
                 </Card>
             </div>
         </div>
+
+        <Dialog open={isImageViewerOpen} onOpenChange={setIsImageViewerOpen}>
+            <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>Physical Invoice</DialogTitle>
+                </DialogHeader>
+                {viewingImageUrl && (
+                    <div className="py-4">
+                        <Image src={viewingImageUrl} alt="Physical Invoice" width={800} height={1100} className="w-full h-auto object-contain" />
+                    </div>
+                )}
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }
+
+    
