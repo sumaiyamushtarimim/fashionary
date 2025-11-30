@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo } from "react";
@@ -82,18 +83,18 @@ const PaymentSection = ({ cost, payment, onPaymentChange, due, title, showUpload
         </div>
         <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-                <Label htmlFor={`cash-${cost}`}>Cash Amount</Label>
-                <Input id={`cash-${cost}`} placeholder="0.00" type="number" value={payment.cash || ''} onChange={e => onPaymentChange('cash', parseFloat(e.target.value) || 0)} disabled={cost > 0 && cost === payment.check} />
+                <Label htmlFor={`cash-${title}`}>Cash Amount</Label>
+                <Input id={`cash-${title}`} placeholder="0.00" type="number" value={payment.cash || ''} onChange={e => onPaymentChange('cash', parseFloat(e.target.value) || 0)} disabled={cost > 0 && cost === payment.check} />
             </div>
             <div className="space-y-2">
-                <Label htmlFor={`check-${cost}`}>Check Amount</Label>
-                <Input id={`check-${cost}`} placeholder="0.00" type="number" value={payment.check || ''} onChange={e => onPaymentChange('check', parseFloat(e.target.value) || 0)} disabled={cost > 0 && cost === payment.cash} />
+                <Label htmlFor={`check-${title}`}>Check Amount</Label>
+                <Input id={`check-${title}`} placeholder="0.00" type="number" value={payment.check || ''} onChange={e => onPaymentChange('check', parseFloat(e.target.value) || 0)} disabled={cost > 0 && cost === payment.cash} />
             </div>
         </div>
         {(Number(payment.check) || 0) > 0 && (
             <div className="space-y-2">
-                <Label htmlFor={`check-date-${cost}`}>Check Passing Date</Label>
-                <Input id={`check-date-${cost}`} type="date" value={payment.checkDate} onChange={e => onPaymentChange('checkDate', e.target.value)} />
+                <Label htmlFor={`check-date-${title}`}>Check Passing Date</Label>
+                <Input id={`check-date-${title}`} type="date" value={payment.checkDate} onChange={e => onPaymentChange('checkDate', e.target.value)} />
             </div>
         )}
         <Separator />
@@ -187,6 +188,7 @@ export default function PurchaseOrderDetailsPage() {
     const [vendors, setVendors] = useState<Vendor[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    const [fabricPayment, setFabricPayment] = useState<EnrichedPayment>(initialPaymentState);
     const [printingQty, setPrintingQty] = useState<number>(0);
     const [printingCost, setPrintingCost] = useState<number>(0);
     const [printingPayment, setPrintingPayment] = useState<EnrichedPayment>(initialPaymentState);
@@ -214,6 +216,7 @@ export default function PurchaseOrderDetailsPage() {
                     setPrintingQty(poData.items);
                     setCuttingQty(poData.items);
                     setFinalReceivedQty(poData.items);
+                    if (poData.fabricPayment) setFabricPayment(poData.fabricPayment);
                     if (poData.printingPayment) setPrintingPayment(poData.printingPayment);
                     if (poData.cuttingPayment) setCuttingPayment(poData.cuttingPayment);
                 }
@@ -226,6 +229,7 @@ export default function PurchaseOrderDetailsPage() {
         setter(prev => ({ ...prev, [field]: value }));
     };
     
+    const fabricDue = useMemo(() => calculateDue(purchaseOrder?.total || 0, fabricPayment), [purchaseOrder, fabricPayment]);
     const printingDue = useMemo(() => calculateDue(printingCost, printingPayment), [printingCost, printingPayment]);
     const cuttingDue = useMemo(() => calculateDue(cuttingCost, cuttingPayment), [cuttingCost, cuttingPayment]);
     
@@ -314,10 +318,6 @@ export default function PurchaseOrderDetailsPage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>Order Summary</CardTitle>
-                        <Button variant="outline" size="sm">
-                            <Printer className="mr-2 h-4 w-4" />
-                            Print Invoice
-                        </Button>
                     </CardHeader>
                     <CardContent className="space-y-2 text-sm">
                         <div className="flex justify-between">
@@ -330,7 +330,7 @@ export default function PurchaseOrderDetailsPage() {
                         </div>
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">Fabric Cost:</span>
-                            <span className="font-medium">৳{purchaseOrder.total.toFixed(2)}</span>
+                            <span className="font-medium font-mono">৳{purchaseOrder.total.toFixed(2)}</span>
                         </div>
                          <div className="flex justify-between">
                             <span className="text-muted-foreground">Status:</span>
@@ -340,23 +340,25 @@ export default function PurchaseOrderDetailsPage() {
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Step 4: Delivery & Finish</CardTitle>
-                        <CardDescription>Receive final goods and update inventory.</CardDescription>
+                        <CardTitle>Step 1: Fabric Bill</CardTitle>
+                        <CardDescription>Payment details for the raw fabric.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div>
-                            <Label htmlFor="final-qty">Final Received Quantity</Label>
-                            <div className="flex items-center gap-2 mt-1">
-                                <Button variant="outline" size="icon" onClick={() => setFinalReceivedQty(q => Math.max(0, q - 1))}><Minus className="h-4 w-4" /></Button>
-                                <Input id="final-qty" type="number" className="text-center" value={finalReceivedQty} onChange={e => setFinalReceivedQty(Number(e.target.value) || 0)} />
-                                <Button variant="outline" size="icon" onClick={() => setFinalReceivedQty(q => q + 1)}><Plus className="h-4 w-4" /></Button>
-                            </div>
-                        </div>
+                        <PaymentSection 
+                            title="Fabric"
+                            cost={purchaseOrder.total}
+                            payment={fabricPayment}
+                            onPaymentChange={(field, value) => handlePaymentChange(setFabricPayment, field, value)}
+                            due={fabricDue}
+                            showUpload={canUserInteract(purchaseOrder.supplier)}
+                            onUpload={() => alert('Upload invoice for Fabric')}
+                        />
                     </CardContent>
                     <CardFooter>
-                         <Button className="w-full">Update Stock & Complete Order</Button>
+                         <Button className="w-full">Approve Fabric Payment</Button>
                     </CardFooter>
                 </Card>
+                <PurchaseOrderHistory logs={purchaseOrder.logs} />
             </div>
             <div className="lg:col-span-2 space-y-8">
                 <Card>
@@ -365,10 +367,6 @@ export default function PurchaseOrderDetailsPage() {
                             <CardTitle>Step 2: Printing</CardTitle>
                             <CardDescription>Manage printing vendor and costs.</CardDescription>
                         </div>
-                        <Button variant="outline" size="sm">
-                            <Printer className="mr-2 h-4 w-4" />
-                            Print Invoice
-                        </Button>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="grid grid-cols-2 gap-x-6 gap-y-4">
@@ -413,10 +411,6 @@ export default function PurchaseOrderDetailsPage() {
                             <CardTitle>Step 3: Cutting</CardTitle>
                             <CardDescription>Manage cutting vendor and costs.</CardDescription>
                         </div>
-                        <Button variant="outline" size="sm">
-                            <Printer className="mr-2 h-4 w-4" />
-                            Print Invoice
-                        </Button>
                     </CardHeader>
                     <CardContent className="space-y-6">
                          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
@@ -455,9 +449,25 @@ export default function PurchaseOrderDetailsPage() {
                          <Button>Approve for Cutting</Button>
                     </CardFooter>
                 </Card>
-                <div className="lg:col-span-3">
-                  <PurchaseOrderHistory logs={purchaseOrder.logs} />
-                </div>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Step 4: Delivery & Finish</CardTitle>
+                        <CardDescription>Receive final goods and update inventory.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div>
+                            <Label htmlFor="final-qty">Final Received Quantity</Label>
+                            <div className="flex items-center gap-2 mt-1">
+                                <Button variant="outline" size="icon" onClick={() => setFinalReceivedQty(q => Math.max(0, q - 1))}><Minus className="h-4 w-4" /></Button>
+                                <Input id="final-qty" type="number" className="text-center" value={finalReceivedQty} onChange={e => setFinalReceivedQty(Number(e.target.value) || 0)} />
+                                <Button variant="outline" size="icon" onClick={() => setFinalReceivedQty(q => q + 1)}><Plus className="h-4 w-4" /></Button>
+                            </div>
+                        </div>
+                    </CardContent>
+                    <CardFooter>
+                         <Button className="w-full">Update Stock & Complete Order</Button>
+                    </CardFooter>
+                </Card>
             </div>
         </div>
     </div>
