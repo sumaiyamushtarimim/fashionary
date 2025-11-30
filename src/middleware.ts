@@ -1,12 +1,12 @@
 
-import { clerkMiddleware, createRouteMatcher, auth } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from 'next/server';
 import type { Permission, StaffMember, StaffRole } from '@/types';
 
 // --- PERMISSIONS PRESETS ---
-const FULL_ACCESS = { create: true, read: true, update: true, delete: true };
-const READ_ONLY = { create: false, read: true, update: false, delete: false };
-const CREATE_READ_UPDATE = { create: true, read: true, update: true, delete: false };
+const FULL_ACCESS: Permission = { create: true, read: true, update: true, delete: true };
+const READ_ONLY: Permission = { create: false, read: true, update: false, delete: false };
+const CREATE_READ_UPDATE: Permission = { create: true, read: true, update: true, delete: false };
 const NO_ACCESS = { create: false, read: false, update: false, delete: false };
 
 const PERMISSIONS: Record<StaffRole, StaffMember['permissions']> = {
@@ -104,8 +104,9 @@ export default clerkMiddleware((auth, req) => {
     if (!isProtectedRoute(req)) {
         return NextResponse.next();
     }
-
-    const { sessionClaims } = auth.protect();
+    
+    // This protects all routes matching /dashboard(.*)
+    const { sessionClaims } = auth().protect();
 
     const pathname = req.nextUrl.pathname;
     const userRole = sessionClaims.publicMetadata?.role as StaffRole | undefined;
